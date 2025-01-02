@@ -3,9 +3,10 @@ import { derived, valueIsSignal } from "../../core.ts";
 import type { DerivedSignal, Signal } from "../../types.ts";
 
 /**
- * Derived object with all of its properties are derived signals
- * @param objSignal
- * @returns
+ * A method to get all of the properties of a signalled object as derived signals.
+ * Any change in object signal results in an update in their property signals.
+ * @param objSignal an object signal
+ * @returns all of its properties as derived signals
  */
 export const dprops = <T extends object>(
   objSignal: Signal<T>

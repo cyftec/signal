@@ -1,24 +1,19 @@
-import { derived, valueIsSignal } from "../../core.ts";
+import { derived, type DerivedValueGetterWithSignals } from "../../core.ts";
 import type { DerivedSignal, MaybeSignal, Signal } from "../../types.ts";
 import { val } from "./misc.ts";
 
-type BoolGetter = (() => any) | MaybeSignal<any>;
-
-type TruthyFalsyDerivedSignalsPair = [
-  DerivedSignal<boolean>,
-  DerivedSignal<boolean>
-];
-
 /**
- * A method to get derived signals Tuple of truthy and falsy values
- * @param @type BoolGetter
- * @returns @type TruthyFalsyDerivedSignalsPair
+ * A method to get a pair of derived truthy and falsy value signals
+ * @param boolGetter should be either a deriver function (with signals)
+ * or any other javascript value, preferably signals
+ * @returns a (pair) array of truthy and falsy derived signals
+ * @see DerivedValueGetterWithSignals
+ * @see Signal
+ *
  */
-type DerivedBoolsPair = (
-  boolGetter: BoolGetter
-) => TruthyFalsyDerivedSignalsPair;
-
-export const dbools: DerivedBoolsPair = (boolGetter) => {
+export const dbools = (
+  boolGetter: DerivedValueGetterWithSignals<any> | MaybeSignal<any>
+): readonly [DerivedSignal<boolean>, DerivedSignal<boolean>] => {
   const truthy =
     typeof boolGetter === "function"
       ? derived(() => !!boolGetter())

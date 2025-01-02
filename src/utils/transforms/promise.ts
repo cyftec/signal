@@ -3,15 +3,15 @@ import type { DerivedSignal } from "../../types.ts";
 import { dprops } from "./object.ts";
 
 /**
- * A function to derive promise state signals
+ * A function to derive signalled promise states
  * @param promiseFn A promise returning function from which prmoise states will be derived
  * @param ultimately Callback to run in 'finally' block of the promise
  * @returns promise runner function along with the derived signal states of the promise
  */
-type PromiseStatesDeriver = <R, Args extends Array<any>>(
+export const dpromise = <R, Args extends Array<any>>(
   promiseFn: (...args: Args) => Promise<R>,
   ultimately?: () => void
-) => readonly [
+): readonly [
   /**
    * Promise runner method which takes same arguments as the original promise
    * but doesn't return the result. Instead it updates the signals of resulting
@@ -24,12 +24,7 @@ type PromiseStatesDeriver = <R, Args extends Array<any>>(
   DerivedSignal<Error | undefined>,
   /** Derived signal of whether promise is currently running or not */
   DerivedSignal<boolean>
-];
-
-export const dpromise: PromiseStatesDeriver = <R, Args extends Array<any>>(
-  promiseFn: (...args: Args) => Promise<R>,
-  ultimately?: () => void
-) => {
+] => {
   type PromState = {
     isRunning: boolean;
     result: R | undefined;

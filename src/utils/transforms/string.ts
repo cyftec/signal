@@ -1,4 +1,8 @@
-import { derived, valueIsSignal } from "../../core.ts";
+import {
+  derived,
+  DerivedValueGetterWithSignals,
+  valueIsSignal,
+} from "../../core.ts";
 import type { DerivedSignal, Signal } from "../../types.ts";
 
 /**
@@ -8,16 +12,16 @@ import type { DerivedSignal, Signal } from "../../types.ts";
  * @type {Signal<any>} need to be passed when you have the signal handy and entire
  * template literal along with this signal is used to derive the final string signal
  *
- * @type {() => any} need to passed when you want to derive a signal (from one or may other signals)
- * before passing it to the tagged template literal method @see dstr
- * this is same as using derived(() => someOtherSignal.value)
+ * @type {DerivedValueGetterWithSignals} need to passed when you want to derive a signal (from one or may other signals)
+ * before passing it to the tagged template literal method -  'dstring'.
+ * This is same as using derived(() => someOtherSignal.value)
  *
  * @type {any} is used when you don't know what is the type of the passed variable
  * particularly helpful in some cases when it may or maynot be a signal
  */
 export type StringSignalDeriverTemplateExpressions = (
   | Signal<any>
-  | (() => any)
+  | DerivedValueGetterWithSignals<any>
   | any
 )[];
 

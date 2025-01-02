@@ -1,11 +1,11 @@
 {
-  "name": "@cyf__/signal",
+  "name": "@cyftech/signal",
   "version": "0.1.0",
   "author": "Chandan Kumar (Cyfer Tech)",
   "license": "MIT",
   "exports": "./index.ts",
   "dependencies": {
-    "@cyf__/immutjs": "0.1.0"
+    "@cyftech/immutjs": "0.1.0"
   },
   "publishConfig": {
     "access": "public"
