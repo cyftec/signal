@@ -1,4 +1,4 @@
-import { immut, newVal } from "@cyf__/immutjs";
+import { immut, newVal } from "@cyftech/immutjs";
 import type { DerivedSignal, MaybeSignal, SourceSignal } from "./types.ts";
 
 /**
