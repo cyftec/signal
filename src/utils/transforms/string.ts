@@ -1,9 +1,11 @@
-import {
-  derived,
-  DerivedValueGetterWithSignals,
-  valueIsSignal,
-} from "../../core.ts";
-import type { DerivedSignal, Signal } from "../../types.ts";
+import { derived, DerivedValueGetterWithSignals } from "../../core.ts";
+import type {
+  DerivedSignal,
+  MaybeSignalObject,
+  NonSignal,
+  Signal,
+} from "../../types.ts";
+import { valueIsMaybeSignalObject } from "../type-checkers.ts";
 
 /**
  * The expressions required inside ${} of the tagged template function @see dstring
@@ -42,8 +44,8 @@ export const dstring = (
 
       if (typeof expression === "function") {
         expValue = expression() ?? "";
-      } else if (valueIsSignal(expression)) {
-        expValue = (expression as Signal<any>).value ?? "";
+      } else if (valueIsMaybeSignalObject(expression)) {
+        expValue = (expression as MaybeSignalObject<any>).value ?? "";
       } else {
         expValue = (expression as any) ?? "";
       }

@@ -1,6 +1,7 @@
 import { isPlainObject } from "@cyftech/immutjs";
-import { derived, valueIsSignal } from "../../core.ts";
+import { derived } from "../../core.ts";
 import type { DerivedSignal, Signal } from "../../types.ts";
+import { valueIsSignal } from "../type-checkers.ts";
 
 /**
  * A method to get all of the properties of a signalled object as derived signals.

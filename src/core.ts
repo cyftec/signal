@@ -1,5 +1,5 @@
 import { immut, newVal } from "@cyftech/immutjs";
-import type { DerivedSignal, MaybeSignal, SourceSignal } from "./types.ts";
+import type { DerivedSignal, SourceSignal } from "./types.ts";
 
 /**
  * A function which should contain one or many signals along with
@@ -139,33 +139,3 @@ export const derived = <T>(
 
   return derivedSignal;
 };
-
-/**
- * Checks if any given value is source signal or not.
- * @see SourceSignal for details
- * @param value can be any javascript value
- * @returns true if the value is a source signal or false if otherwise
- */
-export const valueIsSourceSignal = (value: MaybeSignal<any>): boolean =>
-  !!(value?.type === "source-signal");
-
-/**
- * Checks if any given value is derived signal or not.
- * @see DerivedSignal for details
- * @param value can be any javascript value
- * @returns true if the value is a derived signal or false if otherwise
- */
-export const valueIsDerivedSignal = (value: MaybeSignal<any>): boolean =>
-  !!(value?.type === "derived-signal");
-
-/**
- * Checks if any given value is a signal or not.
- *
- * For details,
- * @see SourceSignal
- * @see DerivedSignal
- * @param value can be any javascript value
- * @returns true if the value is any of a source or derived signal or false if otherwise
- */
-export const valueIsSignal = (value: MaybeSignal<any>): boolean =>
-  ["source-signal", "derived-signal"].includes(value?.type);

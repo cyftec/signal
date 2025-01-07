@@ -1,5 +1,5 @@
 import { derived, type DerivedValueGetterWithSignals } from "../../core.ts";
-import type { DerivedSignal, MaybeSignal, Signal } from "../../types.ts";
+import type { DerivedSignal, MaybeSignalValue, Signal } from "../../types.ts";
 import { val } from "./misc.ts";
 
 /**
@@ -12,7 +12,7 @@ import { val } from "./misc.ts";
  *
  */
 export const dbools = (
-  boolGetter: DerivedValueGetterWithSignals<any> | MaybeSignal<any>
+  boolGetter: DerivedValueGetterWithSignals<any> | MaybeSignalValue<any>
 ): readonly [DerivedSignal<boolean>, DerivedSignal<boolean>] => {
   const truthy =
     typeof boolGetter === "function"
