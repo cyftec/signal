@@ -1,11 +1,9 @@
-import { derive, DerivedValueGetterWithSignals } from "../../core.ts";
-import type {
-  DerivedSignal,
-  MaybeSignalObject,
-  NonSignal,
-  Signal,
-} from "../../types.ts";
-import { valueIsMaybeSignalObject } from "../type-checkers.ts";
+import {
+  derive,
+  DerivedValueGetterWithSignals,
+  valueIsMaybeSignalObject,
+} from "../../core";
+import type { DerivedSignal, MaybeSignalObject, Signal } from "../../types.ts";
 
 /**
  * The expressions required inside ${} of the tagged template function @see dstring

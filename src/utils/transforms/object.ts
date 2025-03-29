@@ -1,5 +1,5 @@
 import { isPlainObject } from "@cyftech/immutjs";
-import { derive } from "../../core.ts";
+import { derive } from "../../core";
 import type { DerivedSignal, MaybeSignalObject } from "../../types.ts";
 
 /**
@@ -16,7 +16,7 @@ export const dobject = <T extends object, K extends keyof T>(
 ) => {
   if (!isPlainObject(obj.value)) {
     throw new Error(
-      "Thee argument should be a plain object or a signal (of plain object)"
+      "Thee argument should be a plain object or a signal of plain object"
     );
   }
 

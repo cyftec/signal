@@ -56,3 +56,18 @@ export type MaybeSignalObject<T> = NonSignal<T> | Signal<T>;
  * MaybeSignal along with NonSignal object
  */
 export type MaybeSignalValue<T> = NonSignal<T> | MaybeSignal<T>;
+
+/**
+ * Handy (derived-signal) properties and methods for most commonly used scenarios
+ */
+export type ComputedSignalsObject<T> = {
+  or: (orValue: NonNullable<T>) => DerivedSignal<NonNullable<T>>;
+  orIfNullish: (orValue: NonNullable<T>) => DerivedSignal<NonNullable<T>>;
+  oneOf: <Tr, Fl>(
+    ifTruthy: MaybeSignalValue<Tr>,
+    ifFalsy: MaybeSignalValue<Fl>
+  ) => DerivedSignal<Tr | Fl>;
+  get string(): DerivedSignal<string>;
+  get bool(): DerivedSignal<boolean>;
+  get bools(): DerivedSignal<readonly [boolean, boolean]>;
+};

@@ -1,5 +1,11 @@
 import { immut, newVal } from "@cyftech/immutjs";
-import type { DerivedSignal, SourceSignal } from "./types.ts";
+import type {
+  DerivedSignal,
+  ComputedSignalsObject,
+  MaybeSignalValue,
+  SourceSignal,
+} from "../types.ts";
+import { value } from "./value-extractor.ts";
 
 /**
  * A function which should contain one or many signals along with
@@ -40,11 +46,11 @@ let subscriber: SignalSubscriber = null;
  * @see effect
  * for details about how it enables a signal to propagate changes
  *
- * @param value any javascript data type which need to be changed into a signal
+ * @param input any javascript data type which need to be changed into a signal
  * @returns a signalified version of plain javascript data
  */
-export const signal = <T>(value: T): SourceSignal<T> => {
-  let _value = immut(value);
+export const signal = <T>(input: T): SourceSignal<T> => {
+  let _value = immut(input);
   const subscriptions = new Set<SignalSubscriber>();
 
   return {
@@ -138,4 +144,39 @@ export const derive = <T>(
   };
 
   return derivedSignal;
+};
+
+/**
+ * A method to return handy derived signals of most-frequently required transforms
+ *
+ * @param input any value for which transformed derived signal is required
+ * @see MaybeSignalValue
+ * @returns an object of handy transform methods as its properties, which return
+ * derived signal
+ */
+export const compute = <T>(
+  input: MaybeSignalValue<T>
+): ComputedSignalsObject<T> => {
+  return {
+    or: (orValue: NonNullable<T>) => derive(() => value(input) || orValue),
+    orIfNullish: (orValue: NonNullable<T>) =>
+      derive(() => value(input) ?? orValue),
+    oneOf: <T, F>(
+      ifTruthy: MaybeSignalValue<T>,
+      ifFalsy: MaybeSignalValue<F>
+    ) => derive(() => (!!value(input) ? value(ifTruthy) : value(ifFalsy))),
+    get string() {
+      return derive(() => (value(input) as any).toString());
+    },
+    get bool() {
+      return derive(() => !!value(input));
+    },
+    get bools() {
+      return derive(() => {
+        const truthyVal = !!value(input);
+        const pair = [truthyVal, !truthyVal] as const;
+        return pair;
+      });
+    },
+  };
 };

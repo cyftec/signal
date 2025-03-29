@@ -1,4 +1,4 @@
-import { signal } from "../../core.ts";
+import { signal } from "../../core";
 import type { DerivedSignal } from "../../types.ts";
 import { dobject } from "./object.ts";
 
