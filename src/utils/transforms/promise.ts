@@ -1,6 +1,6 @@
 import { signal } from "../../core.ts";
 import type { DerivedSignal } from "../../types.ts";
-import { dprops } from "./object.ts";
+import { dobject } from "./object.ts";
 
 /**
  * A function to derive signalled promise states
@@ -70,6 +70,6 @@ export const dpromise = <R, Args extends Array<any>>(
       })
       .finally(ultimately);
 
-  const { isRunning, result, error } = dprops(state);
+  const { isRunning, result, error } = dobject(state).props;
   return [runPromise, result, error, isRunning] as const;
 };

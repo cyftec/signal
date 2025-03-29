@@ -1,26 +1,35 @@
 import { isPlainObject } from "@cyftech/immutjs";
 import { derive } from "../../core.ts";
-import type { DerivedSignal, Signal } from "../../types.ts";
-import { valueIsSignal } from "../type-checkers.ts";
+import type { DerivedSignal, MaybeSignalObject } from "../../types.ts";
 
 /**
  * A method to get all of the properties of a signalled object as derived signals.
  * Any change in object signal results in an update in their property signals.
- * @param objSignal an object signal
+ * @param obj an object in MaybeSignalObject format (either 'object',
+ * Signal<'object'> or NonSignal<'object'>)
  * @returns all of its properties as derived signals
+ * @see MaybeSignalObject
  */
-export const dprops = <T extends object>(
-  objSignal: Signal<T>
-): { [key in keyof T]: DerivedSignal<T[key]> } => {
-  if (!valueIsSignal(objSignal) || !isPlainObject(objSignal.value)) {
-    throw new Error("Thee argument should be signal of a plain object");
+
+export const dobject = <T extends object, K extends keyof T>(
+  obj: MaybeSignalObject<T>
+) => {
+  if (!isPlainObject(obj.value)) {
+    throw new Error(
+      "Thee argument should be a plain object or a signal (of plain object)"
+    );
   }
 
-  const signalledPropsObj = Object.keys(objSignal.value).reduce((map, k) => {
-    const key = k as keyof T;
-    map[key] = derive(() => objSignal.value[key]);
-    return map;
-  }, {} as { [key in keyof T]: DerivedSignal<T[key]> });
+  return {
+    prop: (key: K) => derive(() => obj.value[key]),
+    get props() {
+      const signalledPropsObj = Object.keys(obj.value).reduce((map, k) => {
+        const key = k as keyof T;
+        map[key] = this.prop(key);
+        return map;
+      }, {} as { [key in keyof T]: DerivedSignal<T[key]> });
 
-  return signalledPropsObj;
+      return signalledPropsObj;
+    },
+  };
 };
