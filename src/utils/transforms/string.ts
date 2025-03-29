@@ -1,4 +1,4 @@
-import { derived, DerivedValueGetterWithSignals } from "../../core.ts";
+import { derive, DerivedValueGetterWithSignals } from "../../core.ts";
 import type {
   DerivedSignal,
   MaybeSignalObject,
@@ -16,7 +16,7 @@ import { valueIsMaybeSignalObject } from "../type-checkers.ts";
  *
  * @type {DerivedValueGetterWithSignals} need to passed when you want to derive a signal (from one or may other signals)
  * before passing it to the tagged template literal method -  'dstring'.
- * This is same as using derived(() => someOtherSignal.value)
+ * This is same as using derive(() => someOtherSignal.value)
  *
  * @type {any} is used when you don't know what is the type of the passed variable
  * particularly helpful in some cases when it may or maynot be a signal
@@ -37,7 +37,7 @@ export const dstring = (
   strings: TemplateStringsArray,
   ...tlExpressions: StringSignalDeriverTemplateExpressions
 ): DerivedSignal<string> =>
-  derived(() => {
+  derive(() => {
     return strings.reduce((acc, fragment, i) => {
       let expValue;
       const expression = tlExpressions[i];
