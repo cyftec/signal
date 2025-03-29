@@ -7,7 +7,7 @@ The implementation consists of basic building blocks like,
 <br>
 `signal` - the method to create a source signal of data
 <br>
-`derived` - the method to create a read-only signal from other signal(s).
+`derive` - the method to create a read-only signal from other signal(s).
 <br>
 `effect` - the method which takes a callback function, to be run whenever the signals (called inside the callback function's definition), changes
 

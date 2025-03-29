@@ -1,5 +1,5 @@
 import { isPlainObject } from "@cyftech/immutjs";
-import { derived } from "../../core.ts";
+import { derive } from "../../core.ts";
 import type { DerivedSignal, Signal } from "../../types.ts";
 import { valueIsSignal } from "../type-checkers.ts";
 
@@ -18,7 +18,7 @@ export const dprops = <T extends object>(
 
   const signalledPropsObj = Object.keys(objSignal.value).reduce((map, k) => {
     const key = k as keyof T;
-    map[key] = derived(() => objSignal.value[key]);
+    map[key] = derive(() => objSignal.value[key]);
     return map;
   }, {} as { [key in keyof T]: DerivedSignal<T[key]> });
 

@@ -76,13 +76,13 @@ export const effect = (fn: SignalSubscriberMethod): void => {
 };
 
 /**
- * A function that should be passed to 'derived' method for getting a derived value signal
+ * A function that should be passed to 'derive' method for getting a derived value signal
  *
  * It should (ideally) contain one or many signals along with their values. It processes
  * those signal values and returns the value desired to be used as value of the derived signal
  * @param oldValue the previous return value of this method
  * @return any value desired to be used as value of derived signal
- * @see derived
+ * @see derive
  *
  *
  * Examples:
@@ -117,7 +117,7 @@ export type DerivedValueGetterWithSignals<T> = (oldValue: T | undefined) => T;
  * @see DerivedValueGetterWithSignals
  * @returns a read-only signal which is returned from valueGetterFn param
  */
-export const derived = <T>(
+export const derive = <T>(
   valueGetterFn: DerivedValueGetterWithSignals<T>
 ): DerivedSignal<T> => {
   let oldValue: T | undefined;

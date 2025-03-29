@@ -1,4 +1,4 @@
-import { derived, type DerivedValueGetterWithSignals } from "../../core.ts";
+import { derive, type DerivedValueGetterWithSignals } from "../../core.ts";
 import type { DerivedSignal, MaybeSignalValue, Signal } from "../../types.ts";
 import { val } from "./misc.ts";
 
@@ -16,9 +16,9 @@ export const dbools = (
 ): readonly [DerivedSignal<boolean>, DerivedSignal<boolean>] => {
   const truthy =
     typeof boolGetter === "function"
-      ? derived(() => !!boolGetter())
-      : derived(() => !!val(boolGetter));
-  const falsy = derived(() => !truthy.value);
+      ? derive(() => !!boolGetter())
+      : derive(() => !!val(boolGetter));
+  const falsy = derive(() => !truthy.value);
 
   return [truthy, falsy];
 };
