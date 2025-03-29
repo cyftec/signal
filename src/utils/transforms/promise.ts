@@ -5,11 +5,13 @@ import { dobject } from "./object.ts";
 /**
  * A function to derive signalled promise states
  * @param promiseFn A promise returning function from which prmoise states will be derived
+ * @param initialValue to make sure that return of promise is initialized with some value
  * @param ultimately Callback to run in 'finally' block of the promise
  * @returns promise runner function along with the derived signal states of the promise
  */
-export const dpromise = <R, Args extends Array<any>>(
+export const dpromise = <R, Args extends Array<any>, I>(
   promiseFn: (...args: Args) => Promise<R>,
+  initialValue?: I,
   ultimately?: () => void
 ): readonly [
   /**
@@ -19,7 +21,7 @@ export const dpromise = <R, Args extends Array<any>>(
    */
   (...args: Args) => Promise<void>,
   /** Derived signal of result of the promise. */
-  DerivedSignal<R | undefined>,
+  DerivedSignal<unknown extends I ? R | undefined : R | I>,
   /** Derived signal of promise error. */
   DerivedSignal<Error | undefined>,
   /** Derived signal of whether promise is currently running or not */
@@ -27,12 +29,14 @@ export const dpromise = <R, Args extends Array<any>>(
 ] => {
   type PromState = {
     isRunning: boolean;
-    result: R | undefined;
+    result: unknown extends I ? R | undefined : R | I;
     error: Error | undefined;
   };
   const state = signal<PromState>({
     isRunning: false,
-    result: undefined,
+    result: (initialValue || undefined) as unknown extends I
+      ? R | undefined
+      : R | I,
     error: undefined,
   });
 
@@ -48,7 +52,7 @@ export const dpromise = <R, Args extends Array<any>>(
       .catch((e) => {
         const prevResult = state.value.result;
         /**
-         * result.value is not set to undefined because, if the promise
+         * result.value is not set to undefined or 'intialValue' because, if the promise
          * is run multiple times, ideally last result.value should not be
          * overriden due to current error.
          *
