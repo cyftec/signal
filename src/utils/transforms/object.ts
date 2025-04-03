@@ -11,9 +11,7 @@ import type { DerivedSignal, MaybeSignalObject } from "../../types.ts";
  * @see MaybeSignalObject
  */
 
-export const dobject = <T extends object, K extends keyof T>(
-  obj: MaybeSignalObject<T>
-) => {
+export const dobject = <T extends object>(obj: MaybeSignalObject<T>) => {
   if (!isPlainObject(obj.value)) {
     throw new Error(
       "Thee argument should be a plain object or a signal of plain object"
@@ -21,7 +19,7 @@ export const dobject = <T extends object, K extends keyof T>(
   }
 
   return {
-    prop: (key: K) => derive(() => obj.value[key]),
+    prop: <K extends keyof T>(key: K) => derive(() => obj.value[key]),
     get props() {
       const signalledPropsObj = Object.keys(obj.value).reduce((map, k) => {
         const key = k as keyof T;
