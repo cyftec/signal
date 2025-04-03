@@ -1,4 +1,4 @@
-import { effect } from "../core.ts";
+import { effect } from "../core";
 import type { Signal, SourceSignal } from "../types.ts";
 
 /**
