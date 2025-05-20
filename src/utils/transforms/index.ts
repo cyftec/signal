@@ -1,3 +1,4 @@
-export * from "./object.ts";
-export * from "./promise.ts";
-export * from "./string.ts";
+export * from "./compute";
+export * from "./promise";
+export * from "./string";
+export * from "./trap/index";

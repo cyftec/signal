@@ -1,4 +1,5 @@
 import { MaybeSignal, MaybeSignalObject } from "../types";
+import { value } from "./value-extractor";
 
 /**
  * Checks if any given value is source signal or not.
@@ -91,3 +92,14 @@ export const valueIsNonSignalStringArray = (input: any): boolean =>
   input?.type === "non-signal" &&
   Array.isArray(input?.value) &&
   (input?.value as any[]).every((item) => typeof item === "string");
+
+/**
+ * Checks is the value is MaybeSignalValue of string or array or not
+ *
+ * References,
+ * @see MaybeSignalValue
+ * @param input can be any javascript value
+ * @returns true if value is MaybeSignalValue or string or array, otherwise false.
+ */
+export const valueIsMaybeSignalValueOfStringOrArray = (input: any): boolean =>
+  typeof value(input) === "string" || Array.isArray(value(input));

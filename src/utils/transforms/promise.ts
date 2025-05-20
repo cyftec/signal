@@ -1,6 +1,6 @@
 import { signal } from "../../core";
 import type { DerivedSignal } from "../../types.ts";
-import { dobject } from "./object.ts";
+import { trap } from "./trap";
 
 /**
  * A function to derive signalled promise states
@@ -74,6 +74,6 @@ export const dpromise = <R, Args extends Array<any>, I>(
       })
       .finally(ultimately);
 
-  const { isRunning, result, error } = dobject(state).props;
+  const { isRunning, result, error } = trap(state).props;
   return [runPromise, result, error, isRunning] as const;
 };
