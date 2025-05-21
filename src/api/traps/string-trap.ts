@@ -1,11 +1,11 @@
-import { derive, signal } from "../../../core/main";
-import { value } from "../../../core/value-extractor";
 import {
   MaybeSignalValue,
   SignalifiedFunction,
   StringSignalTrap,
-} from "../../../types";
-import { getDesignalifiedMethodParams } from "../../common";
+} from "../../types";
+import { value } from "../../utils";
+import { derive, signal } from "../_core";
+import { getDesignalifiedMethodParams } from "../common-utils";
 import { stringAndArrayTrap } from "./string-and-array-trap";
 
 /**

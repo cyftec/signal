@@ -1,6 +1,6 @@
-import { derive } from "../../../core/main";
-import { value } from "../../../core/value-extractor";
-import { MaybeSignalValue, StringAndArraySignalTrap } from "../../../types";
+import { derive } from "../_core";
+import { value } from "../../utils";
+import { MaybeSignalValue, StringAndArraySignalTrap } from "../../types";
 
 export const stringAndArrayTrap = <T extends Array<any> | string>(
   input: MaybeSignalValue<T>

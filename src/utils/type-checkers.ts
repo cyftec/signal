@@ -1,5 +1,5 @@
 import { MaybeSignal, MaybeSignalObject } from "../types";
-import { value } from "./value-extractor";
+import { value } from "./value-getter";
 
 /**
  * Checks if any given value is source signal or not.

@@ -1,4 +1,4 @@
-import { effect, signal, type SourceSignal } from "../index.ts";
+import { effect, signal, type SourceSignal } from "../index.js";
 
 let sigValue = "nothing";
 const strSignal: SourceSignal<string> = signal(sigValue);

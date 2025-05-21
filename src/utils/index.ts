@@ -1,2 +1,2 @@
-export * from "./connectors";
-export * from "./transforms/index";
+export * from "./type-checkers";
+export * from "./value-getter";

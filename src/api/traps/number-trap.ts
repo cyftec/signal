@@ -1,11 +1,11 @@
-import { derive } from "../../../core/main";
-import { value } from "../../../core/value-extractor";
+import { derive } from "../_core";
+import { value } from "../../utils";
 import {
   MaybeSignalValue,
   NumberSignalTrap,
   SignalifiedFunction,
-} from "../../../types";
-import { getDesignalifiedMethodParams } from "../../common";
+} from "../../types";
+import { getDesignalifiedMethodParams } from "../common-utils";
 
 /**
  * A method which traps a MaybeSignalValue and returns handy derived signals

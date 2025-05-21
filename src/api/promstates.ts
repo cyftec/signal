@@ -1,15 +1,15 @@
-import { signal } from "../../core";
-import type { DerivedSignal } from "../../types.ts";
-import { trap } from "./trap";
+import type { DerivedSignal } from "../types";
+import { signal } from "./_core";
+import { trap } from "./traps";
 
 /**
- * A function to derive signalled promise states
+ * A function to derive signalled states of a promise
  * @param promiseFn A promise returning function from which prmoise states will be derived
  * @param initialValue to make sure that return of promise is initialized with some value
  * @param ultimately Callback to run in 'finally' block of the promise
  * @returns promise runner function along with the derived signal states of the promise
  */
-export const dpromise = <R, Args extends Array<any>, I>(
+export const promstates = <R, Args extends Array<any>, I>(
   promiseFn: (...args: Args) => Promise<R>,
   initialValue?: I,
   ultimately?: () => void

@@ -1,5 +1,5 @@
 import { immut, newVal } from "@cyftech/immutjs";
-import type { DerivedSignal, SourceSignal } from "../types.ts";
+import type { DerivedSignal, SourceSignal } from "../types.js";
 
 /**
  * A function which should contain one or many signals along with

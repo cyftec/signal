@@ -1,13 +1,13 @@
 import { newVal } from "@cyftech/immutjs";
-import { derive } from "../../../core/main";
-import { value } from "../../../core/value-extractor";
+import { derive } from "../_core";
+import { value } from "../../utils";
 import {
   ArraySignalTrap,
   MaybeSignalValue,
   SignalifiedFunction,
-} from "../../../types";
-import { getDesignalifiedMethodParams } from "../../common";
+} from "../../types";
 import { stringAndArrayTrap } from "./string-and-array-trap";
+import { getDesignalifiedMethodParams } from "../common-utils";
 
 /**
  * A method which traps a MaybeSignalValue and returns handy derived signals

@@ -1,3 +1,3 @@
-export * from "./core";
-export * from "./utils/index";
+export * from "./api";
+export * from "./utils";
 export * from "./types";

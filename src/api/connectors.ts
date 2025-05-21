@@ -1,5 +1,5 @@
-import { effect } from "../core";
-import type { Signal, SourceSignal } from "../types.ts";
+import type { Signal, SourceSignal } from "../types";
+import { effect } from "./_core";
 
 /**
  * When two or more signals are same, yet they exist independently, in

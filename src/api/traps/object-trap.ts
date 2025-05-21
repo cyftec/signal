@@ -1,10 +1,7 @@
 import { isPlainObject } from "@cyftech/immutjs";
-import {
-  DerivedSignal,
-  MaybeSignalValue,
-  RecordSignalTrap,
-} from "../../../types";
-import { derive, value } from "../../../core";
+import { DerivedSignal, MaybeSignalValue, RecordSignalTrap } from "../../types";
+import { value } from "../../utils";
+import { derive } from "../_core";
 
 /**
  * A method to get all of the properties of a signalled object as derived signals.

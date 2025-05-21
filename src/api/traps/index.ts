@@ -1,11 +1,11 @@
 import { isPlainObject } from "@cyftech/immutjs";
-import { value } from "../../../core/value-extractor";
+import { value } from "../../utils";
 import {
-  GenericSignalTrap,
+  Operation,
   MaybeSignalValue,
   SignalTrap,
   SpecificTypeSignalTrap,
-} from "../../../types";
+} from "../../types";
 import { arrayTrap } from "./array-trap";
 import { genericTrap } from "./generic-trap";
 import { numberTrap } from "./number-trap";
@@ -34,6 +34,6 @@ export const specificTrap = <T>(input: MaybeSignalValue<T>) => {
 };
 
 export const trap = <T>(input: MaybeSignalValue<T>): SignalTrap<T> => ({
-  ...(genericTrap(input) as GenericSignalTrap<T>),
+  ...(genericTrap(input) as Operation<T>),
   ...(specificTrap(input) as SpecificTypeSignalTrap<T>),
 });

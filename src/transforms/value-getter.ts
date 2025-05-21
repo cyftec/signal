@@ -1,5 +1,5 @@
-import { MaybeSignalObject, MaybeSignalValue } from "../types.ts";
-import { valueIsMaybeSignalObject } from "./type-checkers.ts";
+import { MaybeSignalObject, MaybeSignalValue } from "../types.js";
+import { valueIsMaybeSignalObject } from "./type-checkers.js";
 
 /**
  * A shorthand method to get value of a maybe-signal data.

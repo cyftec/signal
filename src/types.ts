@@ -72,16 +72,6 @@ export type SignalifiedFunction<F extends (...args: any[]) => any> = (
  * Signal Traps
  * Handy (derived-signal) properties and methods for most commonly used scenarios
  */
-type EitherOrResolver = <Tr, Fl>(
-  valueIfTruthy: MaybeSignalValue<Tr>,
-  valueIfFalsy: MaybeSignalValue<Fl>
-) => DerivedSignal<Tr | Fl>;
-
-type ComparisonResultObject = {
-  get truthy(): DerivedSignal<boolean>;
-  get falsy(): DerivedSignal<boolean>;
-  resolvesTo: EitherOrResolver;
-};
 
 export type NumberSignalTrap = {
   toConfined: (
@@ -95,22 +85,22 @@ export type NumberSignalTrap = {
   ) => DerivedSignal<string>;
   toFixed: SignalifiedFunction<number["toFixed"]>;
   toPrecision: SignalifiedFunction<number["toPrecision"]>;
-  isLT: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  isGT: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  equals: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  notEquals: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  isLTE: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  isGTE: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
+  isLT: ComparisonOperation;
+  isGT: ComparisonOperation;
+  equals: ComparisonOperation;
+  notEquals: ComparisonOperation;
+  isLTE: ComparisonOperation;
+  isGTE: ComparisonOperation;
 };
 
 export type StringAndArraySignalTrap = {
   get length(): DerivedSignal<number>;
-  lengthLT: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  lengthGT: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  lengthE: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  lengthNE: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  lengthLTE: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
-  lengthGTE: (compareValue: MaybeSignalValue<number>) => ComparisonResultObject;
+  lengthLT: ComparisonOperation;
+  lengthGT: ComparisonOperation;
+  lengthE: ComparisonOperation;
+  lengthNE: ComparisonOperation;
+  lengthLTE: ComparisonOperation;
+  lengthGTE: ComparisonOperation;
 };
 
 export type StringSignalTrap = StringAndArraySignalTrap & {
@@ -271,43 +261,32 @@ export type SpecificTypeSignalTrap<T> = T extends string
   ? RecordSignalTrap<T>
   : {};
 
-type AndComparisonFunction<T> = (
-  subjectValue: MaybeSignalValue<number>,
-  compareValue: MaybeSignalValue<number>
-) => GenericSignalTrap<T | boolean>;
+type EitherOrResolver = <Tr, Fl>(
+  valueIfTruthy: MaybeSignalValue<Tr>,
+  valueIfFalsy: MaybeSignalValue<Fl>
+) => DerivedSignal<Tr | Fl>;
 
-type OrComparisonFunction<T> = (
-  subjectValue: MaybeSignalValue<number>,
-  compareValue: MaybeSignalValue<number>
-) => GenericSignalTrap<NonNullable<T> | boolean>;
-
-export type GenericSignalTrap<T> = {
-  orNonNullable: <OV>(
-    orValue: MaybeSignalValue<OV>
-  ) => GenericSignalTrap<NonNullable<T> | OV>;
-  or: <OV>(
-    orValue: MaybeSignalValue<OV>
-  ) => GenericSignalTrap<NonNullable<T> | OV>;
-  orNot: (
-    orNotValue: MaybeSignalValue<any>
-  ) => GenericSignalTrap<NonNullable<T> | boolean>;
-  orLT: OrComparisonFunction<T>;
-  orLTE: OrComparisonFunction<T>;
-  orEquals: OrComparisonFunction<T>;
-  orNotEquals: OrComparisonFunction<T>;
-  orGT: OrComparisonFunction<T>;
-  orGTE: OrComparisonFunction<T>;
-  and: <AV>(andValue: MaybeSignalValue<AV>) => GenericSignalTrap<T | AV>;
-  andNot: (
-    andNotValue: MaybeSignalValue<any>
-  ) => GenericSignalTrap<T | boolean>;
-  andLT: AndComparisonFunction<T>;
-  andLTE: AndComparisonFunction<T>;
-  andEquals: AndComparisonFunction<T>;
-  andNotEquals: AndComparisonFunction<T>;
-  andGT: AndComparisonFunction<T>;
-  andGTE: AndComparisonFunction<T>;
+type ComparisonResultObject = {
+  get truthy(): DerivedSignal<boolean>;
+  get falsy(): DerivedSignal<boolean>;
   resolvesTo: EitherOrResolver;
+};
+
+type ComparisonOperation = (
+  compareValue: MaybeSignalValue<number>
+) => ComparisonResultObject;
+
+type AndComparisonOperation<T> = (
+  subjectValue: MaybeSignalValue<number>,
+  compareValue: MaybeSignalValue<number>
+) => Operation<T | boolean>;
+
+type OrComparisonOperation<T> = (
+  subjectValue: MaybeSignalValue<number>,
+  compareValue: MaybeSignalValue<number>
+) => Operation<NonNullable<T> | boolean>;
+
+export type Operation<T> = {
   get result(): DerivedSignal<T>;
   get stringified(): DerivedSignal<
     T extends null | undefined ? undefined : string
@@ -315,6 +294,28 @@ export type GenericSignalTrap<T> = {
   get truthy(): DerivedSignal<boolean>;
   get falsy(): DerivedSignal<boolean>;
   get truthyFalsyPair(): DerivedSignal<readonly [boolean, boolean]>;
+  orNonNullable: <OV>(
+    orValue: MaybeSignalValue<OV>
+  ) => Operation<NonNullable<T> | OV>;
+  or: <OV>(orValue: MaybeSignalValue<OV>) => Operation<NonNullable<T> | OV>;
+  orNot: (
+    orNotValue: MaybeSignalValue<any>
+  ) => Operation<NonNullable<T> | boolean>;
+  orLT: OrComparisonOperation<T>;
+  orLTE: OrComparisonOperation<T>;
+  orEquals: OrComparisonOperation<T>;
+  orNotEquals: OrComparisonOperation<T>;
+  orGT: OrComparisonOperation<T>;
+  orGTE: OrComparisonOperation<T>;
+  and: <AV>(andValue: MaybeSignalValue<AV>) => Operation<T | AV>;
+  andNot: (andNotValue: MaybeSignalValue<any>) => Operation<T | boolean>;
+  andLT: AndComparisonOperation<T>;
+  andLTE: AndComparisonOperation<T>;
+  andEquals: AndComparisonOperation<T>;
+  andNotEquals: AndComparisonOperation<T>;
+  andGT: AndComparisonOperation<T>;
+  andGTE: AndComparisonOperation<T>;
+  resolvesTo: EitherOrResolver;
 };
 
-export type SignalTrap<T> = GenericSignalTrap<T> & SpecificTypeSignalTrap<T>;
+export type SignalTrap<T> = Operation<T> & SpecificTypeSignalTrap<T>;

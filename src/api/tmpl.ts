@@ -1,19 +1,16 @@
-import {
-  derive,
-  DerivedValueGetterWithSignals,
-  valueIsMaybeSignalObject,
-} from "../../core";
-import type { DerivedSignal, MaybeSignalObject, Signal } from "../../types.ts";
+import type { DerivedSignal, MaybeSignalObject, Signal } from "../types";
+import { valueIsMaybeSignalObject } from "../utils";
+import { derive, DerivedValueGetterWithSignals } from "./_core";
 
 /**
- * The expressions required inside ${} of the tagged template function @see dstring
+ * The expressions required inside ${} of the tagged template function @see tmpl
  *
  * Types
  * @type {Signal<any>} need to be passed when you have the signal handy and entire
  * template literal along with this signal is used to derive the final string signal
  *
  * @type {DerivedValueGetterWithSignals} need to passed when you want to derive a signal (from one or may other signals)
- * before passing it to the tagged template literal method -  'dstring'.
+ * before passing it to the tagged template literal method -  'tmpl'.
  * This is same as using derive(() => someOtherSignal.value)
  *
  * @type {any} is used when you don't know what is the type of the passed variable
@@ -31,7 +28,7 @@ export type StringSignalDeriverTemplateExpressions = (
  * @param expressions inside ${} in template literal
  * @returns Derived string signal
  */
-export const dstring = (
+export const tmpl = (
   strings: TemplateStringsArray,
   ...tlExpressions: StringSignalDeriverTemplateExpressions
 ): DerivedSignal<string> =>
