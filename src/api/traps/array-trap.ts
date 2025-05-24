@@ -1,13 +1,13 @@
 import { newVal } from "@cyftech/immutjs";
-import { derive } from "../_core";
+import { derive, signal } from "../_core";
 import { value } from "../../utils";
 import {
   ArraySignalTrap,
   MaybeSignalValue,
   SignalifiedFunction,
 } from "../../types";
-import { stringAndArrayTrap } from "./string-and-array-trap";
 import { getDesignalifiedMethodParams } from "../common-utils";
+import { genericTrap } from "./generic-trap";
 
 /**
  * A method which traps a MaybeSignalValue and returns handy derived signals
@@ -53,7 +53,7 @@ export const arrayTrap = <T>(
   );
 
   return {
-    ...stringAndArrayTrap(input),
+    ...genericTrap(input as NonNullable<T>),
     ...simpleMethodsTrapObject,
     concat: (items: MaybeSignalValue<T[]>) =>
       derive(() => value(input).concat(value(items))),
@@ -76,6 +76,9 @@ export const arrayTrap = <T>(
         const returnVal = updatedArr.pop();
         return returnVal;
       });
+    },
+    get length() {
+      return derive(() => value(input).length);
     },
     map: <U>(mapFn: (item: T, index: number, array: T[]) => U) =>
       derive(() => value(input).map(mapFn)),

@@ -2,6 +2,7 @@ import { isPlainObject } from "@cyftech/immutjs";
 import { DerivedSignal, MaybeSignalValue, RecordSignalTrap } from "../../types";
 import { value } from "../../utils";
 import { derive } from "../_core";
+import { genericTrap } from "./generic-trap";
 
 /**
  * A method to get all of the properties of a signalled object as derived signals.
@@ -22,6 +23,7 @@ export const objectTrap = <T extends Record<string, unknown>>(
   }
 
   return {
+    ...genericTrap(input),
     prop: <K extends keyof T>(key: K) => derive(() => value(input)[key]),
     get props() {
       const signalledPropsObj = Object.keys(value(input)).reduce((map, k) => {

@@ -1,11 +1,6 @@
 import { isPlainObject } from "@cyftech/immutjs";
+import { MaybeSignalValue, SignalTrap } from "../../types";
 import { value } from "../../utils";
-import {
-  Operation,
-  MaybeSignalValue,
-  SignalTrap,
-  SpecificTypeSignalTrap,
-} from "../../types";
 import { arrayTrap } from "./array-trap";
 import { genericTrap } from "./generic-trap";
 import { numberTrap } from "./number-trap";
@@ -21,19 +16,16 @@ import { stringTrap } from "./string-trap";
  * @returns an object of handy transform methods as its properties, which return
  * derived signal
  */
-export const specificTrap = <T>(input: MaybeSignalValue<T>) => {
-  return typeof value(input) === "number"
-    ? numberTrap(input as MaybeSignalValue<number>)
-    : typeof value(input) === "string"
-    ? stringTrap(input as MaybeSignalValue<string>)
-    : Array.isArray(value(input))
-    ? arrayTrap(input as MaybeSignalValue<unknown[]>)
-    : isPlainObject(value(input))
-    ? objectTrap(input as MaybeSignalValue<Record<string, unknown>>)
-    : ({} as never);
+export const trap = <T>(input: MaybeSignalValue<T>) => {
+  return (
+    typeof value(input) === "number"
+      ? numberTrap(input as MaybeSignalValue<number>)
+      : typeof value(input) === "string"
+      ? stringTrap(input as MaybeSignalValue<string>)
+      : Array.isArray(value(input))
+      ? arrayTrap(input as MaybeSignalValue<unknown[]>)
+      : isPlainObject(value(input))
+      ? objectTrap(input as MaybeSignalValue<Record<string, unknown>>)
+      : genericTrap(input)
+  ) as SignalTrap<T>;
 };
-
-export const trap = <T>(input: MaybeSignalValue<T>): SignalTrap<T> => ({
-  ...(genericTrap(input) as Operation<T>),
-  ...(specificTrap(input) as SpecificTypeSignalTrap<T>),
-});

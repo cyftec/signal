@@ -1,21 +1,13 @@
-import { derive } from "../_core";
-import { value } from "../../utils";
 import {
   MaybeSignalValue,
   NumberSignalTrap,
   SignalifiedFunction,
 } from "../../types";
+import { value } from "../../utils";
+import { derive } from "../_core";
 import { getDesignalifiedMethodParams } from "../common-utils";
+import { genericTrap } from "./generic-trap";
 
-/**
- * A method which traps a MaybeSignalValue and returns handy derived signals
- * of most-frequently required transforms
- *
- * @param input any value for which transformed derived signal is required
- * @see MaybeSignalValue
- * @returns an object of handy transform methods as its properties, which return
- * derived signal
- */
 export const numberTrap = (
   input: MaybeSignalValue<number>
 ): NumberSignalTrap => {
@@ -45,6 +37,7 @@ export const numberTrap = (
   );
 
   return {
+    ...genericTrap(input),
     ...simpleMethodsTrapObject,
     toConfined: (
       start: MaybeSignalValue<number>,
@@ -61,119 +54,5 @@ export const numberTrap = (
       locales?: MaybeSignalValue<string | string[] | undefined>,
       options?: Intl.NumberFormatOptions
     ) => derive(() => value(input).toLocaleString(value(locales), options)),
-    isLT: (compareValue: MaybeSignalValue<number>) => {
-      return {
-        get truthy() {
-          return derive(() => value(input) < value(compareValue));
-        },
-        get falsy() {
-          return derive(() => value(input) >= value(compareValue));
-        },
-        resolvesTo: <Tr, Fl>(
-          valueIfTruthy: MaybeSignalValue<Tr>,
-          valueIfFalsy: MaybeSignalValue<Fl>
-        ) =>
-          derive(() =>
-            value(input) < value(compareValue)
-              ? value(valueIfTruthy)
-              : value(valueIfFalsy)
-          ),
-      };
-    },
-    isGT: (compareValue: MaybeSignalValue<number>) => {
-      return {
-        get truthy() {
-          return derive(() => value(input) > value(compareValue));
-        },
-        get falsy() {
-          return derive(() => value(input) <= value(compareValue));
-        },
-        resolvesTo: <Tr, Fl>(
-          valueIfTruthy: MaybeSignalValue<Tr>,
-          valueIfFalsy: MaybeSignalValue<Fl>
-        ) =>
-          derive(() =>
-            value(input) > value(compareValue)
-              ? value(valueIfTruthy)
-              : value(valueIfFalsy)
-          ),
-      };
-    },
-    equals: (compareValue: MaybeSignalValue<number>) => {
-      return {
-        get truthy() {
-          return derive(() => value(input) === value(compareValue));
-        },
-        get falsy() {
-          return derive(() => value(input) !== value(compareValue));
-        },
-        resolvesTo: <Tr, Fl>(
-          valueIfTruthy: MaybeSignalValue<Tr>,
-          valueIfFalsy: MaybeSignalValue<Fl>
-        ) =>
-          derive(() =>
-            value(input) === value(compareValue)
-              ? value(valueIfTruthy)
-              : value(valueIfFalsy)
-          ),
-      };
-    },
-    notEquals: (compareValue: MaybeSignalValue<number>) => {
-      return {
-        get truthy() {
-          return derive(() => value(input) !== value(compareValue));
-        },
-        get falsy() {
-          return derive(() => value(input) === value(compareValue));
-        },
-        resolvesTo: <Tr, Fl>(
-          valueIfTruthy: MaybeSignalValue<Tr>,
-          valueIfFalsy: MaybeSignalValue<Fl>
-        ) =>
-          derive(() =>
-            value(input) !== value(compareValue)
-              ? value(valueIfTruthy)
-              : value(valueIfFalsy)
-          ),
-      };
-    },
-    isLTE: (compareValue: MaybeSignalValue<number>) => {
-      return {
-        get truthy() {
-          return derive(() => value(input) <= value(compareValue));
-        },
-        get falsy() {
-          return derive(() => value(input) > value(compareValue));
-        },
-        resolvesTo: <Tr, Fl>(
-          valueIfTruthy: MaybeSignalValue<Tr>,
-          valueIfFalsy: MaybeSignalValue<Fl>
-        ) =>
-          derive(() =>
-            value(input) <= value(compareValue)
-              ? value(valueIfTruthy)
-              : value(valueIfFalsy)
-          ),
-      };
-    },
-    isGTE: (compareValue: MaybeSignalValue<number>) => {
-      return {
-        get truthy() {
-          return derive(() => value(input) >= value(compareValue));
-        },
-        get falsy() {
-          return derive(() => value(input) < value(compareValue));
-        },
-        resolvesTo: <Tr, Fl>(
-          valueIfTruthy: MaybeSignalValue<Tr>,
-          valueIfFalsy: MaybeSignalValue<Fl>
-        ) =>
-          derive(() =>
-            value(input) >= value(compareValue)
-              ? value(valueIfTruthy)
-              : value(valueIfFalsy)
-          ),
-      };
-    },
   };
 };

@@ -70,10 +70,23 @@ export type SignalifiedFunction<F extends (...args: any[]) => any> = (
 
 /**
  * Signal Traps
- * Handy (derived-signal) properties and methods for most commonly used scenarios
+ * A trap traps a singal or plain value of any type
+ * and returns an object with most common tranforms of that
+ * particular (JS data) type.
+ *
+ * For example, a number-trap will receive a plain or signal
+ * value of number and returns an object with all the intance
+ * getters or methods of a number type in javascript.
+ * See below use cases for example.
+ *
  */
 
-export type NumberSignalTrap = {
+export type GenericTrap<T> = {
+  get string(): DerivedSignal<T extends null | undefined ? undefined : string>;
+  or: <OV>(orValue: MaybeSignalValue<OV>) => DerivedSignal<NonNullable<T> | OV>;
+};
+
+export type NumberSignalTrap = GenericTrap<number> & {
   toConfined: (
     start: MaybeSignalValue<number>,
     end: MaybeSignalValue<number>
@@ -85,25 +98,9 @@ export type NumberSignalTrap = {
   ) => DerivedSignal<string>;
   toFixed: SignalifiedFunction<number["toFixed"]>;
   toPrecision: SignalifiedFunction<number["toPrecision"]>;
-  isLT: ComparisonOperation;
-  isGT: ComparisonOperation;
-  equals: ComparisonOperation;
-  notEquals: ComparisonOperation;
-  isLTE: ComparisonOperation;
-  isGTE: ComparisonOperation;
 };
 
-export type StringAndArraySignalTrap = {
-  get length(): DerivedSignal<number>;
-  lengthLT: ComparisonOperation;
-  lengthGT: ComparisonOperation;
-  lengthE: ComparisonOperation;
-  lengthNE: ComparisonOperation;
-  lengthLTE: ComparisonOperation;
-  lengthGTE: ComparisonOperation;
-};
-
-export type StringSignalTrap = StringAndArraySignalTrap & {
+export type StringSignalTrap = GenericTrap<string> & {
   at: SignalifiedFunction<string["at"]>;
   charAt: SignalifiedFunction<string["charAt"]>;
   charCodeAt: SignalifiedFunction<string["charCodeAt"]>;
@@ -132,8 +129,11 @@ export type StringSignalTrap = StringAndArraySignalTrap & {
    * signature of the method. Hence they are redefined using
    * the most useful signature of that method.
    */
-  get lowerCase(): DerivedSignal<string>;
-  get upperCase(): DerivedSignal<string>;
+  get length(): DerivedSignal<number>;
+  get lowercase(): DerivedSignal<string>;
+  get Sentencecase(): DerivedSignal<string>;
+  get TitleCase(): DerivedSignal<string>;
+  get UPPERCASE(): DerivedSignal<string>;
   localeCompare: (
     that: MaybeSignalValue<string>,
     locales?: MaybeSignalValue<string | string[] | undefined>,
@@ -163,7 +163,7 @@ export type StringSignalTrap = StringAndArraySignalTrap & {
   ) => DerivedSignal<string>;
 };
 
-export type ArraySignalTrap<T> = StringAndArraySignalTrap & {
+export type ArraySignalTrap<T> = GenericTrap<T> & {
   at: SignalifiedFunction<Array<T>["at"]>;
   concat: (items: MaybeSignalValue<T[]>) => DerivedSignal<T[]>;
   copyWithin: SignalifiedFunction<Array<T>["copyWithin"]>;
@@ -207,6 +207,7 @@ export type ArraySignalTrap<T> = StringAndArraySignalTrap & {
     where: (item: T, index: number, array: T[]) => boolean
   ) => DerivedSignal<number>;
   get lastItem(): DerivedSignal<T | undefined>;
+  get length(): DerivedSignal<number>;
   map: <U>(
     mapFn: (item: T, index: number, array: T[]) => U
   ) => DerivedSignal<U[]>;
@@ -245,77 +246,111 @@ export type ArraySignalTrap<T> = StringAndArraySignalTrap & {
   ) => DerivedSignal<T[]>;
 };
 
-export type RecordSignalTrap<T extends Record<string, unknown>> = {
-  prop: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
-  get props(): { [key in keyof T]: DerivedSignal<T[key]> };
-  get keys(): DerivedSignal<string[]>;
-};
+export type RecordSignalTrap<T extends Record<string, unknown>> =
+  GenericTrap<T> & {
+    prop: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
+    get props(): { [key in keyof T]: DerivedSignal<T[key]> };
+    get keys(): DerivedSignal<string[]>;
+  };
 
-export type SpecificTypeSignalTrap<T> = T extends string
+export type SignalTrap<T> = T extends number
+  ? NumberSignalTrap
+  : T extends string
   ? StringSignalTrap
   : T extends (infer I)[]
   ? ArraySignalTrap<I>
-  : T extends number
-  ? NumberSignalTrap
   : T extends Record<string, unknown>
   ? RecordSignalTrap<T>
-  : {};
+  : GenericTrap<T>;
 
-type EitherOrResolver = <Tr, Fl>(
-  valueIfTruthy: MaybeSignalValue<Tr>,
-  valueIfFalsy: MaybeSignalValue<Fl>
-) => DerivedSignal<Tr | Fl>;
+/**
+ * Operation types
+ * The purpose of operation is to compose multiple
+ * logical (or otherwise) operations without creating
+ * any signal. The result of multiple composed operations
+ * is derived by calling any of the (getters or) methods
+ * which yeilds a DerivedSignal of operation result.
+ */
 
-type ComparisonResultObject = {
-  get truthy(): DerivedSignal<boolean>;
-  get falsy(): DerivedSignal<boolean>;
-  resolvesTo: EitherOrResolver;
-};
+type LogicalOperation<T> = (
+  checkValue: MaybeSignalValue<T>
+) => GenericOperation;
 
-type ComparisonOperation = (
-  compareValue: MaybeSignalValue<number>
-) => ComparisonResultObject;
+type ComparisonOperation<T> = (
+  compareValue: MaybeSignalValue<T>
+) => GenericOperation;
 
-type AndComparisonOperation<T> = (
-  subjectValue: MaybeSignalValue<number>,
-  compareValue: MaybeSignalValue<number>
-) => Operation<T | boolean>;
+type LogicWithComparisonOperation<T> = (
+  subjectValue: MaybeSignalValue<T>,
+  compareValue: MaybeSignalValue<T>
+) => GenericOperation;
 
-type OrComparisonOperation<T> = (
-  subjectValue: MaybeSignalValue<number>,
-  compareValue: MaybeSignalValue<number>
-) => Operation<NonNullable<T> | boolean>;
-
-export type Operation<T> = {
-  get result(): DerivedSignal<T>;
-  get stringified(): DerivedSignal<
-    T extends null | undefined ? undefined : string
-  >;
+export type OperationResult = {
   get truthy(): DerivedSignal<boolean>;
   get falsy(): DerivedSignal<boolean>;
   get truthyFalsyPair(): DerivedSignal<readonly [boolean, boolean]>;
-  orNonNullable: <OV>(
-    orValue: MaybeSignalValue<OV>
-  ) => Operation<NonNullable<T> | OV>;
-  or: <OV>(orValue: MaybeSignalValue<OV>) => Operation<NonNullable<T> | OV>;
-  orNot: (
-    orNotValue: MaybeSignalValue<any>
-  ) => Operation<NonNullable<T> | boolean>;
-  orLT: OrComparisonOperation<T>;
-  orLTE: OrComparisonOperation<T>;
-  orEquals: OrComparisonOperation<T>;
-  orNotEquals: OrComparisonOperation<T>;
-  orGT: OrComparisonOperation<T>;
-  orGTE: OrComparisonOperation<T>;
-  and: <AV>(andValue: MaybeSignalValue<AV>) => Operation<T | AV>;
-  andNot: (andNotValue: MaybeSignalValue<any>) => Operation<T | boolean>;
-  andLT: AndComparisonOperation<T>;
-  andLTE: AndComparisonOperation<T>;
-  andEquals: AndComparisonOperation<T>;
-  andNotEquals: AndComparisonOperation<T>;
-  andGT: AndComparisonOperation<T>;
-  andGTE: AndComparisonOperation<T>;
-  resolvesTo: EitherOrResolver;
+  ternary: <Tr, Fl>(
+    valueIfTruthy: MaybeSignalValue<Tr>,
+    valueIfFalsy: MaybeSignalValue<Fl>
+  ) => DerivedSignal<Tr | Fl>;
 };
 
-export type SignalTrap<T> = Operation<T> & SpecificTypeSignalTrap<T>;
+export type GenericOperation = OperationResult & {
+  or: LogicalOperation<any>;
+  orNot: LogicalOperation<any>;
+  and: LogicalOperation<any>;
+  andNot: LogicalOperation<any>;
+  equals: ComparisonOperation<any>;
+  notEquals: ComparisonOperation<any>;
+  orBothEqual: LogicWithComparisonOperation<any>;
+  orBothUnequal: LogicWithComparisonOperation<any>;
+  andBothEqual: LogicWithComparisonOperation<any>;
+  andBothUnequal: LogicWithComparisonOperation<any>;
+  orThisIsLT: LogicWithComparisonOperation<number>;
+  orThisIsLTE: LogicWithComparisonOperation<number>;
+  orThisIsGT: LogicWithComparisonOperation<number>;
+  orThisIsGTE: LogicWithComparisonOperation<number>;
+  andThisIsLT: LogicWithComparisonOperation<number>;
+  andThisIsLTE: LogicWithComparisonOperation<number>;
+  andThisIsGT: LogicWithComparisonOperation<number>;
+  andThisIsGTE: LogicWithComparisonOperation<number>;
+};
+
+type ConfinementCheckOperation = (
+  lowerValue: MaybeSignalValue<number>,
+  upperValue: MaybeSignalValue<number>,
+  touchingLower?: boolean,
+  touchingUpper?: boolean
+) => GenericOperation;
+
+type MathOperation = (num: MaybeSignalValue<number>) => NumberOperation;
+export type NumberOperation = GenericOperation & {
+  get result(): DerivedSignal<number>;
+  add: MathOperation;
+  sub: MathOperation;
+  mul: MathOperation;
+  div: MathOperation;
+  mod: MathOperation;
+  pow: MathOperation;
+  isBetween: ConfinementCheckOperation;
+  isLT: ComparisonOperation<number>;
+  isLTE: ComparisonOperation<number>;
+  isGT: ComparisonOperation<number>;
+  isGTE: ComparisonOperation<number>;
+};
+
+export type StringAndArrayOperation = GenericOperation & {
+  lengthBetween: ConfinementCheckOperation;
+  lengthEquals: ComparisonOperation<number>;
+  lengthNotEquals: ComparisonOperation<number>;
+  lengthLT: ComparisonOperation<number>;
+  lengthLTE: ComparisonOperation<number>;
+  lengthGT: ComparisonOperation<number>;
+  lengthGTE: ComparisonOperation<number>;
+};
+
+export type Operation<T> = T extends number
+  ? NumberOperation
+  : T extends string | unknown[]
+  ? StringAndArrayOperation
+  : GenericOperation;

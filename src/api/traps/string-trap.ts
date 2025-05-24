@@ -6,7 +6,7 @@ import {
 import { value } from "../../utils";
 import { derive, signal } from "../_core";
 import { getDesignalifiedMethodParams } from "../common-utils";
-import { stringAndArrayTrap } from "./string-and-array-trap";
+import { genericTrap } from "./generic-trap";
 
 /**
  * A method which traps a MaybeSignalValue and returns handy derived signals
@@ -61,12 +61,28 @@ export const stringTrap = (
   );
 
   return {
-    ...stringAndArrayTrap(input),
+    ...genericTrap(input),
     ...simpleMethodsTrapObject,
-    get lowerCase() {
+    get length() {
+      return derive(() => value(input).length);
+    },
+    get lowercase() {
       return derive(() => (value(input) as string).toLowerCase());
     },
-    get upperCase() {
+    get Sentencecase() {
+      return derive(() => {
+        const str = value(input) as string;
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+      });
+    },
+    get TitleCase() {
+      return derive(() =>
+        (value(input) as string)
+          .toLowerCase()
+          .replace(/\b\w/g, (c) => c.toUpperCase())
+      );
+    },
+    get UPPERCASE() {
       return derive(() => (value(input) as string).toUpperCase());
     },
     localeCompare: (
