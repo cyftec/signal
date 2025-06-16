@@ -1,8 +1,8 @@
-import { MaybeSignalValue, Operation } from "../../types";
-import { value } from "../../utils";
+import { type MaybeSignalValue, value } from "../../_core";
 import { genericOp } from "./generic-operation";
 import { numberOp } from "./number-operation";
 import { stringAndArrayOp } from "./string-and-array-operation";
+import type { Operation } from "./types";
 
 export const op = <T>(input: MaybeSignalValue<T> | (() => T)): Operation<T> => {
   const evaluator: () => T =

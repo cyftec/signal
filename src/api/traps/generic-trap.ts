@@ -1,6 +1,10 @@
-import { DerivedSignal, GenericTrap, MaybeSignalValue } from "../../types";
-import { value } from "../../utils";
-import { derive } from "../_core";
+import {
+  derive,
+  type DerivedSignal,
+  type MaybeSignalValue,
+  value,
+} from "../../_core";
+import type { GenericTrap } from "./types";
 
 /**
  * A method which traps a MaybeSignalValue and returns handy derived signals

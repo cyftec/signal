@@ -1,4 +1,4 @@
-import { MaybeSignalObject, MaybeSignalValue } from "../types.js";
+import type { MaybeSignalObject, MaybeSignalValue } from "../types.js";
 import { valueIsMaybeSignalObject } from "./type-checkers.js";
 
 /**

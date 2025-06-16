@@ -1,11 +1,11 @@
 import { isPlainObject } from "@cyftech/immutjs";
-import { MaybeSignalValue, SignalTrap } from "../../types";
-import { value } from "../../utils";
+import { type MaybeSignalValue, value } from "../../_core";
 import { arrayTrap } from "./array-trap";
 import { genericTrap } from "./generic-trap";
 import { numberTrap } from "./number-trap";
 import { objectTrap } from "./object-trap";
 import { stringTrap } from "./string-trap";
+import type { SignalTrap } from "./types";
 
 /**
  * A method which traps a MaybeSignalValue and returns handy derived signals

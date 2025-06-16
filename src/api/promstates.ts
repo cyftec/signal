@@ -1,5 +1,4 @@
-import type { DerivedSignal } from "../types";
-import { signal } from "./_core";
+import { type DerivedSignal, signal } from "../_core";
 import { trap } from "./traps";
 
 /**

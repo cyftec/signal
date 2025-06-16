@@ -1,7 +1,6 @@
-import { MaybeSignalValue, NumberOperation } from "../../types";
-import { value } from "../../utils";
-import { derive } from "../_core";
+import { derive, type MaybeSignalValue, value } from "../../_core";
 import { genericOp } from "./generic-operation";
+import type { NumberOperation } from "./types";
 
 export const numberOp = (
   input: MaybeSignalValue<number> | (() => number)

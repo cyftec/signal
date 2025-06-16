@@ -1,6 +1,10 @@
-import { DerivedSignal, MaybeSignalValues, PlainValues } from "../types";
-import { value } from "../utils";
-import { derive } from "./_core";
+import {
+  derive,
+  value,
+  type DerivedSignal,
+  type MaybeSignalValues,
+  type PlainValues,
+} from "../_core";
 
 export const compute = <F extends (...args: any[]) => any>(
   computerFn: F,

@@ -1,12 +1,7 @@
-import {
-  MaybeSignalValue,
-  NumberSignalTrap,
-  SignalifiedFunction,
-} from "../../types";
-import { value } from "../../utils";
-import { derive } from "../_core";
-import { getDesignalifiedMethodParams } from "../common-utils";
+import { derive, type MaybeSignalValue, value } from "../../_core";
+import { getDesignalifiedMethodParams } from "./transforms";
 import { genericTrap } from "./generic-trap";
+import type { NumberSignalTrap, SignalifiedFunction } from "./types";
 
 export const numberTrap = (
   input: MaybeSignalValue<number>

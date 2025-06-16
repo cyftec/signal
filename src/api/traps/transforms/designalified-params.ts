@@ -1,5 +1,8 @@
-import { MaybeSignalValues, PlainValues } from "../../types";
-import { value } from "../../utils/value-getter";
+import {
+  type MaybeSignalValues,
+  type PlainValues,
+  value,
+} from "../../../_core";
 
 /**
  * A method to get signalified method params to plain params.

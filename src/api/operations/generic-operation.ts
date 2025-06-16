@@ -1,10 +1,5 @@
-import {
-  GenericOperation,
-  MaybeSignalValue,
-  OperationResult,
-} from "../../types";
-import { value } from "../../utils";
-import { derive } from "../_core";
+import { derive, type MaybeSignalValue, value } from "../../_core";
+import type { GenericOperation, OperationResult } from "./types";
 
 /**
  * Acronym for 'GenericOperation'.

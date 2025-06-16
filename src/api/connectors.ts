@@ -1,5 +1,9 @@
-import type { Signal, SourceSignal } from "../types";
-import { effect } from "./_core";
+import {
+  effect,
+  type Signal,
+  type SignalsEffect,
+  type SourceSignal,
+} from "../_core";
 
 /**
  * When two or more signals are same, yet they exist independently, in
@@ -13,6 +17,7 @@ import { effect } from "./_core";
  * @param receiver a source-signal (which can be updated manually) of type T
  * which will recieve updates
  * @param transmittors multiple signals (source or derived) of the same type T as of the ```receiver```
+ * @returns list of signal effects for disposing them when necessary
  *
  *
  * Example
@@ -39,10 +44,12 @@ import { effect } from "./_core";
 export const receive = <T>(
   receiver: SourceSignal<T>,
   ...transmittors: Signal<T>[]
-): void =>
-  transmittors.forEach((transmittor) =>
+): SignalsEffect[] => {
+  const effects = transmittors.map((transmittor) =>
     effect(() => (receiver.value = transmittor.value))
   );
+  return effects;
+};
 
 /**
  * When two or more signals are same, yet they exist independently, in
@@ -54,6 +61,7 @@ export const receive = <T>(
  * in all the receiver signals.
  * @param transmittor a source or derived signal of type T
  * @param receivers multiple signals (source or derived) of the same type T as of the ```receiver```
+ * @returns a signal effect for disposing it when necessary
  *
  *
  * Example
@@ -84,7 +92,7 @@ export const receive = <T>(
 export const transmit = <T>(
   transmittor: Signal<T>,
   ...receivers: SourceSignal<T>[]
-): void =>
+): SignalsEffect =>
   effect(() => {
     receivers.forEach((receiver) => (receiver.value = transmittor.value));
   });

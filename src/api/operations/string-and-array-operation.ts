@@ -1,6 +1,6 @@
-import { MaybeSignalValue, StringAndArrayOperation } from "../../types";
-import { value } from "../../utils";
+import { type MaybeSignalValue, value } from "../../_core";
 import { genericOp } from "./generic-operation";
+import type { StringAndArrayOperation } from "./types";
 
 export const stringAndArrayOp = <T extends string | unknown[]>(
   input: MaybeSignalValue<T> | (() => T)

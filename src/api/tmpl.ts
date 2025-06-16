@@ -1,6 +1,11 @@
-import type { DerivedSignal, MaybeSignalObject, Signal } from "../types";
-import { valueIsMaybeSignalObject } from "../utils";
-import { derive, DerivedValueGetterWithSignals } from "./_core";
+import {
+  derive,
+  type DerivedSignal,
+  type DerivedValueGetterWithSignals,
+  type MaybeSignalObject,
+  type Signal,
+  valueIsMaybeSignalObject,
+} from "../_core";
 
 /**
  * The expressions required inside ${} of the tagged template function @see tmpl

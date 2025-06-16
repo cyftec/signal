@@ -1,4 +1,4 @@
-import { MaybeSignal, MaybeSignalObject } from "../types";
+import type { MaybeSignal } from "../types";
 import { value } from "./value-getter";
 
 /**

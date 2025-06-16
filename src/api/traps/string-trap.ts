@@ -1,12 +1,7 @@
-import {
-  MaybeSignalValue,
-  SignalifiedFunction,
-  StringSignalTrap,
-} from "../../types";
-import { value } from "../../utils";
-import { derive, signal } from "../_core";
-import { getDesignalifiedMethodParams } from "../common-utils";
+import { derive, type MaybeSignalValue, signal, value } from "../../_core";
+import { getDesignalifiedMethodParams } from "./transforms";
 import { genericTrap } from "./generic-trap";
+import type { SignalifiedFunction, StringSignalTrap } from "./types";
 
 /**
  * A method which traps a MaybeSignalValue and returns handy derived signals
