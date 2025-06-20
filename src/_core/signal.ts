@@ -52,7 +52,6 @@ export const signal = <T>(input: T): SourceSignal<T> => {
     set value(newValue: T) {
       if (newValue === _value) return;
       _value = immut(newValue);
-      if (!_effects.size) return;
       _effects.forEach((effect) => {
         if (effect.canDisposeNow) {
           _effects.delete(effect);
