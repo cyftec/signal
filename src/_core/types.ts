@@ -17,6 +17,17 @@ export type MaybeSignalObject<T> = NonSignal<T> | Signal<T>;
 /** MaybeSignal along with NonSignal object */
 export type MaybeSignalValue<T> = T | NonSignal<T> | Signal<T>;
 
+/** NonNullable equivalent for handling all signal realm types */
+export type NonNullSignalValue<S> = S extends null | undefined
+  ? never
+  : S extends SourceSignal<infer SS | null | undefined>
+  ? SourceSignal<SS>
+  : S extends DerivedSignal<infer DS | null | undefined>
+  ? DerivedSignal<DS>
+  : S extends NonSignal<infer NS | null | undefined>
+  ? NonSignal<NS>
+  : S;
+
 /** Converts an object with respective prop values into MaybeSignalValue(s)*/
 export type MaybeSignalValues<T extends any[]> = {
   [K in keyof T]: T[K] extends (...args: any[]) => any
