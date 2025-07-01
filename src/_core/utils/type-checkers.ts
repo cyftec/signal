@@ -54,18 +54,18 @@ export const valueIsNonSignal = (
 
 /**
  * Checks if any given value is one of a signal object or a non-signal object or not.
- * Mostly used for values which need to be MaybeSignalObject in the object format satisfying
+ * Mostly used for values which need to be SignalifiedObject in the object format satisfying
  * either a Signal or a NonSignal type
  *
  * References,
  * @see Signal
  * @see NonSignal
- * @see MaybeSignalObject
+ * @see SignalifiedObject
  * @param input can be any javascript value
  * @returns true if input value is one of Signal or NonSignal object.
  *
  */
-export const valueIsMaybeSignalObject = (input: any): boolean =>
+export const valueIsSignalifiedObject = (input: any): boolean =>
   valueIsSignal(input) || valueIsNonSignal(input);
 
 /**

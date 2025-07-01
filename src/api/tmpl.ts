@@ -2,9 +2,9 @@ import {
   derive,
   type DerivedSignal,
   type DerivedValueGetterWithSignals,
-  type MaybeSignalObject,
+  type SignalifiedObject,
   type Signal,
-  valueIsMaybeSignalObject,
+  valueIsSignalifiedObject,
 } from "../_core";
 
 /**
@@ -44,8 +44,8 @@ export const tmpl = (
 
       if (typeof expression === "function") {
         expValue = expression() ?? "";
-      } else if (valueIsMaybeSignalObject(expression)) {
-        expValue = (expression as MaybeSignalObject<any>).value ?? "";
+      } else if (valueIsSignalifiedObject(expression)) {
+        expValue = (expression as SignalifiedObject<any>).value ?? "";
       } else {
         expValue = (expression as any) ?? "";
       }

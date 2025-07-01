@@ -12,8 +12,8 @@ export type MaybeSignal<T> = T | Signal<T>;
 export type MaybeSourceSignal<T> = T | SourceSignal<T>;
 /** Either a derived signal or a plain value of type T*/
 export type MaybeDerivedSignal<T> = T | DerivedSignal<T>;
-/** Object only form of MaybeSignal */
-export type MaybeSignalObject<T> = NonSignal<T> | Signal<T>;
+/** Signalified means converted into signal or non-signal object */
+export type SignalifiedObject<T> = NonSignal<T> | Signal<T>;
 /** MaybeSignal along with NonSignal object */
 export type MaybeSignalValue<T> = T | NonSignal<T> | Signal<T>;
 
@@ -42,4 +42,4 @@ export type PlainValues<T extends MaybeSignalValues<any[]>> = {
 };
 /** Extracts a plain value from a MaybeSignalValue*/
 export type PlainValue<I extends MaybeSignalValue<unknown>> =
-  I extends MaybeSignalObject<infer T> ? T : I;
+  I extends SignalifiedObject<infer T> ? T : I;
