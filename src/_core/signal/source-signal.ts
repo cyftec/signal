@@ -1,26 +1,7 @@
 import { immut, newVal } from "@cyftech/immutjs";
-
-/**
- * A function which should contain one or many signals along with
- * their values in its definition. It is executed every time the value
- * of any of the signals (which is used inside function's definition) is changed.
- */
-export type SignalsEffect = {
-  (): void;
-  canDisposeNow: boolean;
-  dispose(): void;
-};
-
-/**
- * It executes the subscriber functions when a new ```value``` is set.
- *
- * It can be used to derive a read-only version of the signal.
- * @see DerivedSignal
- */
-export type SourceSignal<T> = {
-  type: "source-signal";
-  value: T;
-};
+import { getArraySignalBaseObject } from "./array-signal";
+import { getObjectSignalBaseObject } from "./object-signal";
+import { BaseSourceSignal, SignalsEffect, SourceSignal } from "./types";
 
 let _currentSignalEffect: SignalsEffect | null = null;
 export const setCurrentEffect = (effect: SignalsEffect | null) =>
@@ -43,7 +24,22 @@ export const signal = <T>(input: T): SourceSignal<T> => {
   let _value = immut(input);
   const _effects = new Set<SignalsEffect>();
 
-  return {
+  const runEffects = () => {
+    _effects.forEach((effect) => {
+      if (effect.canDisposeNow) {
+        _effects.delete(effect);
+        return;
+      }
+      effect();
+    });
+  };
+
+  const setValueAndRunEffects = (newValue: T): void => {
+    _value = newValue;
+    runEffects();
+  };
+
+  const baseObject: BaseSourceSignal<T> = {
     type: "source-signal",
     get value() {
       if (_currentSignalEffect) _effects.add(_currentSignalEffect);
@@ -51,14 +47,25 @@ export const signal = <T>(input: T): SourceSignal<T> => {
     },
     set value(newValue: T) {
       if (newValue === _value) return;
-      _value = immut(newValue);
-      _effects.forEach((effect) => {
-        if (effect.canDisposeNow) {
-          _effects.delete(effect);
-          return;
-        }
-        effect();
-      });
+      setValueAndRunEffects(immut(newValue));
     },
   };
+
+  return (
+    Array.isArray(input)
+      ? Object.assign(
+          baseObject,
+          getArraySignalBaseObject((method) =>
+            setValueAndRunEffects(method(_value as unknown[]) as T)
+          )
+        )
+      : typeof input === "object" && input !== null
+      ? Object.assign(
+          baseObject,
+          getObjectSignalBaseObject((method) =>
+            setValueAndRunEffects(method(_value as unknown[]) as T)
+          )
+        )
+      : baseObject
+  ) as SourceSignal<typeof input>;
 };
