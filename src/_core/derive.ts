@@ -1,5 +1,5 @@
-import { effect } from "./effect.js";
-import { signal } from "./signal.js";
+import { effect } from "./effect";
+import { signal } from "./signal";
 
 /**
  * It is the read-only version of a source signal.

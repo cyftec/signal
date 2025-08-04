@@ -1,4 +1,4 @@
-import { setCurrentEffect, type SignalsEffect } from "./signal.js";
+import { setCurrentEffect, type SignalsEffect } from "./signal";
 
 /**
  * A function which takes a function as argument and this argument
