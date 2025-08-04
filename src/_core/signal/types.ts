@@ -1,7 +1,3 @@
-export type Prettify<T> = {
-  [K in keyof T]: T[K];
-} & {};
-
 /**
  * A function which should contain one or many signals along with
  * their values in its definition. It is executed every time the value
@@ -35,13 +31,11 @@ export type BaseSourceSignal<T> = {
   value: T;
 };
 
-export type ArraySourceSignal<T extends any[]> = Prettify<
-  BaseSourceSignal<T> & BaseArraySignal<T>
->;
+export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &
+  BaseArraySignal<T>;
 
-export type ObjectSourceSignal<T extends object> = Prettify<
-  BaseSourceSignal<T> & BaseObjectSignal<T>
->;
+export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &
+  BaseObjectSignal<T>;
 
 /**
  * It executes the subscriber functions when a new ```value``` is set.
