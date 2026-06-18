@@ -70,13 +70,15 @@ export type DerivedValueGetterWithSignals<T> = (oldValue: T | undefined) => T;
  * @returns a read-only signal which is returned from valueGetterFn param
  */
 export const derive = <T>(
-  valueGetterFn: DerivedValueGetterWithSignals<T>
+  valueGetterFn: DerivedValueGetterWithSignals<T>,
 ): DerivedSignal<T> => {
   let oldValue: T | undefined;
+  let currValue: T | undefined;
   const derivedSource = signal<T>(oldValue as T);
   const derivedSourceUpdator = effect(() => {
-    oldValue = valueGetterFn(oldValue);
-    derivedSource.value = oldValue;
+    oldValue = currValue;
+    currValue = valueGetterFn(oldValue);
+    derivedSource.value = currValue;
   });
 
   const derivedSignal: DerivedSignal<T> = {
