@@ -43,9 +43,9 @@ export const valueIsSignal = (input: MaybeSignal<any>): boolean =>
  * is not provided, method only checks if input value is a non-signal or not.
  *
  */
-export const valueIsNonSignal = (
+export const valueIsNonSignalObject = (
   input: any,
-  shouldMatchAnyOfTypes?: string[]
+  shouldMatchAnyOfTypes?: string[],
 ): boolean =>
   input?.type === "non-signal" &&
   (!shouldMatchAnyOfTypes ||
@@ -66,19 +66,19 @@ export const valueIsNonSignal = (
  *
  */
 export const valueIsSignalifiedObject = (input: any): boolean =>
-  valueIsSignal(input) || valueIsNonSignal(input);
+  valueIsSignal(input) || valueIsNonSignalObject(input);
 
 /**
  * Checks is the value is non-signal of type string or not
  *
  * References,
  * @see NonSignal
- * @see valueIsNonSignal
+ * @see valueIsNonSignalObject
  * @param input can be any javascript value
  * @returns true if value is non-signal of type string, otherwise false.
  */
 export const valueIsNonSignalString = (input: any): boolean =>
-  valueIsNonSignal(input, ["string"]);
+  valueIsNonSignalObject(input, ["string"]);
 
 /**
  * Checks is the value is non-signal of type string array or not
