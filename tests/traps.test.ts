@@ -264,12 +264,26 @@ describe("trap - array", () => {
     expect(trap(value).reduce((acc, x) => acc + x, 0).value).toBe(6);
   });
 
-  // Note: some method is incorrectly implemented as every in source code
-  // This test is removed as it tests a bug in the implementation
+  it("should provide some method (buggy - implemented as every)", () => {
+    const value = signal([2, 4, 6]);
+    expect(trap(value).some((x) => x % 2 === 0).value).toBe(true);
+
+    value.value = [2, 3, 4];
+    expect(trap(value).some((x) => x % 2 === 0).value).toBe(true);
+
+    value.value = [1, 3, 4];
+    expect(trap(value).some((x) => x % 2 === 0).value).toBe(true);
+
+    value.value = [1, 3, 5];
+    expect(trap(value).some((x) => x % 2 === 0).value).toBe(false);
+  });
 
   it("should provide every method", () => {
-    const value = signal([2, 4, 6, 8]);
+    const value = signal([2, 4, 6]);
     expect(trap(value).every((x) => x % 2 === 0).value).toBe(true);
+
+    value.value = [2, 3, 4];
+    expect(trap(value).every((x) => x % 2 === 0).value).toBe(false);
   });
 
   it("should provide partition method", () => {
@@ -294,6 +308,48 @@ describe("trap - array", () => {
   it("should provide slice method", () => {
     const value = signal([1, 2, 3, 4, 5]);
     expect(trap(value).slice(1, 3).value).toEqual([2, 3]);
+  });
+
+  it("should provide concat method", () => {
+    const value = signal([1, 2, 3]);
+    expect(trap(value).concat([4, 5]).value).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("should provide findIndex method", () => {
+    const value = signal([1, 2, 3, 4, 5]);
+    expect(trap(value).findIndex((x) => x > 3).value).toBe(3);
+  });
+
+  it("should provide findLast method", () => {
+    const value = signal([1, 2, 3, 4, 5]);
+    expect(trap(value).findLast((x) => x > 2).value).toBe(5);
+  });
+
+  it("should provide findLastIndex method", () => {
+    const value = signal([1, 2, 3, 4, 5]);
+    expect(trap(value).findLastIndex((x) => x > 2).value).toBe(4);
+  });
+
+  it("should provide reduceRight method", () => {
+    const value = signal([1, 2, 3]);
+    expect(trap(value).reduceRight((acc, x) => acc + x, 0).value).toBe(6);
+  });
+
+  it("should provide toSorted method", () => {
+    const value = signal([3, 1, 2]);
+    expect(trap(value).toSorted().value).toEqual([1, 2, 3]);
+  });
+
+  it("should provide toSorted with compare function", () => {
+    const value = signal([3, 1, 2]);
+    expect(trap(value).toSorted((a, b) => b - a).value).toEqual([3, 2, 1]);
+  });
+
+  it("should provide toSpliced method", () => {
+    const value = signal([1, 2, 3, 4, 5]);
+    expect(trap(value).toSpliced(1, 2, 10, 20).value).toEqual([
+      1, 10, 20, 4, 5,
+    ]);
   });
 
   it("should update derived signals when value changes", () => {

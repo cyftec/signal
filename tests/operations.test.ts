@@ -49,6 +49,90 @@ describe("op - generic operations", () => {
     expect(op(value).equals(5).and(true).truthy.value).toBe(true);
     expect(op(value).equals(10).or(true).truthy.value).toBe(true);
   });
+
+  it("should provide orNot operation", () => {
+    const value = signal(true);
+    expect(op(value).orNot(false).truthy.value).toBe(true);
+    expect(op(value).orNot(true).truthy.value).toBe(true);
+  });
+
+  it("should provide andNot operation", () => {
+    const value = signal(true);
+    expect(op(value).andNot(false).truthy.value).toBe(true);
+    expect(op(value).andNot(true).truthy.value).toBe(false);
+  });
+
+  it("should provide orBothEqual operation", () => {
+    const value = signal(false);
+    expect(op(value).orBothEqual(5, 5).truthy.value).toBe(true);
+    expect(op(value).orBothEqual(5, 10).truthy.value).toBe(false);
+  });
+
+  it("should provide orBothUnequal operation", () => {
+    const value = signal(false);
+    expect(op(value).orBothUnequal(5, 10).truthy.value).toBe(true);
+    expect(op(value).orBothUnequal(5, 5).truthy.value).toBe(false);
+  });
+
+  it("should provide andBothEqual operation", () => {
+    const value = signal(true);
+    expect(op(value).andBothEqual(5, 5).truthy.value).toBe(true);
+    expect(op(value).andBothEqual(5, 10).truthy.value).toBe(false);
+  });
+
+  it("should provide andBothUnequal operation", () => {
+    const value = signal(true);
+    expect(op(value).andBothUnequal(5, 10).truthy.value).toBe(true);
+    expect(op(value).andBothUnequal(5, 5).truthy.value).toBe(false);
+  });
+
+  it("should provide orThisIsLT operation", () => {
+    const value = signal(false);
+    expect(op(value).orThisIsLT(5, 10).truthy.value).toBe(true);
+    expect(op(value).orThisIsLT(10, 5).truthy.value).toBe(false);
+  });
+
+  it("should provide orThisIsLTE operation", () => {
+    const value = signal(false);
+    expect(op(value).orThisIsLTE(5, 5).truthy.value).toBe(true);
+    expect(op(value).orThisIsLTE(10, 5).truthy.value).toBe(false);
+  });
+
+  it("should provide orThisIsGT operation", () => {
+    const value = signal(false);
+    expect(op(value).orThisIsGT(10, 5).truthy.value).toBe(true);
+    expect(op(value).orThisIsGT(5, 10).truthy.value).toBe(false);
+  });
+
+  it("should provide orThisIsGTE operation", () => {
+    const value = signal(false);
+    expect(op(value).orThisIsGTE(5, 5).truthy.value).toBe(true);
+    expect(op(value).orThisIsGTE(5, 10).truthy.value).toBe(false);
+  });
+
+  it("should provide andThisIsLT operation", () => {
+    const value = signal(true);
+    expect(op(value).andThisIsLT(5, 10).truthy.value).toBe(true);
+    expect(op(value).andThisIsLT(10, 5).truthy.value).toBe(false);
+  });
+
+  it("should provide andThisIsLTE operation", () => {
+    const value = signal(true);
+    expect(op(value).andThisIsLTE(5, 5).truthy.value).toBe(true);
+    expect(op(value).andThisIsLTE(10, 5).truthy.value).toBe(false);
+  });
+
+  it("should provide andThisIsGT operation", () => {
+    const value = signal(true);
+    expect(op(value).andThisIsGT(10, 5).truthy.value).toBe(true);
+    expect(op(value).andThisIsGT(5, 10).truthy.value).toBe(false);
+  });
+
+  it("should provide andThisIsGTE operation", () => {
+    const value = signal(true);
+    expect(op(value).andThisIsGTE(5, 5).truthy.value).toBe(true);
+    expect(op(value).andThisIsGTE(5, 10).truthy.value).toBe(false);
+  });
 });
 
 describe("op - number operations", () => {
@@ -111,6 +195,42 @@ describe("op - number operations", () => {
 
     addend.value = 5;
     expect(sum.result.value).toBe(10);
+  });
+
+  it("should provide isBetween operation", () => {
+    const value = signal(15);
+    expect(op(value).isBetween(10, 20).truthy.value).toBe(true);
+    expect(op(value).isBetween(20, 30).truthy.value).toBe(false);
+  });
+
+  it("should provide isBetween with exclusive bounds", () => {
+    const value = signal(10);
+    expect(op(value).isBetween(10, 20, false, true).truthy.value).toBe(false);
+    expect(op(value).isBetween(10, 20, true, false).truthy.value).toBe(true);
+  });
+
+  it("should provide isLT operation", () => {
+    const value = signal(5);
+    expect(op(value).isLT(10).truthy.value).toBe(true);
+    expect(op(value).isLT(3).truthy.value).toBe(false);
+  });
+
+  it("should provide isLTE operation", () => {
+    const value = signal(5);
+    expect(op(value).isLTE(5).truthy.value).toBe(true);
+    expect(op(value).isLTE(3).truthy.value).toBe(false);
+  });
+
+  it("should provide isGT operation", () => {
+    const value = signal(10);
+    expect(op(value).isGT(5).truthy.value).toBe(true);
+    expect(op(value).isGT(15).truthy.value).toBe(false);
+  });
+
+  it("should provide isGTE operation", () => {
+    const value = signal(10);
+    expect(op(value).isGTE(10).truthy.value).toBe(true);
+    expect(op(value).isGTE(15).truthy.value).toBe(false);
   });
 });
 
