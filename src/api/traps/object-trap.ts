@@ -18,11 +18,11 @@ import type { RecordSignalTrap } from "./types";
  */
 
 export const objectTrap = <T extends Record<string, unknown>>(
-  input: MaybeSignalValue<T>
+  input: MaybeSignalValue<T>,
 ): RecordSignalTrap<T> => {
   if (!isPlainObject(value(input))) {
     throw new Error(
-      "Thee argument should be a plain object or a signal of plain object"
+      `The argument should be a plain object or a signal of plain object`,
     );
   }
 
@@ -30,11 +30,14 @@ export const objectTrap = <T extends Record<string, unknown>>(
     ...genericTrap(input),
     prop: <K extends keyof T>(key: K) => derive(() => value(input)[key]),
     get props() {
-      const signalledPropsObj = Object.keys(value(input)).reduce((map, k) => {
-        const key = k as keyof T;
-        map[key] = this.prop(key);
-        return map;
-      }, {} as { [key in keyof T]: DerivedSignal<T[key]> });
+      const signalledPropsObj = Object.keys(value(input)).reduce(
+        (map, k) => {
+          const key = k as keyof T;
+          map[key] = this.prop(key);
+          return map;
+        },
+        {} as { [key in keyof T]: DerivedSignal<T[key]> },
+      );
 
       return signalledPropsObj;
     },
