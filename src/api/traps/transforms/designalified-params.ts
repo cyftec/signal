@@ -5,12 +5,27 @@ import {
 } from "../../../_core";
 
 /**
- * A method to get signalified method params to plain params.
- * @param methodParams signalified parmaeters of a method
+ * Converts signalified method parameters to plain values.
+ *
+ * This helper function is used by trap methods to unwrap parameters that may be
+ * signals, plain values, or non-signals into their plain values before passing
+ * them to the underlying JavaScript methods (e.g., string methods, array methods).
+ *
+ * This allows trap methods to accept signalified parameters while still being
+ * able to call standard JavaScript methods that expect plain values.
+ *
+ * @param methodParams Signalified parameters (signals, plain values, or non-signals)
  * @see SignalifiedFunction
  * @see MaybeSignalValues
  * @see PlainValues
- * @returns converted plain values
+ * @returns Array of plain values extracted from the signalified parameters
+ *
+ * @example
+ * // Calling string.includes with a signalified search term
+ * const search = signal("world");
+ * const text = signal("hello world");
+ * const params = getDesignalifiedMethodParams(search);
+ * // params is ["world"], which can be passed to text.includes("world")
  */
 export const getDesignalifiedMethodParams = <
   T extends MaybeSignalValues<any[]>

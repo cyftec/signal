@@ -45,9 +45,12 @@ export const receive = <T>(
   receiver: SourceSignal<T>,
   ...transmittors: Signal<T>[]
 ): SignalsEffect[] => {
+  // Create an effect for each transmitter that updates the receiver
+  // when the transmitter's value changes
   const effects = transmittors.map((transmittor) =>
     effect(() => (receiver.value = transmittor.value))
   );
+  // Return all effects so they can be disposed if needed
   return effects;
 };
 
@@ -94,5 +97,7 @@ export const transmit = <T>(
   ...receivers: SourceSignal<T>[]
 ): SignalsEffect =>
   effect(() => {
+    // Update all receivers with the transmitter's current value
+    // This runs synchronously whenever the transmitter changes
     receivers.forEach((receiver) => (receiver.value = transmittor.value));
   });
