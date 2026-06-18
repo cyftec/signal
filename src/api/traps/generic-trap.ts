@@ -21,13 +21,13 @@ export const genericTrap = <T>(input: MaybeSignalValue<T>): GenericTrap<T> => {
       return derive(() => {
         const val = value(input);
         const str = (
-          val === undefined || val === null ? undefined : val.toString()
+          val === undefined || val === null ? "" : val.toString()
         ) as T extends null | undefined ? undefined : string;
         return str;
       });
     },
     or: <OV>(
-      orValue: MaybeSignalValue<OV>
+      orValue: MaybeSignalValue<OV>,
     ): DerivedSignal<OV | NonNullable<T>> =>
       derive(() => value(input) || value(orValue)),
   };
