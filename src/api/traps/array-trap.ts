@@ -14,7 +14,7 @@ import type { ArraySignalTrap, SignalifiedFunction } from "./types";
  * derived signal
  */
 export const arrayTrap = <T>(
-  input: MaybeSignalValue<T[]>
+  input: MaybeSignalValue<T[]>,
 ): ArraySignalTrap<T> => {
   const SIMPLE_ARRAY_METHODS = [
     "at",
@@ -44,7 +44,7 @@ export const arrayTrap = <T>(
       map[arrayMethod] = method;
       return map;
     },
-    {} as SimpleArrayMethods
+    {} as SimpleArrayMethods,
   );
 
   return {
@@ -53,7 +53,7 @@ export const arrayTrap = <T>(
     concat: (items: MaybeSignalValue<T[]>) =>
       derive(() => value(input).concat(value(items))),
     every: (
-      itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean
+      itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean,
     ) => derive(() => value(input).every(itemSatifiesCondition)),
     filter: (where: (item: T, index: number, array: T[]) => boolean) =>
       derive(() => value(input).filter(where)),
@@ -80,7 +80,7 @@ export const arrayTrap = <T>(
     partition: (where: (item: T, index: number, array: T[]) => boolean) => {
       const conditionPassArray = derive(() => value(input).filter(where));
       const conditionFailArray = derive(() =>
-        value(input).filter((item, index, array) => !where(item, index, array))
+        value(input).filter((item, index, array) => !where(item, index, array)),
       );
       return [conditionPassArray, conditionFailArray];
     },
@@ -89,25 +89,25 @@ export const arrayTrap = <T>(
         previousValue: U,
         currentValue: T,
         currentIndex: number,
-        array: T[]
+        array: T[],
       ) => U,
-      initialValue: U
+      initialValue: U,
     ) => derive(() => value(input).reduce(reducerFn, initialValue)),
     reduceRight: <U>(
       reducerFn: (
         previousValue: U,
         currentValue: T,
         currentIndex: number,
-        array: T[]
+        array: T[],
       ) => U,
-      initialValue: U
+      initialValue: U,
     ) => derive(() => value(input).reduceRight(reducerFn, initialValue)),
     get reversed() {
       return derive(() => value(input).toReversed());
     },
     some: (
-      itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean
-    ) => derive(() => value(input).every(itemSatifiesCondition)),
+      itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean,
+    ) => derive(() => value(input).some(itemSatifiesCondition)),
     toSorted: (compareFn?: (a: T, b: T) => number) =>
       derive(() => value(input).toSorted(compareFn)),
     toSpliced: (
@@ -116,7 +116,7 @@ export const arrayTrap = <T>(
       ...newItems: T[]
     ) =>
       derive(() =>
-        value(input).toSpliced(value(start), value(deleteCount), ...newItems)
+        value(input).toSpliced(value(start), value(deleteCount), ...newItems),
       ),
   };
 };
