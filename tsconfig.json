@@ -6,9 +6,9 @@
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
-    // "allowImportingTsExtensions": true
-    // "types": ["bun"]
+    "skipLibCheck": true,
+    "typeRoots": ["./node_modules/bun-types"]
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "types": ["bun-types"]
 }
