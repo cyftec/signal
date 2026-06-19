@@ -18,13 +18,10 @@ export type SignalifiedFunction<F extends (...args: any[]) => any> = (
 ) => DerivedSignal<ReturnType<F>>;
 
 /**
- * Signal Traps
+ * Signal traps.
  *
- * A trap captures a signal or plain value of any type and returns an object
- * with common transforms for that particular JavaScript data type.
- *
- * For example, a number trap receives a plain or signal value of number and
- * returns an object with number instance getters and methods as derived signals.
+ * A trap captures a signal or plain value and returns type-specific derived
+ * signal accessors for the underlying JavaScript value.
  */
 
 /**
@@ -33,43 +30,43 @@ export type SignalifiedFunction<F extends (...args: any[]) => any> = (
  * @template T - The type of value
  */
 export type GenericTrap<T> = {
-  /** Converts the value to a string signal (returns undefined if value is null/undefined) */
+  /** Converts the value to a string signal. */
   get string(): DerivedSignal<T extends null | undefined ? undefined : string>;
-  /** Returns the value if truthy, otherwise the fallback value */
+  /** Returns the value if truthy, otherwise the fallback value. */
   or: <OV>(orValue: MaybeSignalValue<OV>) => DerivedSignal<NonNullable<T> | OV>;
 };
 
 /**
  * Number trap with numeric operations and formatting methods.
  *
- * @template T - The number type (extends number)
+ * @template T - The number type
  */
 export type NumberSignalTrap = GenericTrap<number> & {
-  /** Confines the number to a range [start, end] */
+  /** Confines the number to a range. */
   toConfined: (
     start: MaybeSignalValue<number>,
     end: MaybeSignalValue<number>
   ) => DerivedSignal<number>;
-  /** Converts to exponential notation string */
+  /** Converts to exponential notation string. */
   toExponential: SignalifiedFunction<number["toExponential"]>;
-  /** Converts to locale-specific string */
+  /** Converts to locale-specific string. */
   toLocaleString: (
     locales?: MaybeSignalValue<string | string[] | undefined>,
     options?: Intl.NumberFormatOptions
   ) => DerivedSignal<string>;
-  /** Converts to fixed-point notation string */
+  /** Converts to fixed-point notation string. */
   toFixed: SignalifiedFunction<number["toFixed"]>;
-  /** Converts to precision notation string */
+  /** Converts to precision notation string. */
   toPrecision: SignalifiedFunction<number["toPrecision"]>;
 };
 
 /**
  * String trap with string manipulation methods.
  *
- * Includes all standard string methods as derived signal methods, plus
- * custom case conversion getters.
+ * Includes standard string methods as derived signal methods plus custom
+ * case conversion getters.
  *
- * @template T - The string type (extends string)
+ * @template T - The string type
  */
 export type StringSignalTrap = GenericTrap<string> & {
   at: SignalifiedFunction<string["at"]>;
@@ -90,48 +87,48 @@ export type StringSignalTrap = GenericTrap<string> & {
   trim: SignalifiedFunction<string["trim"]>;
   trimEnd: SignalifiedFunction<string["trimEnd"]>;
   trimStart: SignalifiedFunction<string["trimStart"]>;
-  /** String length as a derived signal */
+  /** String length as a derived signal. */
   get length(): DerivedSignal<number>;
-  /** Lowercase version of the string */
+  /** Lowercase version of the string. */
   get lowercase(): DerivedSignal<string>;
-  /** First letter capitalized, rest lowercase */
+  /** First letter capitalized, rest lowercase. */
   get Sentencecase(): DerivedSignal<string>;
-  /** Each word's first letter capitalized */
+  /** Each word's first letter capitalized. */
   get TitleCase(): DerivedSignal<string>;
-  /** Uppercase version of the string */
+  /** Uppercase version of the string. */
   get UPPERCASE(): DerivedSignal<string>;
-  /** Compares strings according to locale */
+  /** Compares strings according to locale. */
   localeCompare: (
     that: MaybeSignalValue<string>,
     locales?: MaybeSignalValue<string | string[] | undefined>,
     options?: Intl.CollatorOptions
   ) => DerivedSignal<number>;
-  /** Normalizes to the specified Unicode form */
+  /** Normalizes to the specified Unicode form. */
   normalize: (
     form: MaybeSignalValue<"NFC" | "NFD" | "NFKC" | "NFKD">
   ) => DerivedSignal<string>;
-  /** Replaces the first match of searchValue with replaceValue */
+  /** Replaces the first match of `searchValue` with `replaceValue`. */
   replace: (
     searchValue: MaybeSignalValue<string> | RegExp,
     replaceValue: MaybeSignalValue<string>
   ) => DerivedSignal<string>;
-  /** Replaces all matches of searchValue with replaceValue */
+  /** Replaces all matches of `searchValue` with `replaceValue`. */
   replaceAll: (
     searchValue: MaybeSignalValue<string> | RegExp,
     replaceValue: MaybeSignalValue<string>
   ) => DerivedSignal<string>;
-  /** Searches for a match and returns the index */
+  /** Searches for a match and returns the index. */
   search: (regexp: RegExp) => DerivedSignal<number>;
-  /** Splits the string into an array */
+  /** Splits the string into an array. */
   split: (
     separator: MaybeSignalValue<string> | RegExp,
     limit?: MaybeSignalValue<number | undefined>
   ) => DerivedSignal<string[]>;
-  /** Converts to locale-specific lowercase */
+  /** Converts to locale-specific lowercase. */
   toLocaleLowerCase: (
     locales?: MaybeSignalValue<string | string[] | undefined>
   ) => DerivedSignal<string>;
-  /** Converts to locale-specific uppercase */
+  /** Converts to locale-specific uppercase. */
   toLocaleUpperCase: (
     locales?: MaybeSignalValue<string | string[] | undefined>
   ) => DerivedSignal<string>;
@@ -140,13 +137,13 @@ export type StringSignalTrap = GenericTrap<string> & {
 /**
  * Array trap with array transformation methods.
  *
- * Includes standard array methods as derived signal methods, plus
- * custom getters and partition method.
+ * Includes standard array methods as derived signal methods plus custom
+ * getters and partition methods.
  *
  * @template T - The array element type
  *
  * @remarks
- * - Mutating array methods (push, pop, etc.) are not included since derived signals are immutable
+ * - Mutating array methods are not included because derived signals are immutable
  * - The `partition()` method splits the array into two signals based on a predicate
  */
 export type ArraySignalTrap<T> = GenericTrap<T> & {
@@ -178,14 +175,14 @@ export type ArraySignalTrap<T> = GenericTrap<T> & {
   findLastIndex: (
     where: (item: T, index: number, array: T[]) => boolean
   ) => DerivedSignal<number>;
-  /** Last item of the array */
+  /** Last item of the array. */
   get lastItem(): DerivedSignal<T | undefined>;
-  /** Array length */
+  /** Array length. */
   get length(): DerivedSignal<number>;
   map: <U>(
     mapFn: (item: T, index: number, array: T[]) => U
   ) => DerivedSignal<U[]>;
-  /** Splits array into [passing, failing] based on predicate */
+  /** Splits the array into `[passing, failing]` based on a predicate. */
   partition: (
     where: (item: T, index: number, array: T[]) => boolean
   ) => readonly [DerivedSignal<T[]>, DerivedSignal<T[]>];
@@ -207,7 +204,7 @@ export type ArraySignalTrap<T> = GenericTrap<T> & {
     ) => U,
     initialValue: U
   ) => DerivedSignal<U>;
-  /** Reversed copy of the array */
+  /** Reversed copy of the array. */
   get reversed(): DerivedSignal<T[]>;
   some: (
     itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean
@@ -225,18 +222,18 @@ export type ArraySignalTrap<T> = GenericTrap<T> & {
 /**
  * Record trap for plain objects with property access methods.
  *
- * @template T - The object type (extends Record<string, unknown>)
+ * @template T - The object type
  *
  * @remarks
  * - Throws if the value is not a plain object
  */
 export type RecordSignalTrap<T extends Record<string, unknown>> =
   GenericTrap<T> & {
-    /** Returns a derived signal for a specific property */
+    /** Returns a derived signal for a specific property. */
     prop: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
-    /** Returns an object with all properties as derived signals */
+    /** Returns an object with all properties as derived signals. */
     get props(): { [key in keyof T]: DerivedSignal<T[key]> };
-    /** Returns the object's keys as a derived signal */
+    /** Returns the object's keys as a derived signal. */
     get keys(): DerivedSignal<string[]>;
   };
 

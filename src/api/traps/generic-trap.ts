@@ -7,13 +7,11 @@ import {
 import type { GenericTrap } from "./types";
 
 /**
- * A method which traps a MaybeSignalValue and returns handy derived signals
- * of most-frequently required transforms
+ * Creates the fallback trap for values that do not match a specialized trap.
  *
- * @param input any value for which transformed derived signal is required
- * @see MaybeSignalValue
- * @returns an object of handy transform methods as its properties, which return
- * derived signal
+ * @template T - The type of the trapped value
+ * @param input - A signalified or plain value to trap
+ * @returns A generic trap with string coercion and fallback selection
  */
 export const genericTrap = <T>(input: MaybeSignalValue<T>): GenericTrap<T> => {
   return {

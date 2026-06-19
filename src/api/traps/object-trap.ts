@@ -9,14 +9,16 @@ import { genericTrap } from "./generic-trap";
 import type { RecordSignalTrap } from "./types";
 
 /**
- * A method to get all of the properties of a signalled object as derived signals.
- * Any change in object signal results in an update in their property signals.
- * @param input an object in MaybeSignalValue format (either 'object',
- * Signal<'object'> or NonSignal<'object'>)
- * @returns all of its properties as derived signals
- * @see MaybeSignalValue
+ * Creates the object trap for signalified plain objects.
+ *
+ * @template T - The object type
+ * @param input - A signalified plain object
+ * @returns A record trap exposing derived property accessors
+ *
+ * @remarks
+ * - Throws if the input is not a plain object after unwrapping
+ * - Property accessors are derived signals
  */
-
 export const objectTrap = <T extends Record<string, unknown>>(
   input: MaybeSignalValue<T>,
 ): RecordSignalTrap<T> => {

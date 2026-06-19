@@ -2,6 +2,17 @@ import { derive, type MaybeSignalValue, value } from "../../_core";
 import { genericOp } from "./generic-operation";
 import type { NumberOperation } from "./types";
 
+/**
+ * Creates the number-specific operation chain for a value.
+ *
+ * @template T - The numeric value type
+ * @param input - A signalified number or value-producing function
+ * @returns A number operation object with math and comparison methods
+ *
+ * @remarks
+ * - Used when the evaluated value is a number
+ * - Methods return new operation objects for chaining
+ */
 export const numberOp = (
   input: MaybeSignalValue<number> | (() => number)
 ): NumberOperation => {

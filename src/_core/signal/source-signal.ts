@@ -21,7 +21,7 @@ let _currentSignalEffect: SignalsEffect | null = null;
  * Called by the effect function before running the user's function to enable
  * automatic dependency tracking. After the effect completes, this is set to null.
  *
- * @param effect The effect to set as current, or null to clear
+ * @param effect - The effect to set as current, or `null` to clear tracking
  */
 export const setCurrentEffect = (effect: SignalsEffect | null) =>
   (_currentSignalEffect = effect);
@@ -35,9 +35,8 @@ export const setCurrentEffect = (effect: SignalsEffect | null) =>
  *
  * @template T - The type of value the signal holds
  * @param input - Any JavaScript value to convert to a signal
- * @returns A source signal with a `value` getter/setter. For arrays, includes
- * mutation methods (push, pop, splice, etc.). For plain objects, includes a
- * `set()` method for partial updates.
+ * @returns A source signal with a `value` getter/setter. Arrays include
+ * mutation methods and plain objects include `set()`.
  *
  * @example
  * ```typescript
@@ -58,11 +57,11 @@ export const setCurrentEffect = (effect: SignalsEffect | null) =>
  * ```
  *
  * @remarks
- * - Setting a signal's value to the same value (strict equality) does not trigger effects
+ * - Setting the same value does not trigger effects
  * - Effects are triggered synchronously and immediately upon value change
  * - Signal values are stored immutably via `@cyftech/immutjs`
- * - Object `set()` performs shallow merge, not deep merge
- * - Array mutation methods create new arrays internally but feel mutable
+ * - Object `set()` performs a shallow merge
+ * - Array mutation methods create new arrays internally
  *
  * @see {@link effect} - For registering functions to run when signal values change
  * @see {@link derive} - For creating read-only derived signals
@@ -125,8 +124,8 @@ export const signal = <T>(input: T): SourceSignal<T> => {
 
   /**
    * Type-specific signal creation:
-   * - Arrays get array mutation methods (push, pop, etc.)
-   * - Plain objects get the set method for partial updates
+   * - Arrays get array mutation methods
+   * - Plain objects get the `set()` method for partial updates
    * - Primitives get only the base signal interface
    *
    * The type-specific methods use setValueAndRunEffects to ensure

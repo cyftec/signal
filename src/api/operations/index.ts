@@ -5,16 +5,16 @@ import { stringAndArrayOp } from "./string-and-array-operation";
 import type { Operation } from "./types";
 
 /**
- * Creates an operation object for composing logical and mathematical operations on signals.
+ * Creates an operation object for composing logical and mathematical operations.
  *
- * This function evaluates the input (which can be a signal, plain value, or function)
- * and dispatches to the appropriate operation implementation based on the evaluated type:
+ * This function evaluates the input and dispatches to the appropriate operation
+ * implementation based on the evaluated type:
  * - Number values → numberOp (provides math operations: add, sub, mul, div, etc.)
  * - String or Array values → stringAndArrayOp (provides length-based operations)
  * - Other types → genericOp (provides logical operations: or, and, equals, etc.)
  *
  * @template T - The type of value the operation works with
- * @param input - A signal, plain value, or function that evaluates to a value
+ * @param input - A signal, plain value, or value-producing function
  * @returns A type-specific operation object with chainable methods
  *
  * @example
@@ -33,10 +33,10 @@ import type { Operation } from "./types";
  *
  * @remarks
  * - The operation type is determined by the runtime type of the evaluated value
- * - If input is a function, it's called to get the value
+ * - If input is a function, it is called to get the value
  * - Type changes in the input signal are not reflected in the operation type
- * - All methods return new operation objects (chaining)
- * - Final result is obtained via getters (truthy, falsy, result, etc.)
+ * - Methods return new operation objects for chaining
+ * - Final results are obtained via getters such as `truthy`, `falsy`, and `result`
  *
  * @see {@link Operation} - For the operation type union
  * @see {@link MaybeSignalValue} - For the input type

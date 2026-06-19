@@ -13,6 +13,17 @@ import type { ArraySignalTrap, SignalifiedFunction } from "./types";
  * @returns an object of handy transform methods as its properties, which return
  * derived signal
  */
+/**
+ * Creates the array trap for signalified arrays.
+ *
+ * @template T - The array element type
+ * @param input - A signalified array
+ * @returns An array trap with array transformation helpers
+ *
+ * @remarks
+ * - Uses derived signals for every accessor and method
+ * - The trap type is selected once at creation time
+ */
 export const arrayTrap = <T>(
   input: MaybeSignalValue<T[]>,
 ): ArraySignalTrap<T> => {

@@ -73,7 +73,7 @@ export type SignalifiedObject<T> = NonSignal<T> | Signal<T>;
 export type MaybeSignalValue<T> = T | NonSignal<T> | Signal<T>;
 
 /**
- * A utility type that removes null and undefined from signal realm types.
+ * A utility type that removes `null` and `undefined` from signal realm types.
  *
  * This is similar to TypeScript's `NonNullable` but handles signal types specifically.
  *
@@ -90,7 +90,7 @@ export type NonNullSignalValue<S> = S extends null | undefined
   : S;
 
 /**
- * Converts a tuple type to a tuple of MaybeSignalValue types.
+ * Converts a tuple type to a tuple of `MaybeSignalValue` types.
  *
  * Functions are left as-is, while other values are converted to MaybeSignalValue.
  *
@@ -105,7 +105,7 @@ export type MaybeSignalValues<T extends any[]> = {
 };
 
 /**
- * Extracts plain values from a MaybeSignalValues tuple.
+ * Extracts plain values from a `MaybeSignalValues` tuple.
  *
  * This is the inverse of MaybeSignalValues, converting signalified values
  * back to their plain types.
@@ -119,7 +119,7 @@ export type PlainValues<T extends MaybeSignalValues<any[]>> = {
 };
 
 /**
- * Extracts a plain value from a MaybeSignalValue.
+ * Extracts a plain value from a `MaybeSignalValue`.
  *
  * If the input is a signalified object, returns the wrapped value.
  * Otherwise, returns the input as-is.

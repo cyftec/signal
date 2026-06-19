@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tutorial | API Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+<body>
+  <div class="app-shell content-layout">
+    <aside class="sidebar content-shell">
+      <div class="brand">
+        <div class="brand-kicker">Cyftech Signal</div>
+        <div class="brand-title">API Docs</div>
+      </div>
+      <div class="content-nav"><a href="../">Home</a><a href="../api-docs/">API Docs</a><a href="../tutorial/">Tutorial</a><a href="../architecture/">Architecture</a></div>
+    </aside>
+    <main class="main">
+      <nav class="content-top-nav"><a href="../">Home</a><a href="../api-docs/">API Docs</a><a href="../tutorial/">Tutorial</a><a href="../architecture/">Architecture</a></nav>
+      <article class="doc">
+        <header class="hero"><div class="eyebrow">Tutorial</div><h1>Tutorial</h1><p>Learn the library step by step.</p></header><h2 id="1-install">1. Install</h2>
+<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts">import { signal, derive, effect } from <span class="tok str">&quot;@cyftech/signal&quot;</span>;</code></pre></div>
+<p>Expected result:</p>
+<ul><li>the library imports cleanly</li><li>the three primitives are available immediately</li></ul>
+<h2 id="2-create-state">2. Create State</h2>
+<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
+console.<span class="tok fn">log</span>(count.value); <span class="tok cm">// 0</span>
+count.value = <span class="tok num">1</span>;
+console.<span class="tok fn">log</span>(count.value); <span class="tok cm">// 1</span></code></pre></div>
+<p>What changed:</p>
+<ul><li><code>signal()</code> stores mutable state</li><li><code>.value</code> reads and writes the current value</li></ul>
+<h2 id="3-read-from-state">3. Read From State</h2>
+<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> name = <span class="tok fn">signal</span>(<span class="tok str">&quot;Ada&quot;</span>);
+console.<span class="tok fn">log</span>(<span class="tok str">`Hello, ${name.value}`</span>);</code></pre></div>
+<p>Expected result:</p>
+<ul><li>output reads the current signal value directly</li></ul>
+<h2 id="4-derive-state">4. Derive State</h2>
+<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">2</span>);
+<span class="tok kw">const</span> doubled = <span class="tok fn">derive</span>(() =&gt; count.value * <span class="tok num">2</span>);
+console.<span class="tok fn">log</span>(doubled.value); <span class="tok cm">// 4</span></code></pre></div>
+<p>What changed:</p>
+<ul><li><code>derive()</code> computes new state from existing state</li><li>the result stays in sync automatically</li></ul>
+<h2 id="5-react-to-changes">5. React To Changes</h2>
+<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
+<span class="tok fn">effect</span>(() =&gt; {
+  console.<span class="tok fn">log</span>(<span class="tok str">&quot;count:&quot;</span>, count.value);
+});
+count.value = <span class="tok num">1</span>;</code></pre></div>
+<p>Expected result:</p>
+<ul><li>the effect runs once immediately</li><li>it runs again after the update</li></ul>
+<h2 id="6-combine-signals">6. Combine Signals</h2>
+<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> first = <span class="tok fn">signal</span>(<span class="tok str">&quot;Ada&quot;</span>);
+<span class="tok kw">const</span> last = <span class="tok fn">signal</span>(<span class="tok str">&quot;Lovelace&quot;</span>);
+<span class="tok kw">const</span> fullName = <span class="tok fn">derive</span>(() =&gt; <span class="tok str">`${first.value} ${last.value}`</span>);
+<span class="tok fn">effect</span>(() =&gt; {
+  console.<span class="tok fn">log</span>(fullName.value);
+});</code></pre></div>
+<h2 id="7-pattern-to-prefer">7. Pattern to Prefer</h2>
+<ul><li>Use <code>signal()</code> for mutable source data</li><li>Use <code>derive()</code> for computed values</li><li>Use <code>effect()</code> for logging, DOM updates, and integration points</li></ul>
+<h2 id="8-mental-model">8. Mental Model</h2>
+<div class="diagram-block"><div class="diagram-title">Data Flow</div><div class="diagram-svg"><div class="diagram-node"><span>source signal</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>derived signal</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>effect</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>side effects</span></div></div></div>
+<p>Use this when you want the shortest path from state to UI.</p>
+<h2 id="9-equality-short-circuit">9. Equality Short-Circuit</h2>
+<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">1</span>);
+<span class="tok fn">effect</span>(() =&gt; {
+  console.<span class="tok fn">log</span>(count.value);
+});
+count.value = <span class="tok num">1</span>;</code></pre></div>
+<p>Expected result:</p>
+<ul><li>the effect does not re-run for the same value</li></ul>
+<h2 id="10-dispose-when-done">10. Dispose When Done</h2>
+<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
+<span class="tok kw">const</span> logger = <span class="tok fn">effect</span>(() =&gt; {
+  console.<span class="tok fn">log</span>(count.value);
+});
+
+logger.<span class="tok fn">dispose</span>();
+count.value = <span class="tok num">1</span>;</code></pre></div>
+<p>Expected result:</p>
+<ul><li>the disposed effect does not run again after the next update cycle</li></ul>
+<h2 id="11-arrays-and-objects">11. Arrays And Objects</h2>
+<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> items = <span class="tok fn">signal</span>([<span class="tok num">1</span>, <span class="tok num">2</span>, <span class="tok num">3</span>]);
+items.<span class="tok fn">push</span>(<span class="tok num">4</span>);
+
+<span class="tok kw">const</span> user = <span class="tok fn">signal</span>({ name: <span class="tok str">&quot;Ada&quot;</span>, age: <span class="tok num">36</span> });
+user.<span class="tok fn">set</span>({ age: <span class="tok num">37</span> });</code></pre></div>
+<p>Expected result:</p>
+<ul><li>array helpers update the array signal</li><li>object <code>set()</code> performs a shallow merge</li></ul>
+      </article>
+    </main>
+  </div>
+  
+</body>
+</html>

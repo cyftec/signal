@@ -2,15 +2,15 @@ import { derive, type MaybeSignalValue, value } from "../../_core";
 import type { GenericOperation, OperationResult } from "./types";
 
 /**
- * Acronym for 'GenericOperation'.
- * A method to accumulate all operations on signal(s), to ultimately resolve
- * into a final singal signal. Without this utility, one needs to create
- * n number of derived signals for doing n operations, unnecessarily.
+ * Creates the generic operation chain for a value.
  *
- * @param input any value for which transformed derived signal is required
- * @see MaybeSignalValue
- * @returns an object of handy transform methods as its properties, which return
- * derived signal
+ * @template T - The value type
+ * @param input - A signalified value or value-producing function
+ * @returns A generic operation object with composable logical methods
+ *
+ * @remarks
+ * - Used for non-numeric and non-string-or-array inputs
+ * - Methods return new operation objects for chaining
  */
 export const genericOp = <T>(
   input: MaybeSignalValue<T> | (() => T)

@@ -8,12 +8,12 @@ import {
 } from "../_core";
 
 /**
- * The expressions allowed inside ${} of the tagged template function.
+ * The expressions allowed inside the template placeholders.
  *
  * @remarks
- * - `Signal<any>`: Use when you have a signal handy
- * - `DerivedValueGetterWithSignals<any>`: Use to derive a signal before passing to tmpl
- * - `any`: Use when the type is unknown or may/may not be a signal
+ * - `Signal<any>` is accepted directly
+ * - `DerivedValueGetterWithSignals<any>` is accepted as a deferred expression
+ * - Plain values are accepted as-is
  */
 export type StringSignalDeriverTemplateExpressions = (
   | Signal<any>
@@ -25,10 +25,10 @@ export type StringSignalDeriverTemplateExpressions = (
  * Tagged template function for string interpolation with signals.
  *
  * Creates a derived signal of the interpolated string that recomputes whenever
- * any signal in the expressions changes.
+ * any tracked expression changes.
  *
  * @param strings - The static string parts of the template literal
- * @param tlExpressions - The dynamic expressions inside ${}
+ * @param tlExpressions - The dynamic expressions inside the placeholders
  * @returns A derived signal of the interpolated string
  *
  * @example
@@ -54,10 +54,10 @@ export type StringSignalDeriverTemplateExpressions = (
  * ```
  *
  * @remarks
- * - Expressions can be signals (accessed via `.value`), deriver functions, or plain values
- * - Null/undefined values are converted to empty strings
- * - All values are converted to strings via `.toString()`
- * - Works with any combination of signals, functions, and plain values
+ * - Expressions can be signals, derived expression functions, or plain values
+ * - `null` and `undefined` become empty strings
+ * - Values are converted to strings via `.toString()`
+ * - Works with any combination of supported expression types
  *
  * @see {@link DerivedSignal} - For the derived signal type
  * @see {@link derive} - For the underlying derived signal primitive

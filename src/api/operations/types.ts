@@ -1,25 +1,23 @@
 /**
- * Operation types
+ * Operation types.
  *
- * The purpose of operation is to compose multiple logical (or otherwise)
- * operations without creating intermediate signals. The result of multiple
- * composed operations is derived by calling any of the getters or methods,
- * which yields a DerivedSignal of the operation result.
+ * Operation objects compose multiple logical or mathematical transforms without
+ * creating intermediate signals.
  */
 
 import type { DerivedSignal, MaybeSignalValue } from "../../_core";
 
-/** Type for logical operations that return a GenericOperation for chaining */
+/** Type for logical operations that return a `GenericOperation` for chaining. */
 type LogicalOperation<T> = (
   checkValue: MaybeSignalValue<T>
 ) => GenericOperation;
 
-/** Type for comparison operations that return a GenericOperation for chaining */
+/** Type for comparison operations that return a `GenericOperation` for chaining. */
 type ComparisonOperation<T> = (
   compareValue: MaybeSignalValue<T>
 ) => GenericOperation;
 
-/** Type for operations combining logic with comparisons on two values */
+/** Type for operations combining logic with comparisons on two values. */
 type LogicWithComparisonOperation<T> = (
   subjectValue: MaybeSignalValue<T>,
   compareValue: MaybeSignalValue<T>
@@ -35,9 +33,9 @@ export type OperationResult = {
   get truthy(): DerivedSignal<boolean>;
   /** Derived signal of whether the value is falsy */
   get falsy(): DerivedSignal<boolean>;
-  /** Derived signal of [isTruthy, isFalsy] pair */
+  /** Derived signal of the `[isTruthy, isFalsy]` pair. */
   get truthyFalsyPair(): DerivedSignal<readonly [boolean, boolean]>;
-  /** Returns valueIfTruthy if truthy, otherwise valueIfFalsy */
+  /** Returns `valueIfTruthy` if truthy, otherwise `valueIfFalsy`. */
   ternary: <Tr, Fl>(
     valueIfTruthy: MaybeSignalValue<Tr>,
     valueIfFalsy: MaybeSignalValue<Fl>
@@ -86,7 +84,7 @@ export type GenericOperation = OperationResult & {
   andThisIsGTE: LogicWithComparisonOperation<number>;
 };
 
-/** Type for confinement/range check operations */
+/** Type for confinement/range check operations. */
 type ConfinementCheckOperation = (
   lowerValue: MaybeSignalValue<number>,
   upperValue: MaybeSignalValue<number>,
@@ -94,16 +92,16 @@ type ConfinementCheckOperation = (
   touchingUpper?: boolean
 ) => GenericOperation;
 
-/** Type for math operations that return NumberOperation for chaining */
+/** Type for math operations that return `NumberOperation` for chaining. */
 type MathOperation = (num: MaybeSignalValue<number>) => NumberOperation;
 
 /**
  * Number operation with math operations and comparisons.
  *
- * Extends GenericOperation with number-specific operations.
+ * Extends `GenericOperation` with number-specific operations.
  */
 export type NumberOperation = GenericOperation & {
-  /** The numeric value as a derived signal */
+  /** The numeric value as a derived signal. */
   get result(): DerivedSignal<number>;
   /** Chains an addition operation */
   add: MathOperation;
@@ -132,22 +130,22 @@ export type NumberOperation = GenericOperation & {
 /**
  * String and array operation with length-based operations.
  *
- * Extends GenericOperation with length-specific operations for strings and arrays.
+ * Extends `GenericOperation` with length-specific operations for strings and arrays.
  */
 export type StringAndArrayOperation = GenericOperation & {
-  /** Checks if the length is between lower and upper (inclusive by default) */
+  /** Checks whether the length is between lower and upper values. */
   lengthBetween: ConfinementCheckOperation;
-  /** Chains a length equality comparison */
+  /** Chains a length equality comparison. */
   lengthEquals: ComparisonOperation<number>;
-  /** Chains a length inequality comparison */
+  /** Chains a length inequality comparison. */
   lengthNotEquals: ComparisonOperation<number>;
-  /** Chains a length less-than comparison */
+  /** Chains a length less-than comparison. */
   lengthLT: ComparisonOperation<number>;
-  /** Chains a length less-than-or-equal comparison */
+  /** Chains a length less-than-or-equal comparison. */
   lengthLTE: ComparisonOperation<number>;
-  /** Chains a length greater-than comparison */
+  /** Chains a length greater-than comparison. */
   lengthGT: ComparisonOperation<number>;
-  /** Chains a length greater-than-or-equal comparison */
+  /** Chains a length greater-than-or-equal comparison. */
   lengthGTE: ComparisonOperation<number>;
 };
 
@@ -157,10 +155,10 @@ export type StringAndArrayOperation = GenericOperation & {
  * @template T - The type of value the operation works with
  *
  * @remarks
- * - Number values → NumberOperation
- * - String or Array values → StringAndArrayOperation
- * - Other types → GenericOperation
- */
+ * - Number values map to `NumberOperation`
+ * - String or array values map to `StringAndArrayOperation`
+ * - Other types map to `GenericOperation`
+*/
 export type Operation<T> = T extends number
   ? NumberOperation
   : T extends string | unknown[]

@@ -41,11 +41,11 @@ import { trap } from "./traps";
  * ```
  *
  * @remarks
- * - On success: `result` is updated, `error` is set to `undefined`
- * - On failure: `error` is updated, `result` preserves the previous successful result
+ * - On success: `result` is updated and `error` is cleared
+ * - On failure: `error` is updated and `result` preserves the previous successful result
  * - The `ultimately` callback runs in the finally block
  * - The promise can be run multiple times
- * - If no initial value provided, result signal starts as `undefined`
+ * - If no initial value is provided, the result signal starts as `undefined`
  * - If the promise fails multiple times, the last successful result is preserved
  *
  * @see {@link DerivedSignal} - For the derived signal type
@@ -56,9 +56,8 @@ export const promstates = <R, Args extends Array<any>, I>(
   ultimately?: () => void
 ): readonly [
   /**
-   * Promise runner method which takes same arguments as the original promise
-   * but doesn't return the result. Instead it updates the signals of resulting
-   * states of the promise, i.e. result, error or is promise currently running or not.
+   * Promise runner method which takes the same arguments as the original promise
+   * but returns `Promise<void>`.
    */
   (...args: Args) => Promise<void>,
   /** Derived signal of result of the promise. */

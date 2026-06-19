@@ -3,6 +3,16 @@ import { getDesignalifiedMethodParams } from "./transforms";
 import { genericTrap } from "./generic-trap";
 import type { NumberSignalTrap, SignalifiedFunction } from "./types";
 
+/**
+ * Creates the number trap for signalified numbers.
+ *
+ * @param input - A signalified number
+ * @returns A number trap with numeric methods and formatting helpers
+ *
+ * @remarks
+ * - Uses derived signals for every accessor and method
+ * - The trap type is selected once at creation time
+ */
 export const numberTrap = (
   input: MaybeSignalValue<number>
 ): NumberSignalTrap => {

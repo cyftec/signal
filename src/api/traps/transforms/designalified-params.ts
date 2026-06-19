@@ -14,7 +14,7 @@ import {
  * This allows trap methods to accept signalified parameters while still being
  * able to call standard JavaScript methods that expect plain values.
  *
- * @param methodParams Signalified parameters (signals, plain values, or non-signals)
+ * @param methodParams - Signalified parameters (signals, plain values, or non-signals)
  * @see SignalifiedFunction
  * @see MaybeSignalValues
  * @see PlainValues

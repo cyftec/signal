@@ -8,7 +8,7 @@ import { stringTrap } from "./string-trap";
 import type { SignalTrap } from "./types";
 
 /**
- * Creates a type-specific trap object with convenient derived signal methods.
+ * Creates a type-specific trap object with derived signal methods.
  *
  * This function uses runtime type checking to dispatch to the appropriate
  * type-specific trap implementation. The dispatch order is:
@@ -19,8 +19,8 @@ import type { SignalTrap } from "./types";
  * 5. Other types → genericTrap (provides basic string and fallback methods)
  *
  * @template T - The type of value to trap
- * @param input - A signal or plain value for which transformed derived signals are required
- * @returns A type-specific trap object with methods that return derived signals
+ * @param input - A signal or plain value to inspect
+ * @returns A type-specific trap object whose methods return derived signals
  *
  * @example
  * ```typescript
@@ -40,8 +40,8 @@ import type { SignalTrap } from "./types";
  * @remarks
  * - The trap type is determined by the runtime type of the unwrapped value at creation time
  * - Type changes in the input signal are not reflected in the trap type
- * - All methods return derived signals that update when the input changes
- * - For object trap: throws if the value is not a plain object
+ * - Methods return derived signals that update when the input changes
+ * - The object trap throws if the value is not a plain object
  *
  * @see {@link SignalTrap} - For the trap type union
  * @see {@link MaybeSignalValue} - For the input type

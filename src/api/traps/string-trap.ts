@@ -1,16 +1,17 @@
-import { derive, type MaybeSignalValue, signal, value } from "../../_core";
+import { derive, type MaybeSignalValue, value } from "../../_core";
 import { getDesignalifiedMethodParams } from "./transforms";
 import { genericTrap } from "./generic-trap";
 import type { SignalifiedFunction, StringSignalTrap } from "./types";
 
 /**
- * A method which traps a MaybeSignalValue and returns handy derived signals
- * of most-frequently required transforms
+ * Creates the string trap for signalified strings.
  *
- * @param input any value for which transformed derived signal is required
- * @see MaybeSignalValue
- * @returns an object of handy transform methods as its properties, which return
- * derived signal
+ * @param input - A signalified string
+ * @returns A string trap with string methods and derived accessors
+ *
+ * @remarks
+ * - Uses derived signals for every accessor and method
+ * - The trap type is selected once at creation time
  */
 export const stringTrap = (
   input: MaybeSignalValue<string>
@@ -122,6 +123,3 @@ export const stringTrap = (
     ) => derive(() => value(input).toLocaleUpperCase(value(locales))),
   };
 };
-
-const sig = signal("dksjfbksjnd");
-const result = stringTrap(sig).split("");

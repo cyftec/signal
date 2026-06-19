@@ -22,7 +22,8 @@
   },
   "scripts": {
     "docs:api": "bun docs/scripts/generate-api-docs.ts",
-    "docs:build": "echo 'Documentation site build not yet implemented'",
-    "docs": "bun docs/scripts/generate-api-docs.ts && echo 'Documentation site build not yet implemented'"
+    "docs:validate-api": "bun docs/scripts/validate-api-docs.ts",
+    "docs:build": "bun docs/scripts/build-docs.ts",
+    "docs": "bun run docs:api && bun run docs:validate-api && bun run docs:build"
   }
 }

@@ -14,9 +14,8 @@ import {
  * recomputes whenever any of the signalified arguments changes.
  *
  * @template F - The function type
- * @param computerFn - A function that takes plain values and returns a value
- * @param restArgs - Signalified arguments (signals or plain values) matching
- * the function's parameter types
+ * @param computerFn - A function that receives plain values and returns a value
+ * @param restArgs - Signalified arguments matching the function parameters
  * @returns A derived signal of the function's return type
  *
  * @example
@@ -43,8 +42,8 @@ import {
  * @remarks
  * - Works with functions of any arity
  * - Can mix signals and plain values in arguments
- * - Plain value arguments don't trigger recomputation
- * - Arguments are unwrapped using the `value()` function
+ * - Plain value arguments do not trigger recomputation
+ * - Arguments are unwrapped using the `value()` helper
  *
  * @see {@link derive} - For the underlying derived signal primitive
  * @see {@link value} - For unwrapping signalified values

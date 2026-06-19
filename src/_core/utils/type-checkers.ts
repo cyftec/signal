@@ -2,7 +2,7 @@ import type { MaybeSignal } from "../types";
 import { value } from "./value-getter";
 
 /**
- * Checks if a value is a source signal.
+ * Checks whether a value is a source signal.
  *
  * @param input - Any value to check
  * @returns `true` if the value has `type: "source-signal"`, `false` otherwise
@@ -19,7 +19,7 @@ export const valueIsSourceSignal = (input: MaybeSignal<any>): boolean =>
   !!(input?.type === "source-signal");
 
 /**
- * Checks if a value is a derived signal.
+ * Checks whether a value is a derived signal.
  *
  * @param input - Any value to check
  * @returns `true` if the value has `type: "derived-signal"`, `false` otherwise
@@ -36,7 +36,7 @@ export const valueIsDerivedSignal = (input: MaybeSignal<any>): boolean =>
   !!(input?.type === "derived-signal");
 
 /**
- * Checks if a value is any signal (source or derived).
+ * Checks whether a value is any signal (source or derived).
  *
  * @param input - Any value to check
  * @returns `true` if the value is a source or derived signal, `false` otherwise
@@ -54,11 +54,11 @@ export const valueIsSignal = (input: MaybeSignal<any>): boolean =>
   ["source-signal", "derived-signal"].includes(input?.type);
 
 /**
- * Checks if a value is a non-signal object, optionally matching specific types.
+ * Checks whether a value is a non-signal object, optionally matching specific types.
  *
  * @param input - Any value to check
- * @param shouldMatchAnyOfTypes - Optional array of type names to match
- * (e.g., ["string", "number"])
+ * @param shouldMatchAnyOfTypes - Optional array of primitive type names to match
+ * (for example, `["string", "number"]`)
  * @returns `true` if the value has `type: "non-signal"` and (if types provided)
  * the value matches one of the types
  *
@@ -87,7 +87,7 @@ export const valueIsNonSignalObject = (
     shouldMatchAnyOfTypes.some((type) => typeof input?.value === type));
 
 /**
- * Checks if a value is a signal or non-signal object.
+ * Checks whether a value is a signal or non-signal object.
  *
  * @param input - Any value to check
  * @returns `true` if the value is a signal or non-signal object, `false` otherwise
@@ -105,7 +105,7 @@ export const valueIsSignalifiedObject = (input: any): boolean =>
   valueIsSignal(input) || valueIsNonSignalObject(input);
 
 /**
- * Checks if a value is a non-signal of type string.
+ * Checks whether a value is a non-signal of type string.
  *
  * @param input - Any value to check
  * @returns `true` if the value is a non-signal with a string value, `false` otherwise
@@ -120,7 +120,7 @@ export const valueIsNonSignalString = (input: any): boolean =>
   valueIsNonSignalObject(input, ["string"]);
 
 /**
- * Checks if a value is a non-signal of type string array.
+ * Checks whether a value is a non-signal of type string array.
  *
  * @param input - Any value to check
  * @returns `true` if the value is a non-signal with a string array value, `false` otherwise
@@ -139,7 +139,7 @@ export const valueIsNonSignalStringArray = (input: any): boolean =>
   (input?.value as any[]).every((item) => typeof item === "string");
 
 /**
- * Checks if a value (after unwrapping) is a string or array.
+ * Checks whether a value, after unwrapping, is a string or array.
  *
  * @param input - Any value to check
  * @returns `true` if the unwrapped value is a string or array, `false` otherwise

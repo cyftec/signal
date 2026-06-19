@@ -6,16 +6,16 @@ import {
 } from "../_core";
 
 /**
- * Connects multiple transmitter signals to a receiver signal.
+ * Connects multiple transmitter signals to a single receiver signal.
  *
- * When any transmitter's value changes, the receiver's value is updated to match.
- * If multiple transmitters change simultaneously, the receiver gets the last one's value.
- * The receiver can still be updated independently.
+ * Whenever any transmitter changes, the receiver is updated to match that
+ * transmitter's current value. If more than one transmitter changes in the same
+ * propagation chain, the final receiver value follows effect execution order.
  *
  * @template T - The type of value the signals hold
  * @param receiver - A source signal that will receive updates
  * @param transmittors - Multiple signals (source or derived) of the same type
- * @returns Array of effects for disposing the connections
+ * @returns Array of effects that can be disposed to disconnect the bindings
  *
  * @example
  * ```typescript
@@ -39,11 +39,11 @@ import {
  * ```
  *
  * @remarks
- * - Each transmitter has its own effect that updates the receiver
- * - If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)
- * - Empty transmitters array returns empty effects array
+ * - Each transmitter gets its own effect that updates the receiver
  * - Transmitters can be source or derived signals
- * - Receiver must be a source signal (mutable)
+ * - Receiver must be a source signal
+ * - Passing no transmitters returns an empty effects array
+ * - The receiver remains independently mutable
  *
  * @see {@link transmit} - For broadcasting from one transmitter to multiple receivers
  * @see {@link effect} - For the underlying effect primitive
@@ -61,13 +61,13 @@ export const receive = <T>(
 /**
  * Broadcasts changes from one transmitter signal to multiple receiver signals.
  *
- * When the transmitter's value changes, all receivers are updated to match.
- * All receivers are updated synchronously. Each receiver can still be updated independently.
+ * When the transmitter changes, all receivers are updated synchronously to the
+ * same value. Each receiver remains independently mutable.
  *
  * @template T - The type of value the signals hold
  * @param transmittor - A signal (source or derived) that broadcasts changes
  * @param receivers - Multiple source signals that will receive updates
- * @returns A single effect for disposing the connection
+ * @returns A single effect that can be disposed to disconnect the broadcast
  *
  * @example
  * ```typescript
@@ -92,10 +92,10 @@ export const receive = <T>(
  *
  * @remarks
  * - A single effect manages all receiver updates
- * - Empty receivers array creates an effect that does nothing
  * - Transmitter can be source or derived signal
- * - Receivers must be source signals (mutable)
- * - No guarantee about the order of receiver updates
+ * - Receivers must be source signals
+ * - Passing no receivers creates a no-op effect
+ * - The order of receiver updates is not guaranteed
  *
  * @see {@link receive} - For connecting multiple transmitters to a receiver
  * @see {@link effect} - For the underlying effect primitive

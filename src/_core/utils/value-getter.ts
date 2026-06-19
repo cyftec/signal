@@ -9,7 +9,7 @@ import { valueIsSignalifiedObject } from "./type-checkers";
  *
  * @template T - The type of the plain value
  * @param input - A signal, non-signal, or plain value
- * @returns The plain value
+ * @returns The unwrapped plain value
  *
  * @example
  * ```typescript
@@ -22,7 +22,7 @@ import { valueIsSignalifiedObject } from "./type-checkers";
  * ```
  *
  * @remarks
- * - Does not trigger dependency tracking (use `.value` directly for that)
+ * - Does not trigger dependency tracking
  * - Works with `null` and `undefined`
  * - Works with nested structures
  *

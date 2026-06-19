@@ -1,17 +1,2225 @@
 {
-  "version": "1.0.0",
-  "generatedAt": "2026-06-19T11:02:21.184Z",
+  "generatedAt": "2026-06-19T14:36:52.686Z",
+  "symbols": {
+    "core:effect": {
+      "name": "effect",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/effect.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const effect = (fn: () => void): SignalsEffect => {\n  const signalsEffect = fn as SignalsEffect;\n  signalsEffect.canDisposeNow = false;\n  signalsEffect.dispose = () => {\n    signalsEffect.canDisposeNow = true;\n  };\n\n  setCurrentEffect(signalsEffect);\n  fn();\n  setCurrentEffect(null);\n\n  return signalsEffect;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Registers a function to run whenever its accessed signals change.\n\nThe function runs immediately when `effect()` is called, and re-runs\nsynchronously whenever any tracked signal's value changes. Dependencies\nare established by accessing `.value` on signals during execution.",
+        "remarks": [
+          "- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately"
+        ],
+        "examples": [
+          "```typescript\nconst count = signal(0);\n\n// Simple effect\neffect(() => {\n  console.log(\"Count is:\", count.value);\n});\n\n// Multiple signal tracking\nconst name = signal(\"John\");\nconst age = signal(30);\neffect(() => {\n  console.log(`${name.value} is ${age.value} years old`);\n});\n\n// Disposal\nconst eff = effect(() => {\n  console.log(count.value);\n});\neff.dispose();\ncount.value = 5; // Effect won't run\n```"
+        ],
+        "params": [
+          {
+            "name": "fn",
+            "description": "A function that should access `.value` on signals to establish\ndependencies. Contains side effects (logging, DOM updates, etc.)."
+          }
+        ],
+        "returns": [
+          "The input function augmented with `canDisposeNow` and `dispose()`\nmethods for cleanup"
+        ],
+        "see": [
+          "signal - For creating signals",
+          "derive - For creating derived signals",
+          "dispose - For disposing multiple effects or derived signals"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/effect.ts"
+    },
+    "core:dispose": {
+      "name": "dispose",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/dispose.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const dispose = (\n  ...derivedSignalsOrEffects: (DerivedSignal<any> | SignalsEffect)[]\n): void => {\n  derivedSignalsOrEffects.forEach((dsigOrEff) => dsigOrEff.dispose());\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Disposes multiple derived signals and/or effects at once.\n\nThis utility function calls `.dispose()` on each argument, stopping\ndependency tracking for derived signals and marking effects for disposal.",
+        "remarks": [
+          "- Empty argument list is valid (no-op)\n- Can mix derived signals and effects in the same call\n- Disposing the same effect multiple times is safe (idempotent)\n- For derived signals: stops dependency tracking\n- For effects: marks for disposal (removed on next signal update)"
+        ],
+        "examples": [
+          "```typescript\nconst count = signal(0);\nconst doubled = derive(() => count.value * 2);\nconst eff = effect(() => console.log(count.value));\n\n// Dispose single\ndispose(doubled);\n\n// Dispose multiple\ndispose(doubled, eff);\n\n// Mixed disposal\ndispose(doubled, eff);\n\n// Empty (no-op)\ndispose();\n```"
+        ],
+        "params": [
+          {
+            "name": "derivedSignalsOrEffects",
+            "description": "Variable arguments of derived signals\nand/or effects to dispose"
+          }
+        ],
+        "returns": [],
+        "see": [
+          "DerivedSignal.dispose - For disposing individual derived signals",
+          "SignalsEffect.dispose - For disposing individual effects"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/dispose.ts"
+    },
+    "core:valueIsSourceSignal": {
+      "name": "valueIsSourceSignal",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/utils/type-checkers.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const valueIsSourceSignal = (input: MaybeSignal<any>): boolean =>\n  !!(input?.type === \"source-signal\");",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Checks whether a value is a source signal.",
+        "remarks": [
+          "- Returns false for derived signals, non-signals, and plain values\n- Returns false for `null` and `undefined`"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any value to check"
+          }
+        ],
+        "returns": [
+          "`true` if the value has `type: \"source-signal\"`, `false` otherwise"
+        ],
+        "see": [
+          "SourceSignal - For source signal type",
+          "valueIsDerivedSignal - For checking derived signals",
+          "valueIsSignal - For checking any signal type"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/utils/type-checkers.ts"
+    },
+    "core:valueIsDerivedSignal": {
+      "name": "valueIsDerivedSignal",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/utils/type-checkers.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const valueIsDerivedSignal = (input: MaybeSignal<any>): boolean =>\n  !!(input?.type === \"derived-signal\");",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Checks whether a value is a derived signal.",
+        "remarks": [
+          "- Returns false for source signals, non-signals, and plain values\n- Returns false for `null` and `undefined`"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any value to check"
+          }
+        ],
+        "returns": [
+          "`true` if the value has `type: \"derived-signal\"`, `false` otherwise"
+        ],
+        "see": [
+          "DerivedSignal - For derived signal type",
+          "[valueIsSourceSignal](./core/valueissourcesignal.md) - For checking source signals",
+          "valueIsSignal - For checking any signal type"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/utils/type-checkers.ts"
+    },
+    "core:valueIsSignal": {
+      "name": "valueIsSignal",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/utils/type-checkers.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const valueIsSignal = (input: MaybeSignal<any>): boolean =>\n  [\"source-signal\", \"derived-signal\"].includes(input?.type);",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Checks whether a value is any signal (source or derived).",
+        "remarks": [
+          "- Returns true for both source and derived signals\n- Returns false for non-signals and plain values\n- Returns false for `null` and `undefined`"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any value to check"
+          }
+        ],
+        "returns": [
+          "`true` if the value is a source or derived signal, `false` otherwise"
+        ],
+        "see": [
+          "SourceSignal - For source signal type",
+          "DerivedSignal - For derived signal type",
+          "Signal - For the signal union type"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/utils/type-checkers.ts"
+    },
+    "core:valueIsNonSignalObject": {
+      "name": "valueIsNonSignalObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/utils/type-checkers.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const valueIsNonSignalObject = (\n  input: any,\n  shouldMatchAnyOfTypes?: string[],\n): boolean =>\n  input?.type === \"non-signal\" &&\n  (!shouldMatchAnyOfTypes ||\n    !shouldMatchAnyOfTypes.length ||\n    shouldMatchAnyOfTypes.some((type) => typeof input?.value === type));",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Checks whether a value is a non-signal object, optionally matching specific types.",
+        "remarks": [
+          "- Empty types array is treated as no type restriction\n- Returns false for `null` and `undefined`"
+        ],
+        "examples": [
+          "```typescript\nconst nonSig = getNonSignalObject(42);\nvalueIsNonSignalObject(nonSig); // true\nvalueIsNonSignalObject(nonSig, [\"number\"]); // true\nvalueIsNonSignalObject(nonSig, [\"string\"]); // false\n```"
+        ],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any value to check"
+          },
+          {
+            "name": "shouldMatchAnyOfTypes",
+            "description": "Optional array of primitive type names to match\n(for example, `[\"string\", \"number\"]`)"
+          }
+        ],
+        "returns": [
+          "`true` if the value has `type: \"non-signal\"` and (if types provided)\nthe value matches one of the types"
+        ],
+        "see": [
+          "NonSignal - For non-signal type",
+          "getNonSignalObject - For creating non-signal objects"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/utils/type-checkers.ts"
+    },
+    "core:valueIsSignalifiedObject": {
+      "name": "valueIsSignalifiedObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/utils/type-checkers.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const valueIsSignalifiedObject = (input: any): boolean =>\n  valueIsSignal(input) || valueIsNonSignalObject(input);",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Checks whether a value is a signal or non-signal object.",
+        "remarks": [
+          "- Returns true for source signals, derived signals, and non-signal objects\n- Returns false for plain values\n- Returns false for `null` and `undefined`"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any value to check"
+          }
+        ],
+        "returns": [
+          "`true` if the value is a signal or non-signal object, `false` otherwise"
+        ],
+        "see": [
+          "Signal - For signal types",
+          "NonSignal - For non-signal type",
+          "SignalifiedObject - For the signalified object union type"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/utils/type-checkers.ts"
+    },
+    "core:valueIsNonSignalString": {
+      "name": "valueIsNonSignalString",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/utils/type-checkers.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const valueIsNonSignalString = (input: any): boolean =>\n  valueIsNonSignalObject(input, [\"string\"]);",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Checks whether a value is a non-signal of type string.",
+        "remarks": [
+          "- Returns false for plain strings (not wrapped in non-signal)"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any value to check"
+          }
+        ],
+        "returns": [
+          "`true` if the value is a non-signal with a string value, `false` otherwise"
+        ],
+        "see": [
+          "NonSignal - For non-signal type",
+          "[valueIsNonSignalObject](./core/valueisnonsignalobject.md) - For the general non-signal checker"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/utils/type-checkers.ts"
+    },
+    "core:valueIsNonSignalStringArray": {
+      "name": "valueIsNonSignalStringArray",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/utils/type-checkers.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const valueIsNonSignalStringArray = (input: any): boolean =>\n  input?.type === \"non-signal\" &&\n  Array.isArray(input?.value) &&\n  (input?.value as any[]).every((item) => typeof item === \"string\");",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Checks whether a value is a non-signal of type string array.",
+        "remarks": [
+          "- Checks that all array elements are strings\n- Returns false for empty arrays\n- Returns false for arrays with non-string elements"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any value to check"
+          }
+        ],
+        "returns": [
+          "`true` if the value is a non-signal with a string array value, `false` otherwise"
+        ],
+        "see": [
+          "NonSignal - For non-signal type",
+          "[valueIsNonSignalObject](./core/valueisnonsignalobject.md) - For the general non-signal checker"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/utils/type-checkers.ts"
+    },
+    "core:valueIsMaybeSignalValueOfStringOrArray": {
+      "name": "valueIsMaybeSignalValueOfStringOrArray",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/utils/type-checkers.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const valueIsMaybeSignalValueOfStringOrArray = (input: any): boolean =>\n  typeof value(input) === \"string\" || Array.isArray(value(input));",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Checks whether a value, after unwrapping, is a string or array.",
+        "remarks": [
+          "- Unwraps signals and non-signals to get the plain value\n- Returns true if the plain value is a string or array\n- Returns false for other types\n- Returns false for `null` and `undefined`"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any value to check"
+          }
+        ],
+        "returns": [
+          "`true` if the unwrapped value is a string or array, `false` otherwise"
+        ],
+        "see": [
+          "MaybeSignalValue - For the input type",
+          "value - For unwrapping signalified objects"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/utils/type-checkers.ts"
+    },
+    "core:value": {
+      "name": "value",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/utils/value-getter.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const value = <T>(input: MaybeSignalValue<T>): T =>\n  valueIsSignalifiedObject(input)\n    ? (input as SignalifiedObject<T>).value\n    : (input as T);",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Extracts the plain value from a signal, non-signal, or plain value.\n\nThis utility function unwraps signalified objects to get their underlying\nplain values. If the input is already a plain value, it returns it as-is.",
+        "remarks": [
+          "- Does not trigger dependency tracking\n- Works with `null` and `undefined`\n- Works with nested structures"
+        ],
+        "examples": [
+          "```typescript\nconst count = signal(42);\nconst nonSig = getNonSignalObject(\"hello\");\n\nvalue(count); // 42\nvalue(nonSig); // \"hello\"\nvalue(100); // 100\n```"
+        ],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signal, non-signal, or plain value"
+          }
+        ],
+        "returns": [
+          "The unwrapped plain value"
+        ],
+        "see": [
+          "MaybeSignalValue - For the input type",
+          "SignalifiedObject - For signalified object types"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of the plain value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/utils/value-getter.ts"
+    },
+    "core:Signal": {
+      "name": "Signal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type Signal<T> = SourceSignal<T> | DerivedSignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A union type representing either a source or derived signal.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "SourceSignal - For mutable source signals",
+          "DerivedSignal - For read-only derived signals"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the signal holds"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:MaybeNonSignal": {
+      "name": "MaybeNonSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type MaybeNonSignal<T> = T | NonSignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A union type representing either a non-signal object or a plain value.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "NonSignal - For non-signal objects"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:MaybeSignal": {
+      "name": "MaybeSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type MaybeSignal<T> = T | Signal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A union type representing a signal or a plain value.\n\nThis is commonly used for function parameters that can accept either\na signal or a plain value of the same type.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[Signal](./core/signal.md) - For signal types"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:MaybeSourceSignal": {
+      "name": "MaybeSourceSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type MaybeSourceSignal<T> = T | SourceSignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A union type representing a source signal or a plain value.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "SourceSignal - For source signal type"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:MaybeDerivedSignal": {
+      "name": "MaybeDerivedSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type MaybeDerivedSignal<T> = T | DerivedSignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A union type representing a derived signal or a plain value.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "DerivedSignal - For derived signal type"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:SignalifiedObject": {
+      "name": "SignalifiedObject",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type SignalifiedObject<T> = NonSignal<T> | Signal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A union type representing a signalified object (signal or non-signal).",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[Signal](./core/signal.md) - For signal types",
+          "NonSignal - For non-signal type"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:MaybeSignalValue": {
+      "name": "MaybeSignalValue",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type MaybeSignalValue<T> = T | NonSignal<T> | Signal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A union type representing a signal, non-signal, or plain value.\n\nThis is the most permissive type for values that may or may not be signalified.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[SignalifiedObject](./core/signalifiedobject.md) - For signalified objects"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:NonNullSignalValue": {
+      "name": "NonNullSignalValue",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type NonNullSignalValue<S> = S extends null | undefined\n  ? never\n  : S extends SourceSignal<infer SS | null | undefined>\n  ? SourceSignal<SS>\n  : S extends DerivedSignal<infer DS | null | undefined>\n  ? DerivedSignal<DS>\n  : S extends NonSignal<infer NS | null | undefined>\n  ? NonSignal<NS>\n  : S;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A utility type that removes `null` and `undefined` from signal realm types.\n\nThis is similar to TypeScript's `NonNullable` but handles signal types specifically.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "S",
+            "description": "The type to make non-null"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:MaybeSignalValues": {
+      "name": "MaybeSignalValues",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type MaybeSignalValues<T extends any[]> = {\n  [K in keyof T]: T[K] extends (...args: any[]) => any\n    ? T[K]\n    : MaybeSignalValue<T[K]>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Converts a tuple type to a tuple of `MaybeSignalValue` types.\n\nFunctions are left as-is, while other values are converted to MaybeSignalValue.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[MaybeSignalValue](./core/maybesignalvalue.md) - For the MaybeSignalValue type"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The tuple type to convert"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:PlainValues": {
+      "name": "PlainValues",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type PlainValues<T extends MaybeSignalValues<any[]>> = {\n  [K in keyof T]: T[K] extends MaybeSignalValue<infer V> ? V : never;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Extracts plain values from a `MaybeSignalValues` tuple.\n\nThis is the inverse of MaybeSignalValues, converting signalified values\nback to their plain types.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[MaybeSignalValues](./core/maybesignalvalues.md) - For the MaybeSignalValues type"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The MaybeSignalValues tuple to extract from"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:PlainValue": {
+      "name": "PlainValue",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type PlainValue<I extends MaybeSignalValue<unknown>> =\n  I extends SignalifiedObject<infer T> ? T : I;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Extracts a plain value from a `MaybeSignalValue`.\n\nIf the input is a signalified object, returns the wrapped value.\nOtherwise, returns the input as-is.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[MaybeSignalValue](./core/maybesignalvalue.md) - For the MaybeSignalValue type",
+          "[SignalifiedObject](./core/signalifiedobject.md) - For signalified objects"
+        ],
+        "template": [
+          {
+            "name": "I",
+            "description": "The MaybeSignalValue type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/types.ts"
+    },
+    "core:DerivedSignal": {
+      "name": "DerivedSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/derive.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type DerivedSignal<T> = {\n  /** Runtime type discriminator for derived signals */\n  type: \"derived-signal\";\n  /** The previous computed value (undefined on first computation) */\n  get prevValue(): T | undefined;\n  /** The current computed value */\n  get value(): T;\n  /**\n   * Stops the derived signal from tracking its dependencies.\n   *\n   * After calling dispose(), the derived signal's value remains accessible\n   * but will no longer update when its dependencies change.\n   */\n  dispose: () => void;\n};\n\n/**\n * A function that computes a derived signal's value.\n *\n * This function receives the previous computed value and should access\n * `.value` on signals to establish dependencies. The function is called\n * whenever any tracked dependency changes.\n *\n * @template T - The type of value to return\n * @param oldValue - The previous computed value (undefined on first run)\n * @returns The new computed value\n *\n * @example\n * ```typescript\n * const count = signal(5);\n * const doubled = derive((prev) => {\n *   const current = count.value;\n *   return current * 2;\n * });\n * ```\n *\n * @remarks\n * - Always access signals via `.value` to establish dependencies\n * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n * - The previous value is the previous RETURN value, not the previous dependency values\n */\nexport type DerivedValueGetterWithSignals<T> = (oldValue: T | undefined) => T;\n\n/**\n * Creates a read-only derived signal computed from other signals.\n *\n * The derived signal's value is computed by the provided function, which\n * should access `.value` on signals to establish dependencies. The value\n * is recomputed whenever any tracked dependency changes.\n *\n * @template T - The type of value the derived signal holds\n * @param valueGetterFn - A function that computes the derived value.\n * Receives the previous computed value (undefined on first run).\n * @returns A derived signal with `value`, `prevValue`, and `dispose()` methods\n *\n * @example\n * ```typescript\n * const count = signal(5);\n * const doubled = derive(() => count.value * 2);\n * console.log(doubled.value); // 10\n *\n * // Using previous value\n * const history = derive((prev) => {\n *   const current = count.value;\n *   return prev ? [...prev, current] : [current];\n * });\n * ```\n *\n * @remarks\n * - Dependencies are only tracked for signals whose `.value` is accessed during execution\n * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n * - The previous value is undefined on the first computation\n * - Derived signals can depend on other derived signals (chaining)\n *\n * @see {@link DerivedValueGetterWithSignals} - The type of the value getter function\n * @see {@link signal} - For creating mutable source signals\n * @see {@link effect} - For registering functions to run when signal values change\n */\nexport const derive = <T>(\n  valueGetterFn: DerivedValueGetterWithSignals<T>,\n): DerivedSignal<T> => {\n  let oldValue: T | undefined;\n  let currValue: T | undefined;\n  const derivedSource = signal<T>(oldValue as T);\n  const derivedSourceUpdator = effect(() => {\n    oldValue = currValue;\n    currValue = valueGetterFn(oldValue);\n    derivedSource.value = currValue;\n  });\n\n  const derivedSignal: DerivedSignal<T> = {\n    type: \"derived-signal\",\n    get prevValue() {\n      return oldValue;\n    },\n    get value() {\n      return derivedSource.value;\n    },\n    dispose() {\n      derivedSourceUpdator.dispose();\n    },\n  };\n\n  return derivedSignal;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A read-only derived signal computed from other signals.\n\nDerived signals automatically recompute their value whenever any of their\ntracked dependencies change. Dependencies are established by accessing\n`.value` on signals during the initial computation.",
+        "remarks": [
+          "- The value getter function receives the previous computed value (undefined on first run)\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Calling `dispose()` stops the derived signal from tracking dependencies\n- After disposal, the value remains accessible but won't update"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "signal - For creating mutable source signals",
+          "[effect](./core/effect.md) - For registering functions to run when signal values change"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the derived signal holds"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/derive.ts"
+    },
+    "core:DerivedValueGetterWithSignals": {
+      "name": "DerivedValueGetterWithSignals",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/derive.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type DerivedValueGetterWithSignals<T> = (oldValue: T | undefined) => T;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A function that computes a derived signal's value.\n\nThis function receives the previous computed value and should access\n`.value` on signals to establish dependencies. The function is called\nwhenever any tracked dependency changes.",
+        "remarks": [
+          "- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values"
+        ],
+        "examples": [
+          "```typescript\nconst count = signal(5);\nconst doubled = derive((prev) => {\n  const current = count.value;\n  return current * 2;\n});\n```"
+        ],
+        "params": [
+          {
+            "name": "oldValue",
+            "description": "The previous computed value (undefined on first run)"
+          }
+        ],
+        "returns": [
+          "The new computed value"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value to return"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/derive.ts"
+    },
+    "core:derive": {
+      "name": "derive",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/derive.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const derive = <T>(\n  valueGetterFn: DerivedValueGetterWithSignals<T>,\n): DerivedSignal<T> => {\n  let oldValue: T | undefined;\n  let currValue: T | undefined;\n  const derivedSource = signal<T>(oldValue as T);\n  const derivedSourceUpdator = effect(() => {\n    oldValue = currValue;\n    currValue = valueGetterFn(oldValue);\n    derivedSource.value = currValue;\n  });\n\n  const derivedSignal: DerivedSignal<T> = {\n    type: \"derived-signal\",\n    get prevValue() {\n      return oldValue;\n    },\n    get value() {\n      return derivedSource.value;\n    },\n    dispose() {\n      derivedSourceUpdator.dispose();\n    },\n  };\n\n  return derivedSignal;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates a read-only derived signal computed from other signals.\n\nThe derived signal's value is computed by the provided function, which\nshould access `.value` on signals to establish dependencies. The value\nis recomputed whenever any tracked dependency changes.",
+        "remarks": [
+          "- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)"
+        ],
+        "examples": [
+          "```typescript\nconst count = signal(5);\nconst doubled = derive(() => count.value * 2);\nconsole.log(doubled.value); // 10\n\n// Using previous value\nconst history = derive((prev) => {\n  const current = count.value;\n  return prev ? [...prev, current] : [current];\n});\n```"
+        ],
+        "params": [
+          {
+            "name": "valueGetterFn",
+            "description": "A function that computes the derived value.\nReceives the previous computed value (undefined on first run)."
+          }
+        ],
+        "returns": [
+          "A derived signal with `value`, `prevValue`, and `dispose()` methods"
+        ],
+        "see": [
+          "[DerivedValueGetterWithSignals](./core/derivedvaluegetterwithsignals.md) - The type of the value getter function",
+          "signal - For creating mutable source signals",
+          "[effect](./core/effect.md) - For registering functions to run when signal values change"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the derived signal holds"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/derive.ts"
+    },
+    "core:NonSignal": {
+      "name": "NonSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/non-signal.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type NonSignal<T> = {\n  /** Runtime type discriminator for non-signal objects */\n  type: \"non-signal\";\n  /** The wrapped plain value */\n  get value(): T;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A runtime type wrapper for plain values.\n\nNonSignal objects are used for runtime type discrimination in complex\ntype scenarios where TypeScript's compile-time types are insufficient.\nThey enable distinguishing between plain values and signalified objects\nat runtime.",
+        "remarks": [
+          "- Used with `MaybeSignal` types to resolve ambiguity at runtime\n- Has a `type: \"non-signal\"` property for runtime type checking\n- The `value` property holds the wrapped plain value"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[Signal](./core/signal.md) - For signal objects",
+          "[MaybeSignal](./core/maybesignal.md) - For union types that include signals",
+          "getNonSignalObject - For creating NonSignal objects"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value wrapped"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/non-signal.ts"
+    },
+    "core:getNonSignalObject": {
+      "name": "getNonSignalObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/non-signal.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getNonSignalObject = <T>(input: T): NonSignal<T> => {\n  return {\n    type: \"non-signal\",\n    value: input,\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Wraps a plain value in a NonSignal object for runtime type discrimination.\n\nThis function is useful when you need to explicitly mark a value as a\nnon-signal for runtime type checking in complex type scenarios.",
+        "remarks": [
+          "- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type"
+        ],
+        "examples": [
+          "```typescript\nconst nonSig = getNonSignalObject(42);\nconsole.log(nonSig.type); // \"non-signal\"\nconsole.log(nonSig.value); // 42\n```"
+        ],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any JavaScript value to wrap"
+          }
+        ],
+        "returns": [
+          "A NonSignal object with the wrapped value"
+        ],
+        "see": [
+          "[NonSignal](./core/nonsignal.md) - The NonSignal type",
+          "[valueIsNonSignalObject](./core/valueisnonsignalobject.md) - For checking if a value is a NonSignal"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value to wrap"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/non-signal.ts"
+    },
+    "core:setCurrentEffect": {
+      "name": "setCurrentEffect",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/source-signal.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const setCurrentEffect = (effect: SignalsEffect | null) =>\n  (_currentSignalEffect = effect);",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Sets the currently executing effect.\n\nCalled by the effect function before running the user's function to enable\nautomatic dependency tracking. After the effect completes, this is set to null.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "effect",
+            "description": "The effect to set as current, or `null` to clear tracking"
+          }
+        ],
+        "returns": [],
+        "see": [],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/source-signal.ts"
+    },
+    "core:signal": {
+      "name": "signal",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/source-signal.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const signal = <T>(input: T): SourceSignal<T> => {\n  let _value = immut(input);\n  const _effects = new Set<SignalsEffect>();\n\n  /**\n   * Runs all registered effects when the signal's value changes.\n   *\n   * This function iterates through all effects and:\n   * 1. Skips effects marked for disposal (canDisposeNow = true)\n   * 2. Removes disposed effects from the set (lazy cleanup)\n   * 3. Executes remaining effects\n   *\n   * The lazy cleanup approach ensures that effects are removed on the next\n   * signal update after being disposed, rather than immediately.\n   */\n  const runEffects = () => {\n    _effects.forEach((effect) => {\n      if (effect.canDisposeNow) {\n        _effects.delete(effect);\n        return;\n      }\n      effect();\n    });\n  };\n\n  /**\n   * Updates the signal's value and triggers all dependent effects.\n   *\n   * This function is used internally by the signal's setter and by\n   * type-specific mutation methods (for arrays and objects).\n   *\n   * @param newValue The new value to set\n   */\n  const setValueAndRunEffects = (newValue: T): void => {\n    _value = newValue;\n    runEffects();\n  };\n\n  const baseObject: BaseSourceSignal<T> = {\n    type: \"source-signal\",\n    get value() {\n      // Automatic dependency tracking: if an effect is currently executing,\n      // register this effect as a dependency of this signal\n      if (_currentSignalEffect) _effects.add(_currentSignalEffect);\n      // Return a fresh copy of the immutable value\n      return newVal(_value);\n    },\n    set value(newValue: T) {\n      // Skip if value hasn't changed (prevents unnecessary effect runs)\n      // TODO: if using 'areValuesEqual' from immutjs would be expensive for large data, consider a more efficient equality check or always trigger effects\n      if (newValue === _value) return;\n      // Store new value immutably and trigger effects\n      setValueAndRunEffects(immut(newValue));\n    }",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates a mutable source signal from any JavaScript value.\n\nA signal is a reactive data unit that automatically notifies dependent\ncomputations when its value changes. Signals use a global variable-based\ndependency tracking system to establish relationships with effects.",
+        "remarks": [
+          "- Setting the same value does not trigger effects\n- Effects are triggered synchronously and immediately upon value change\n- Signal values are stored immutably via `@cyftech/immutjs`\n- Object `set()` performs a shallow merge\n- Array mutation methods create new arrays internally"
+        ],
+        "examples": [
+          "```typescript\n// Primitive values\nconst count = signal(0);\ncount.value = 1;\nconsole.log(count.value); // 1\n\n// Object values with partial updates\nconst user = signal({ name: \"John\", age: 30 });\nuser.set({ age: 31 }); // Shallow merge\nconsole.log(user.value); // { name: \"John\", age: 31 }\n\n// Array values with mutation methods\nconst items = signal([1, 2, 3]);\nitems.push(4);\nitems.remove((item) => item % 2 === 0); // Custom method\n```"
+        ],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any JavaScript value to convert to a signal"
+          }
+        ],
+        "returns": [
+          "A source signal with a `value` getter/setter. Arrays include\nmutation methods and plain objects include `set()`."
+        ],
+        "see": [
+          "[effect](./core/effect.md) - For registering functions to run when signal values change",
+          "[derive](./core/derive.md) - For creating read-only derived signals"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the signal holds"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/source-signal.ts"
+    },
+    "core:getArraySignalBaseObject": {
+      "name": "getArraySignalBaseObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/array-signal.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getArraySignalBaseObject = <T extends any[]>(\n  valueSetter: (method: (oldValue: T) => T) => void\n): BaseArraySignal<T> => {\n  const mutator = (mutate: (newVal: T) => void): void =>\n    valueSetter((oldValue: T) => {\n      const newValue = Array.from(oldValue) as T;\n      mutate(newValue);\n      return newValue;\n    });\n\n  return {\n    copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) =>\n      mutator((newValue) => newValue.copyWithin(...args)),\n    fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) =>\n      mutator((newValue) => newValue.fill(...args)),\n    pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) =>\n      mutator((newValue) => newValue.pop(...args)),\n    push: (...args: Parameters<Array<T[number]>[\"push\"]>) =>\n      mutator((newValue) => newValue.push(...args)),\n    /** Removes items where the predicate returns true. */\n    remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => {\n      const predicate = args[0];\n      const negativeLogicPredicate = (\n        ...predicateArgs: Parameters<typeof predicate>\n      ) => !predicate(...predicateArgs);\n      args[0] = negativeLogicPredicate;\n      valueSetter((oldValue: T) => {\n        return oldValue.filter(...args) as T;\n      });\n    },\n    reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) =>\n      mutator((newValue) => newValue.reverse(...args)),\n    shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) =>\n      mutator((newValue) => newValue.shift(...args)),\n    sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) =>\n      mutator((newValue) => newValue.sort(...args)),\n    splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) =>\n      mutator((newValue) => newValue.splice(...args)),\n    unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) =>\n      mutator((newValue) => newValue.unshift(...args)),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates array mutation methods for array signals.\n\nEach mutation method copies the current array, applies the mutation, and\nforwards the result to the caller-provided setter.",
+        "remarks": [
+          "- Methods create new arrays internally but expose a mutable-style API\n- The `remove()` method deletes matching items rather than keeping them\n- `Array.from()` is used to create a shallow copy before mutation"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "valueSetter",
+            "description": "Updates the signal value and triggers effects"
+          }
+        ],
+        "returns": [
+          "Array mutation methods for the signal value"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/array-signal.ts"
+    },
+    "core:SignalsEffect": {
+      "name": "SignalsEffect",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type SignalsEffect = {\n  /** The effect function body */\n  (): void;\n  /** Flag indicating whether the effect is marked for disposal */\n  canDisposeNow: boolean;\n  /** Marks the effect for disposal */\n  dispose(): void;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A function that can be registered to run when signal values change.\n\nEffects are created by the `effect()` function and track dependencies\nby accessing `.value` on signals during execution.",
+        "remarks": [
+          "- The effect function runs immediately when created\n- It re-runs whenever any tracked signal's value changes\n- The `canDisposeNow` flag marks the effect for disposal\n- Calling `dispose()` sets `canDisposeNow` to true"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[effect](./core/effect.md) - For creating effects"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:BaseArraySignal": {
+      "name": "BaseArraySignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type BaseArraySignal<T extends any[]> = {\n  copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) => void;\n  fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) => void;\n  pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) => void;\n  push: (...args: Parameters<Array<T[number]>[\"push\"]>) => void;\n  /** Removes items where the predicate returns true (inverse of filter) */\n  remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => void;\n  reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) => void;\n  shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) => void;\n  sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) => void;\n  splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) => void;\n  unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) => void;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Array mutation methods for array signals.\n\nThese methods provide mutating-style APIs that internally create new\nimmutable arrays and trigger effects.",
+        "remarks": [
+          "- The `remove()` method is a custom method (inverse of filter)\n- All methods trigger effects synchronously\n- Methods create new arrays internally but feel mutable"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:BaseObjectSignal": {
+      "name": "BaseObjectSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type BaseObjectSignal<T extends object> = {\n  /** Performs a shallow merge with the current value */\n  set: (partiallyNewObjectValue: Partial<T>) => void;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Object mutation methods for object signals.",
+        "remarks": [
+          "- The `set()` method performs a shallow merge with the current value"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The object type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:BaseSourceSignal": {
+      "name": "BaseSourceSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type BaseSourceSignal<T> = {\n  /** Runtime type discriminator for source signals */\n  type: \"source-signal\";\n  /** Getter/setter for the signal's value */\n  value: T;\n};\n\n/**\n * Source signal for arrays with mutation methods.\n *\n * @template T - The array type\n *\n * @see {@link BaseArraySignal} - For array mutation methods\n */\nexport type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  BaseArraySignal<T>;\n\n/**\n * Source signal for plain objects with partial update method.\n *\n * @template T - The object type\n *\n * @see {@link BaseObjectSignal} - For object mutation methods\n */\nexport type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &\n  BaseObjectSignal<T>;\n\n/**\n * A mutable source signal created from plain JavaScript data.\n *\n * Source signals can notify dependent computations when their value changes.\n * The specific type (array, object, or primitive) determines which additional\n * methods are available.\n *\n * @template T - The type of value the signal holds\n *\n * @remarks\n * - For arrays: includes array mutation methods (push, pop, splice, etc.)\n * - For plain objects: includes `set()` method for partial updates\n * - For primitives: only the base signal interface\n *\n * @see {@link signal} - For creating source signals\n * @see {@link DerivedSignal} - For read-only derived signals\n */\nexport type SourceSignal<T> = T extends any[]\n  ? ArraySourceSignal<T>\n  : T extends object\n  ? ObjectSourceSignal<T>\n  : BaseSourceSignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Base source signal type with value getter/setter.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the signal holds"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:ArraySourceSignal": {
+      "name": "ArraySourceSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  BaseArraySignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Source signal for arrays with mutation methods.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[BaseArraySignal](./core/basearraysignal.md) - For array mutation methods"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:ObjectSourceSignal": {
+      "name": "ObjectSourceSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &\n  BaseObjectSignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Source signal for plain objects with partial update method.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[BaseObjectSignal](./core/baseobjectsignal.md) - For object mutation methods"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The object type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:SourceSignal": {
+      "name": "SourceSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type SourceSignal<T> = T extends any[]\n  ? ArraySourceSignal<T>\n  : T extends object\n  ? ObjectSourceSignal<T>\n  : BaseSourceSignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A mutable source signal created from plain JavaScript data.\n\nSource signals can notify dependent computations when their value changes.\nThe specific type (array, object, or primitive) determines which additional\nmethods are available.",
+        "remarks": [
+          "- For arrays: includes array mutation methods (push, pop, splice, etc.)\n- For plain objects: includes `set()` method for partial updates\n- For primitives: only the base signal interface"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[signal](./core/signal.md) - For creating source signals",
+          "[DerivedSignal](./core/derivedsignal.md) - For read-only derived signals"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the signal holds"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:getObjectSignalBaseObject": {
+      "name": "getObjectSignalBaseObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/object-signal.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getObjectSignalBaseObject = <T extends object>(\n  valueSetter: (method: (oldValue: T) => T) => void\n): BaseObjectSignal<T> => {\n  return {\n    set: (partiallyNewObjectValue: Partial<T>) =>\n      valueSetter((oldValue: T) => ({\n        ...oldValue,\n        ...partiallyNewObjectValue,\n      })),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates object mutation methods for object signals.",
+        "remarks": [
+          "- Performs a shallow merge with the current object value\n- The current object is not mutated directly"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "valueSetter",
+            "description": "Updates the signal value and triggers effects"
+          }
+        ],
+        "returns": [
+          "Object mutation methods for the signal value"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The object type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/object-signal.ts"
+    },
+    "api:compute": {
+      "name": "compute",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/compute.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const compute = <F extends (...args: any[]) => any>(\n  computerFn: F,\n  ...restArgs: MaybeSignalValues<Parameters<F>>\n): DerivedSignal<ReturnType<F>> => {\n  return derive(() => {\n    const plainArgs = restArgs.map((arg) => value(arg)) as PlainValues<\n      typeof restArgs\n    >;\n    return computerFn(...plainArgs);\n  });\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates a derived signal from a function with signalified arguments.\n\nThis is a convenience wrapper around `derive` that automatically unwraps\nsignal arguments before passing them to the function. The derived signal\nrecomputes whenever any of the signalified arguments changes.",
+        "remarks": [
+          "- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments do not trigger recomputation\n- Arguments are unwrapped using the `value()` helper"
+        ],
+        "examples": [
+          "```typescript\nconst a = signal(5);\nconst b = signal(3);\nconst sum = compute((x: number, y: number) => x + y, a, b);\nconsole.log(sum.value); // 8\n\n// Mixed signals and plain values\nconst sum2 = compute((x: number, y: number) => x + y, a, 10);\nconsole.log(sum2.value); // 15\n\n// Complex computation\nconst base = signal(100);\nconst rate = signal(0.1);\nconst years = signal(5);\nconst interest = compute(\n  (b: number, r: number, y: number) => b * Math.pow(1 + r, y),\n  base, rate, years\n);\n```"
+        ],
+        "params": [
+          {
+            "name": "computerFn",
+            "description": "A function that receives plain values and returns a value"
+          },
+          {
+            "name": "restArgs",
+            "description": "Signalified arguments matching the function parameters"
+          }
+        ],
+        "returns": [
+          "A derived signal of the function's return type"
+        ],
+        "see": [
+          "[derive](./core/derive.md) - For the underlying derived signal primitive",
+          "[value](./core/value.md) - For unwrapping signalified values"
+        ],
+        "template": [
+          {
+            "name": "F",
+            "description": "The function type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/compute.ts"
+    },
+    "api:StringSignalDeriverTemplateExpressions": {
+      "name": "StringSignalDeriverTemplateExpressions",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/tmpl.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type StringSignalDeriverTemplateExpressions = (\n  | Signal<any>\n  | DerivedValueGetterWithSignals<any>\n  | any\n)[];",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "The expressions allowed inside the template placeholders.",
+        "remarks": [
+          "- `Signal<any>` is accepted directly\n- `DerivedValueGetterWithSignals<any>` is accepted as a deferred expression\n- Plain values are accepted as-is"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/tmpl.ts"
+    },
+    "api:tmpl": {
+      "name": "tmpl",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/tmpl.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const tmpl = (\n  strings: TemplateStringsArray,\n  ...tlExpressions: StringSignalDeriverTemplateExpressions\n): DerivedSignal<string> =>\n  derive(() => {\n    return strings.reduce((acc, fragment, i) => {\n      let expValue;\n      const expression = tlExpressions[i];\n\n      if (typeof expression === \"function\") {\n        expValue = expression() ?? \"\";\n      } else if (valueIsSignalifiedObject(expression)) {\n        expValue = (expression as SignalifiedObject<any>).value ?? \"\";\n      } else {\n        expValue = (expression as any) ?? \"\";\n      }\n\n      return `${acc}${fragment}${expValue.toString()}`;\n    }, \"\");\n  });",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Tagged template function for string interpolation with signals.\n\nCreates a derived signal of the interpolated string that recomputes whenever\nany tracked expression changes.",
+        "remarks": [
+          "- Expressions can be signals, derived expression functions, or plain values\n- `null` and `undefined` become empty strings\n- Values are converted to strings via `.toString()`\n- Works with any combination of supported expression types"
+        ],
+        "examples": [
+          "```typescript\nconst name = signal(\"World\");\nconst greeting = tmpl`Hello ${name}`;\nconsole.log(greeting.value); // \"Hello World\"\n\nname.value = \"Alice\";\nconsole.log(greeting.value); // \"Hello Alice\"\n\n// Multiple expressions\nconst firstName = signal(\"John\");\nconst lastName = signal(\"Doe\");\nconst fullName = tmpl`${firstName} ${lastName}`;\n\n// Mixed expressions\nconst count = signal(5);\nconst message = tmpl`Count: ${count}`;\n\n// Function expressions\nconst doubled = tmpl`Double is ${() => count.value * 2}`;\n```"
+        ],
+        "params": [
+          {
+            "name": "strings",
+            "description": "The static string parts of the template literal"
+          },
+          {
+            "name": "tlExpressions",
+            "description": "The dynamic expressions inside the placeholders"
+          }
+        ],
+        "returns": [
+          "A derived signal of the interpolated string"
+        ],
+        "see": [
+          "[DerivedSignal](./core/derivedsignal.md) - For the derived signal type",
+          "[derive](./core/derive.md) - For the underlying derived signal primitive"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/tmpl.ts"
+    },
+    "api:promstates": {
+      "name": "promstates",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/promstates.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const promstates = <R, Args extends Array<any>, I>(\n  promiseFn: (...args: Args) => Promise<R>,\n  initialValue?: I,\n  ultimately?: () => void\n): readonly [\n  /**\n   * Promise runner method which takes the same arguments as the original promise\n   * but returns `Promise<void>`.\n   */\n  (...args: Args) => Promise<void>,\n  /** Derived signal of result of the promise. */\n  DerivedSignal<unknown extends I ? R | undefined : R | I>,\n  /** Derived signal of promise error. */\n  DerivedSignal<Error | undefined>,\n  /** Derived signal of whether promise is currently running or not */\n  DerivedSignal<boolean>\n] => {\n  type PromState = {\n    isRunning: boolean;\n    result: unknown extends I ? R | undefined : R | I;\n    error: Error | undefined;\n  };\n  const state = signal<PromState>({\n    isRunning: false,\n    result: (initialValue || undefined) as unknown extends I\n      ? R | undefined\n      : R | I,\n    error: undefined,\n  });\n\n  const runPromise = (...args: Args) =>\n    promiseFn(...args)\n      .then((res) => {\n        state.value = {\n          isRunning: false,\n          result: res,\n          error: undefined,\n        };\n      })\n      .catch((e) => {\n        const prevResult = state.value.result;\n        /**\n         * Result preservation on error:\n         *\n         * The result is NOT set to undefined or initialValue when an error occurs.\n         * This design choice ensures that if the promise is run multiple times and\n         * fails on the nth run, the result from the (n-1)th successful run is preserved.\n         *\n         * Best practice: Always check error first while using promstates.\n         * Rationale: If the promise fails on a subsequent run, the previous successful\n         * result remains intact and accessible, while the error signal is updated with\n         * the current error.\n         *\n         * Note: The error signal is always reset to undefined on success. There is no\n         * value in preserving the error from the last run when a new success occurs.\n         */\n        state.value = {\n          isRunning: false,\n          result: prevResult,\n          error: e,\n        };\n      })\n      .finally(ultimately);\n\n  const { isRunning, result, error } = trap(state).props;\n  return [runPromise, result, error, isRunning] as const;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates promise state signals for async operations.\n\nThis function returns a tuple containing a promise runner function and three\nderived signals that track the promise's state: result, error, and running status.",
+        "remarks": [
+          "- On success: `result` is updated and `error` is cleared\n- On failure: `error` is updated and `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value is provided, the result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved"
+        ],
+        "examples": [
+          "```typescript\nconst promiseFn = async (value: number) => value * 2;\nconst [runPromise, result, error, isRunning] = promstates(promiseFn, 0);\n\nawait runPromise(5);\nconsole.log(result.value); // 10\nconsole.log(error.value); // undefined\n\nawait runPromise(-1); // Assume this throws\nconsole.log(result.value); // 10 (preserved)\nconsole.log(error.value); // Error instance\n\n// Best practice: always check error first\nif (error.value) {\n  console.error(error.value);\n} else {\n  console.log(result.value);\n}\n```"
+        ],
+        "params": [
+          {
+            "name": "promiseFn",
+            "description": "A promise-returning function"
+          },
+          {
+            "name": "initialValue",
+            "description": "Optional initial value for the result signal"
+          },
+          {
+            "name": "ultimately",
+            "description": "Optional callback to run in the promise's finally block"
+          }
+        ],
+        "returns": [
+          "A tuple of:\n- `runPromise`: Function to run the promise\n- `result`: Derived signal of the promise result\n- `error`: Derived signal of the promise error\n- `isRunning`: Derived signal of whether the promise is running"
+        ],
+        "see": [
+          "[DerivedSignal](./core/derivedsignal.md) - For the derived signal type"
+        ],
+        "template": [
+          {
+            "name": "R",
+            "description": "The type of the promise result"
+          },
+          {
+            "name": "Args",
+            "description": "The type of the promise function's arguments"
+          },
+          {
+            "name": "I",
+            "description": "The type of the initial value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/promstates.ts"
+    },
+    "api:stringTrap": {
+      "name": "stringTrap",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/string-trap.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const stringTrap = (\n  input: MaybeSignalValue<string>\n): StringSignalTrap => {\n  const SIMPLE_STRING_METHODS = [\n    \"at\",\n    \"charAt\",\n    \"charCodeAt\",\n    \"codePointAt\",\n    \"concat\",\n    \"endsWith\",\n    \"includes\",\n    \"indexOf\",\n    \"lastIndexOf\",\n    \"padEnd\",\n    \"padStart\",\n    \"repeat\",\n    \"slice\",\n    \"startsWith\",\n    \"substring\",\n    \"trim\",\n    \"trimEnd\",\n    \"trimStart\",\n  ] as const;\n  type StringMethodName = (typeof SIMPLE_STRING_METHODS)[number];\n  type SimpleStringMethods = Pick<StringSignalTrap, StringMethodName>;\n\n  const simpleMethodsTrapObject = SIMPLE_STRING_METHODS.reduce(\n    (map: SimpleStringMethods, stringMethod) => {\n      const method: SignalifiedFunction<string[typeof stringMethod]> = (\n        ...params\n      ) => {\n        return derive(() => {\n          const prms = getDesignalifiedMethodParams(...params);\n          // @ts-ignore: A spread argument must either have a tuple type or be passed to a rest parameter.\n          return (value(input) as string)[stringMethod](...prms);\n        });\n      };\n      map[stringMethod] = method;\n      return map;\n    },\n    {} as SimpleStringMethods\n  );\n\n  return {\n    ...genericTrap(input),\n    ...simpleMethodsTrapObject,\n    get length() {\n      return derive(() => value(input).length);\n    },\n    get lowercase() {\n      return derive(() => (value(input) as string).toLowerCase());\n    },\n    get Sentencecase() {\n      return derive(() => {\n        const str = value(input) as string;\n        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();\n      });\n    },\n    get TitleCase() {\n      return derive(() =>\n        (value(input) as string)\n          .toLowerCase()\n          .replace(/\\b\\w/g, (c) => c.toUpperCase())\n      );\n    },\n    get UPPERCASE() {\n      return derive(() => (value(input) as string).toUpperCase());\n    },\n    localeCompare: (\n      that: MaybeSignalValue<string>,\n      locales?: MaybeSignalValue<string | string[] | undefined>,\n      options?: Intl.CollatorOptions\n    ) =>\n      derive(() =>\n        value(input).localeCompare(value(that), value(locales), options)\n      ),\n    normalize: (form: MaybeSignalValue<\"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\">) =>\n      derive(() => value(input).normalize(value(form))),\n    replace: (\n      searchValue: MaybeSignalValue<string> | RegExp,\n      replaceValue: MaybeSignalValue<string>\n    ) =>\n      derive(() =>\n        value(input).replace(value(searchValue), value(replaceValue))\n      ),\n    replaceAll: (\n      searchValue: MaybeSignalValue<string> | RegExp,\n      replaceValue: MaybeSignalValue<string>\n    ) =>\n      derive(() =>\n        value(input).replaceAll(value(searchValue), value(replaceValue))\n      ),\n    search: (regexp: RegExp) => derive(() => value(input).search(regexp)),\n    split: (\n      separator: MaybeSignalValue<string> | RegExp,\n      limit?: MaybeSignalValue<number | undefined>\n    ) =>\n      derive(() => {\n        const separatorVal =\n          separator instanceof RegExp ? separator : value(separator);\n        return value(input).split(separatorVal, value(limit));\n      }),\n    toLocaleLowerCase: (\n      locales?: MaybeSignalValue<string | string[] | undefined>\n    ) => derive(() => value(input).toLocaleLowerCase(value(locales))),\n    toLocaleUpperCase: (\n      locales?: MaybeSignalValue<string | string[] | undefined>\n    ) => derive(() => value(input).toLocaleUpperCase(value(locales))),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates the string trap for signalified strings.",
+        "remarks": [
+          "- Uses derived signals for every accessor and method\n- The trap type is selected once at creation time"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signalified string"
+          }
+        ],
+        "returns": [
+          "A string trap with string methods and derived accessors"
+        ],
+        "see": [],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/string-trap.ts"
+    },
+    "api:SignalifiedFunction": {
+      "name": "SignalifiedFunction",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type SignalifiedFunction<F extends (...args: any[]) => any> = (\n  ...args: MaybeSignalValues<Parameters<F>>\n) => DerivedSignal<ReturnType<F>>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "A function type that accepts signalified arguments and returns a derived signal.\n\nThis is used to convert JavaScript instance methods into derived signal methods.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[DerivedSignal](./core/derivedsignal.md) - For the derived signal type"
+        ],
+        "template": [
+          {
+            "name": "F",
+            "description": "The function type to convert"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/types.ts"
+    },
+    "api:GenericTrap": {
+      "name": "GenericTrap",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type GenericTrap<T> = {\n  /** Converts the value to a string signal. */\n  get string(): DerivedSignal<T extends null | undefined ? undefined : string>;\n  /** Returns the value if truthy, otherwise the fallback value. */\n  or: <OV>(orValue: MaybeSignalValue<OV>) => DerivedSignal<NonNullable<T> | OV>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Generic trap with basic operations available for all types.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/types.ts"
+    },
+    "api:NumberSignalTrap": {
+      "name": "NumberSignalTrap",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type NumberSignalTrap = GenericTrap<number> & {\n  /** Confines the number to a range. */\n  toConfined: (\n    start: MaybeSignalValue<number>,\n    end: MaybeSignalValue<number>\n  ) => DerivedSignal<number>;\n  /** Converts to exponential notation string. */\n  toExponential: SignalifiedFunction<number[\"toExponential\"]>;\n  /** Converts to locale-specific string. */\n  toLocaleString: (\n    locales?: MaybeSignalValue<string | string[] | undefined>,\n    options?: Intl.NumberFormatOptions\n  ) => DerivedSignal<string>;\n  /** Converts to fixed-point notation string. */\n  toFixed: SignalifiedFunction<number[\"toFixed\"]>;\n  /** Converts to precision notation string. */\n  toPrecision: SignalifiedFunction<number[\"toPrecision\"]>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Number trap with numeric operations and formatting methods.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The number type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/types.ts"
+    },
+    "api:StringSignalTrap": {
+      "name": "StringSignalTrap",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type StringSignalTrap = GenericTrap<string> & {\n  at: SignalifiedFunction<string[\"at\"]>;\n  charAt: SignalifiedFunction<string[\"charAt\"]>;\n  charCodeAt: SignalifiedFunction<string[\"charCodeAt\"]>;\n  codePointAt: SignalifiedFunction<string[\"codePointAt\"]>;\n  concat: SignalifiedFunction<string[\"concat\"]>;\n  endsWith: SignalifiedFunction<string[\"endsWith\"]>;\n  includes: SignalifiedFunction<string[\"includes\"]>;\n  indexOf: SignalifiedFunction<string[\"indexOf\"]>;\n  lastIndexOf: SignalifiedFunction<string[\"lastIndexOf\"]>;\n  padEnd: SignalifiedFunction<string[\"padEnd\"]>;\n  padStart: SignalifiedFunction<string[\"padStart\"]>;\n  repeat: SignalifiedFunction<string[\"repeat\"]>;\n  slice: SignalifiedFunction<string[\"slice\"]>;\n  startsWith: SignalifiedFunction<string[\"startsWith\"]>;\n  substring: SignalifiedFunction<string[\"substring\"]>;\n  trim: SignalifiedFunction<string[\"trim\"]>;\n  trimEnd: SignalifiedFunction<string[\"trimEnd\"]>;\n  trimStart: SignalifiedFunction<string[\"trimStart\"]>;\n  /** String length as a derived signal. */\n  get length(): DerivedSignal<number>;\n  /** Lowercase version of the string. */\n  get lowercase(): DerivedSignal<string>;\n  /** First letter capitalized, rest lowercase. */\n  get Sentencecase(): DerivedSignal<string>;\n  /** Each word's first letter capitalized. */\n  get TitleCase(): DerivedSignal<string>;\n  /** Uppercase version of the string. */\n  get UPPERCASE(): DerivedSignal<string>;\n  /** Compares strings according to locale. */\n  localeCompare: (\n    that: MaybeSignalValue<string>,\n    locales?: MaybeSignalValue<string | string[] | undefined>,\n    options?: Intl.CollatorOptions\n  ) => DerivedSignal<number>;\n  /** Normalizes to the specified Unicode form. */\n  normalize: (\n    form: MaybeSignalValue<\"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\">\n  ) => DerivedSignal<string>;\n  /** Replaces the first match of `searchValue` with `replaceValue`. */\n  replace: (\n    searchValue: MaybeSignalValue<string> | RegExp,\n    replaceValue: MaybeSignalValue<string>\n  ) => DerivedSignal<string>;\n  /** Replaces all matches of `searchValue` with `replaceValue`. */\n  replaceAll: (\n    searchValue: MaybeSignalValue<string> | RegExp,\n    replaceValue: MaybeSignalValue<string>\n  ) => DerivedSignal<string>;\n  /** Searches for a match and returns the index. */\n  search: (regexp: RegExp) => DerivedSignal<number>;\n  /** Splits the string into an array. */\n  split: (\n    separator: MaybeSignalValue<string> | RegExp,\n    limit?: MaybeSignalValue<number | undefined>\n  ) => DerivedSignal<string[]>;\n  /** Converts to locale-specific lowercase. */\n  toLocaleLowerCase: (\n    locales?: MaybeSignalValue<string | string[] | undefined>\n  ) => DerivedSignal<string>;\n  /** Converts to locale-specific uppercase. */\n  toLocaleUpperCase: (\n    locales?: MaybeSignalValue<string | string[] | undefined>\n  ) => DerivedSignal<string>;\n};\n\n/**\n * Array trap with array transformation methods.\n *\n * Includes standard array methods as derived signal methods plus custom\n * getters and partition methods.\n *\n * @template T - The array element type\n *\n * @remarks\n * - Mutating array methods are not included because derived signals are immutable\n * - The `partition()` method splits the array into two signals based on a predicate\n */\nexport type ArraySignalTrap<T> = GenericTrap<T> & {\n  at: SignalifiedFunction<Array<T>[\"at\"]>;\n  concat: (items: MaybeSignalValue<T[]>) => DerivedSignal<T[]>;\n  copyWithin: SignalifiedFunction<Array<T>[\"copyWithin\"]>;\n  fill: SignalifiedFunction<Array<T>[\"fill\"]>;\n  includes: SignalifiedFunction<Array<T>[\"includes\"]>;\n  indexOf: SignalifiedFunction<Array<T>[\"indexOf\"]>;\n  join: SignalifiedFunction<Array<T>[\"join\"]>;\n  lastIndexOf: SignalifiedFunction<Array<T>[\"lastIndexOf\"]>;\n  slice: SignalifiedFunction<Array<T>[\"slice\"]>;\n  with: SignalifiedFunction<Array<T>[\"with\"]>;\n  every: (\n    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<boolean>;\n  filter: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T[]>;\n  find: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T | undefined>;\n  findIndex: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<number>;\n  findLast: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T | undefined>;\n  findLastIndex: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<number>;\n  /** Last item of the array. */\n  get lastItem(): DerivedSignal<T | undefined>;\n  /** Array length. */\n  get length(): DerivedSignal<number>;\n  map: <U>(\n    mapFn: (item: T, index: number, array: T[]) => U\n  ) => DerivedSignal<U[]>;\n  /** Splits the array into `[passing, failing]` based on a predicate. */\n  partition: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => readonly [DerivedSignal<T[]>, DerivedSignal<T[]>];\n  reduce: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T,\n      currentIndex: number,\n      array: T[]\n    ) => U,\n    initialValue: U\n  ) => DerivedSignal<U>;\n  reduceRight: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T,\n      currentIndex: number,\n      array: T[]\n    ) => U,\n    initialValue: U\n  ) => DerivedSignal<U>;\n  /** Reversed copy of the array. */\n  get reversed(): DerivedSignal<T[]>;\n  some: (\n    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<boolean>;\n  toSorted: (\n    compareFn?: ((a: T, b: T) => number) | undefined\n  ) => DerivedSignal<T[]>;\n  toSpliced: (\n    start: MaybeSignalValue<number>,\n    deleteCount: MaybeSignalValue<number>,\n    ...items: T[]\n  ) => DerivedSignal<T[]>;\n};\n\n/**\n * Record trap for plain objects with property access methods.\n *\n * @template T - The object type\n *\n * @remarks\n * - Throws if the value is not a plain object\n */\nexport type RecordSignalTrap<T extends Record<string, unknown>> =\n  GenericTrap<T> & {\n    /** Returns a derived signal for a specific property. */\n    prop: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;\n    /** Returns an object with all properties as derived signals. */\n    get props(): { [key in keyof T]: DerivedSignal<T[key]> };\n    /** Returns the object's keys as a derived signal. */\n    get keys(): DerivedSignal<string[]>;\n  };",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "String trap with string manipulation methods.\n\nIncludes standard string methods as derived signal methods plus custom\ncase conversion getters.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The string type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/types.ts"
+    },
+    "api:ArraySignalTrap": {
+      "name": "ArraySignalTrap",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type ArraySignalTrap<T> = GenericTrap<T> & {\n  at: SignalifiedFunction<Array<T>[\"at\"]>;\n  concat: (items: MaybeSignalValue<T[]>) => DerivedSignal<T[]>;\n  copyWithin: SignalifiedFunction<Array<T>[\"copyWithin\"]>;\n  fill: SignalifiedFunction<Array<T>[\"fill\"]>;\n  includes: SignalifiedFunction<Array<T>[\"includes\"]>;\n  indexOf: SignalifiedFunction<Array<T>[\"indexOf\"]>;\n  join: SignalifiedFunction<Array<T>[\"join\"]>;\n  lastIndexOf: SignalifiedFunction<Array<T>[\"lastIndexOf\"]>;\n  slice: SignalifiedFunction<Array<T>[\"slice\"]>;\n  with: SignalifiedFunction<Array<T>[\"with\"]>;\n  every: (\n    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<boolean>;\n  filter: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T[]>;\n  find: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T | undefined>;\n  findIndex: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<number>;\n  findLast: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T | undefined>;\n  findLastIndex: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<number>;\n  /** Last item of the array. */\n  get lastItem(): DerivedSignal<T | undefined>;\n  /** Array length. */\n  get length(): DerivedSignal<number>;\n  map: <U>(\n    mapFn: (item: T, index: number, array: T[]) => U\n  ) => DerivedSignal<U[]>;\n  /** Splits the array into `[passing, failing]` based on a predicate. */\n  partition: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => readonly [DerivedSignal<T[]>, DerivedSignal<T[]>];\n  reduce: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T,\n      currentIndex: number,\n      array: T[]\n    ) => U,\n    initialValue: U\n  ) => DerivedSignal<U>;\n  reduceRight: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T,\n      currentIndex: number,\n      array: T[]\n    ) => U,\n    initialValue: U\n  ) => DerivedSignal<U>;\n  /** Reversed copy of the array. */\n  get reversed(): DerivedSignal<T[]>;\n  some: (\n    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<boolean>;\n  toSorted: (\n    compareFn?: ((a: T, b: T) => number) | undefined\n  ) => DerivedSignal<T[]>;\n  toSpliced: (\n    start: MaybeSignalValue<number>,\n    deleteCount: MaybeSignalValue<number>,\n    ...items: T[]\n  ) => DerivedSignal<T[]>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Array trap with array transformation methods.\n\nIncludes standard array methods as derived signal methods plus custom\ngetters and partition methods.",
+        "remarks": [
+          "- Mutating array methods are not included because derived signals are immutable\n- The `partition()` method splits the array into two signals based on a predicate"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array element type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/types.ts"
+    },
+    "api:RecordSignalTrap": {
+      "name": "RecordSignalTrap",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type RecordSignalTrap<T extends Record<string, unknown>> =\n  GenericTrap<T> & {\n    /** Returns a derived signal for a specific property. */\n    prop: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;\n    /** Returns an object with all properties as derived signals. */\n    get props(): { [key in keyof T]: DerivedSignal<T[key]> };\n    /** Returns the object's keys as a derived signal. */\n    get keys(): DerivedSignal<string[]>;\n  };\n\n/**\n * Union type for all trap types, determined by the value type.\n *\n * @template T - The type of value to trap\n *\n * @remarks\n * - Number values → NumberSignalTrap\n * - String values → StringSignalTrap\n * - Array values → ArraySignalTrap\n * - Plain objects → RecordSignalTrap\n * - Other types → GenericTrap\n */\nexport type SignalTrap<T> = T extends number\n  ? NumberSignalTrap\n  : T extends string\n  ? StringSignalTrap\n  : T extends (infer I)[]\n  ? ArraySignalTrap<I>\n  : T extends Record<string, unknown>\n  ? RecordSignalTrap<T>\n  : GenericTrap<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Record trap for plain objects with property access methods.",
+        "remarks": [
+          "- Throws if the value is not a plain object"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The object type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/types.ts"
+    },
+    "api:SignalTrap": {
+      "name": "SignalTrap",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type SignalTrap<T> = T extends number\n  ? NumberSignalTrap\n  : T extends string\n  ? StringSignalTrap\n  : T extends (infer I)[]\n  ? ArraySignalTrap<I>\n  : T extends Record<string, unknown>\n  ? RecordSignalTrap<T>\n  : GenericTrap<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Union type for all trap types, determined by the value type.",
+        "remarks": [
+          "- Number values → NumberSignalTrap\n- String values → StringSignalTrap\n- Array values → ArraySignalTrap\n- Plain objects → RecordSignalTrap\n- Other types → GenericTrap"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value to trap"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/types.ts"
+    },
+    "api:getDesignalifiedMethodParams": {
+      "name": "getDesignalifiedMethodParams",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/transforms/designalified-params.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const getDesignalifiedMethodParams = <\n  T extends MaybeSignalValues<any[]>\n>(\n  ...methodParams: T\n) => methodParams.map((p) => value(p)) as PlainValues<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Converts signalified method parameters to plain values.\n\nThis helper function is used by trap methods to unwrap parameters that may be\nsignals, plain values, or non-signals into their plain values before passing\nthem to the underlying JavaScript methods (e.g., string methods, array methods).\n\nThis allows trap methods to accept signalified parameters while still being\nable to call standard JavaScript methods that expect plain values.",
+        "remarks": [],
+        "examples": [
+          "// Calling string.includes with a signalified search term\nconst search = signal(\"world\");\nconst text = signal(\"hello world\");\nconst params = getDesignalifiedMethodParams(search);\n// params is [\"world\"], which can be passed to text.includes(\"world\")"
+        ],
+        "params": [
+          {
+            "name": "methodParams",
+            "description": "Signalified parameters (signals, plain values, or non-signals)"
+          }
+        ],
+        "returns": [
+          "Array of plain values extracted from the signalified parameters"
+        ],
+        "see": [
+          "SignalifiedFunction",
+          "MaybeSignalValues",
+          "PlainValues"
+        ],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/transforms/designalified-params.ts"
+    },
+    "api:arrayTrap": {
+      "name": "arrayTrap",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/array-trap.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const arrayTrap = <T>(\n  input: MaybeSignalValue<T[]>,\n): ArraySignalTrap<T> => {\n  const SIMPLE_ARRAY_METHODS = [\n    \"at\",\n    \"copyWithin\",\n    \"fill\",\n    \"includes\",\n    \"indexOf\",\n    \"join\",\n    \"lastIndexOf\",\n    \"slice\",\n    \"with\",\n  ] as const;\n  type ArrayMethodName = (typeof SIMPLE_ARRAY_METHODS)[number];\n  type SimpleArrayMethods = Pick<ArraySignalTrap<T>, ArrayMethodName>;\n\n  const simpleMethodsTrapObject = SIMPLE_ARRAY_METHODS.reduce(\n    (map: SimpleArrayMethods, arrayMethod) => {\n      const method: SignalifiedFunction<Array<T>[typeof arrayMethod]> = (\n        ...params\n      ) => {\n        return derive(() => {\n          const prms = getDesignalifiedMethodParams(...params);\n          // @ts-ignore: A spread argument must either have a tuple type or be passed to a rest parameter.\n          return value(input)[arrayMethod](...prms);\n        });\n      };\n      map[arrayMethod] = method;\n      return map;\n    },\n    {} as SimpleArrayMethods,\n  );\n\n  return {\n    ...genericTrap(input as NonNullable<T>),\n    ...simpleMethodsTrapObject,\n    concat: (items: MaybeSignalValue<T[]>) =>\n      derive(() => value(input).concat(value(items))),\n    every: (\n      itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean,\n    ) => derive(() => value(input).every(itemSatifiesCondition)),\n    filter: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).filter(where)),\n    find: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).find(where)),\n    findIndex: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).findIndex(where)),\n    findLast: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).findLast(where)),\n    findLastIndex: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).findLastIndex(where)),\n    get lastItem() {\n      return derive(() => {\n        const updatedArr = newVal(value(input));\n        const returnVal = updatedArr.pop();\n        return returnVal;\n      });\n    },\n    get length() {\n      return derive(() => value(input).length);\n    },\n    map: <U>(mapFn: (item: T, index: number, array: T[]) => U) =>\n      derive(() => value(input).map(mapFn)),\n    partition: (where: (item: T, index: number, array: T[]) => boolean) => {\n      const conditionPassArray = derive(() => value(input).filter(where));\n      const conditionFailArray = derive(() =>\n        value(input).filter((item, index, array) => !where(item, index, array)),\n      );\n      return [conditionPassArray, conditionFailArray];\n    },\n    reduce: <U>(\n      reducerFn: (\n        previousValue: U,\n        currentValue: T,\n        currentIndex: number,\n        array: T[],\n      ) => U,\n      initialValue: U,\n    ) => derive(() => value(input).reduce(reducerFn, initialValue)),\n    reduceRight: <U>(\n      reducerFn: (\n        previousValue: U,\n        currentValue: T,\n        currentIndex: number,\n        array: T[],\n      ) => U,\n      initialValue: U,\n    ) => derive(() => value(input).reduceRight(reducerFn, initialValue)),\n    get reversed() {\n      return derive(() => value(input).toReversed());\n    },\n    some: (\n      itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean,\n    ) => derive(() => value(input).some(itemSatifiesCondition)),\n    toSorted: (compareFn?: (a: T, b: T) => number) =>\n      derive(() => value(input).toSorted(compareFn)),\n    toSpliced: (\n      start: MaybeSignalValue<number>,\n      deleteCount: MaybeSignalValue<number>,\n      ...newItems: T[]\n    ) =>\n      derive(() =>\n        value(input).toSpliced(value(start), value(deleteCount), ...newItems),\n      ),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates the array trap for signalified arrays.",
+        "remarks": [
+          "- Uses derived signals for every accessor and method\n- The trap type is selected once at creation time"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signalified array"
+          }
+        ],
+        "returns": [
+          "An array trap with array transformation helpers"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array element type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/array-trap.ts"
+    },
+    "api:objectTrap": {
+      "name": "objectTrap",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/object-trap.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const objectTrap = <T extends Record<string, unknown>>(\n  input: MaybeSignalValue<T>,\n): RecordSignalTrap<T> => {\n  if (!isPlainObject(value(input))) {\n    throw new Error(\n      `The argument should be a plain object or a signal of plain object`,\n    );\n  }\n\n  return {\n    ...genericTrap(input),\n    prop: <K extends keyof T>(key: K) => derive(() => value(input)[key]),\n    get props() {\n      const signalledPropsObj = Object.keys(value(input)).reduce(\n        (map, k) => {\n          const key = k as keyof T;\n          map[key] = this.prop(key);\n          return map;\n        },\n        {} as { [key in keyof T]: DerivedSignal<T[key]> },\n      );\n\n      return signalledPropsObj;\n    },\n    get keys() {\n      return derive(() => Object.keys(value(input)));\n    },\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates the object trap for signalified plain objects.",
+        "remarks": [
+          "- Throws if the input is not a plain object after unwrapping\n- Property accessors are derived signals"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signalified plain object"
+          }
+        ],
+        "returns": [
+          "A record trap exposing derived property accessors"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The object type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/object-trap.ts"
+    },
+    "api:trap": {
+      "name": "trap",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/index.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const trap = <T>(input: MaybeSignalValue<T>) => {\n  return (\n    typeof value(input) === \"number\"\n      ? numberTrap(input as MaybeSignalValue<number>)\n      : typeof value(input) === \"string\"\n      ? stringTrap(input as MaybeSignalValue<string>)\n      : Array.isArray(value(input))\n      ? arrayTrap(input as MaybeSignalValue<unknown[]>)\n      : isPlainObject(value(input))\n      ? objectTrap(input as MaybeSignalValue<Record<string, unknown>>)\n      : genericTrap(input)\n  ) as SignalTrap<T>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates a type-specific trap object with derived signal methods.\n\nThis function uses runtime type checking to dispatch to the appropriate\ntype-specific trap implementation. The dispatch order is:\n1. Number values → numberTrap (provides math operations, formatting)\n2. String values → stringTrap (provides string manipulation methods)\n3. Array values → arrayTrap (provides array transformation methods)\n4. Plain objects → objectTrap (provides property access methods)\n5. Other types → genericTrap (provides basic string and fallback methods)",
+        "remarks": [
+          "- The trap type is determined by the runtime type of the unwrapped value at creation time\n- Type changes in the input signal are not reflected in the trap type\n- Methods return derived signals that update when the input changes\n- The object trap throws if the value is not a plain object"
+        ],
+        "examples": [
+          "```typescript\nconst count = signal(5);\nconst trapped = trap(count); // NumberSignalTrap\nconst doubled = trapped.add(5).result;\n\nconst name = signal(\"hello\");\nconst nameTrap = trap(name); // StringSignalTrap\nconst upper = nameTrap.UPPERCASE;\n\nconst items = signal([1, 2, 3]);\nconst itemsTrap = trap(items); // ArraySignalTrap\nconst filtered = itemsTrap.filter(x => x > 1);\n```"
+        ],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signal or plain value to inspect"
+          }
+        ],
+        "returns": [
+          "A type-specific trap object whose methods return derived signals"
+        ],
+        "see": [
+          "[SignalTrap](./api/signaltrap.md) - For the trap type union",
+          "[MaybeSignalValue](./core/maybesignalvalue.md) - For the input type"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value to trap"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/index.ts"
+    },
+    "api:numberTrap": {
+      "name": "numberTrap",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/number-trap.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const numberTrap = (\n  input: MaybeSignalValue<number>\n): NumberSignalTrap => {\n  const SIMPLE_NUMBER_METHODS = [\n    \"toExponential\",\n    \"toFixed\",\n    \"toPrecision\",\n  ] as const;\n  type NumberMethodName = (typeof SIMPLE_NUMBER_METHODS)[number];\n  type SimpleNumberMethods = Pick<NumberSignalTrap, NumberMethodName>;\n\n  const simpleMethodsTrapObject = SIMPLE_NUMBER_METHODS.reduce(\n    (map: SimpleNumberMethods, numMethod) => {\n      const method: SignalifiedFunction<number[typeof numMethod]> = (\n        ...params\n      ) => {\n        return derive(() => {\n          const prms = getDesignalifiedMethodParams(...params);\n          // @ts-ignore: A spread argument must either have a tuple type or be passed to a rest parameter.\n          return (value(input) as number)[numMethod](...prms);\n        });\n      };\n      map[numMethod] = method;\n      return map;\n    },\n    {} as SimpleNumberMethods\n  );\n\n  return {\n    ...genericTrap(input),\n    ...simpleMethodsTrapObject,\n    toConfined: (\n      start: MaybeSignalValue<number>,\n      end: MaybeSignalValue<number>\n    ) =>\n      derive(() =>\n        value(input) < value(start)\n          ? value(start)\n          : value(input) > value(end)\n          ? value(end)\n          : value(input)\n      ),\n    toLocaleString: (\n      locales?: MaybeSignalValue<string | string[] | undefined>,\n      options?: Intl.NumberFormatOptions\n    ) => derive(() => value(input).toLocaleString(value(locales), options)),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates the number trap for signalified numbers.",
+        "remarks": [
+          "- Uses derived signals for every accessor and method\n- The trap type is selected once at creation time"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signalified number"
+          }
+        ],
+        "returns": [
+          "A number trap with numeric methods and formatting helpers"
+        ],
+        "see": [],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/number-trap.ts"
+    },
+    "api:genericTrap": {
+      "name": "genericTrap",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/generic-trap.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const genericTrap = <T>(input: MaybeSignalValue<T>): GenericTrap<T> => {\n  return {\n    get string() {\n      return derive(() => {\n        const val = value(input);\n        const str = (\n          val === undefined || val === null ? \"\" : val.toString()\n        ) as T extends null | undefined ? undefined : string;\n        return str;\n      });\n    },\n    or: <OV>(\n      orValue: MaybeSignalValue<OV>,\n    ): DerivedSignal<OV | NonNullable<T>> =>\n      derive(() => value(input) || value(orValue)),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates the fallback trap for values that do not match a specialized trap.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signalified or plain value to trap"
+          }
+        ],
+        "returns": [
+          "A generic trap with string coercion and fallback selection"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of the trapped value"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/traps/generic-trap.ts"
+    },
+    "api:stringAndArrayOp": {
+      "name": "stringAndArrayOp",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/operations/string-and-array-operation.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const stringAndArrayOp = <T extends string | unknown[]>(\n  input: MaybeSignalValue<T> | (() => T)\n): StringAndArrayOperation => {\n  const evaluate: () => T =\n    typeof input === \"function\"\n      ? (input as () => T)\n      : (): T => value(input as MaybeSignalValue<T>);\n\n  return {\n    ...genericOp(input),\n    lengthBetween: (\n      lowerValue: MaybeSignalValue<number>,\n      upperValue: MaybeSignalValue<number>,\n      touchingLower = true,\n      touchingUpper = true\n    ) =>\n      genericOp(() => {\n        const val = evaluate();\n        const len = val.length;\n        const lowerVal = value(lowerValue);\n        const upperVal = value(upperValue);\n        const lowerCheckPass = touchingLower ? len >= lowerVal : len > lowerVal;\n        const upperCheckPass = touchingUpper ? len <= upperVal : len < upperVal;\n        return lowerCheckPass && upperCheckPass;\n      }),\n    lengthEquals: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length === value(compareValue);\n      }),\n    lengthNotEquals: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length !== value(compareValue);\n      }),\n    lengthLT: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length < value(compareValue);\n      }),\n    lengthLTE: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length <= value(compareValue);\n      }),\n    lengthGT: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length > value(compareValue);\n      }),\n    lengthGTE: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length >= value(compareValue);\n      }),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates the string/array-specific operation chain for a value.",
+        "remarks": [
+          "- Used when the evaluated value is a string or array\n- Methods return new operation objects for chaining"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signalified string/array or value-producing function"
+          }
+        ],
+        "returns": [
+          "A string-and-array operation object with length-based methods"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The string or array value type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/operations/string-and-array-operation.ts"
+    },
+    "api:OperationResult": {
+      "name": "OperationResult",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/operations/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type OperationResult = {\n  /** Derived signal of whether the value is truthy */\n  get truthy(): DerivedSignal<boolean>;\n  /** Derived signal of whether the value is falsy */\n  get falsy(): DerivedSignal<boolean>;\n  /** Derived signal of the `[isTruthy, isFalsy]` pair. */\n  get truthyFalsyPair(): DerivedSignal<readonly [boolean, boolean]>;\n  /** Returns `valueIfTruthy` if truthy, otherwise `valueIfFalsy`. */\n  ternary: <Tr, Fl>(\n    valueIfTruthy: MaybeSignalValue<Tr>,\n    valueIfFalsy: MaybeSignalValue<Fl>\n  ) => DerivedSignal<Tr | Fl>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Base operation result getters.\n\nThese getters provide the final derived signal results of composed operations.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/operations/types.ts"
+    },
+    "api:GenericOperation": {
+      "name": "GenericOperation",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/operations/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type GenericOperation = OperationResult & {\n  /** Chains an OR operation */\n  or: LogicalOperation<any>;\n  /** Chains an OR-NOT operation */\n  orNot: LogicalOperation<any>;\n  /** Chains an AND operation */\n  and: LogicalOperation<any>;\n  /** Chains an AND-NOT operation */\n  andNot: LogicalOperation<any>;\n  /** Chains an equality comparison */\n  equals: ComparisonOperation<any>;\n  /** Chains an inequality comparison */\n  notEquals: ComparisonOperation<any>;\n  /** Chains an OR operation with an equality check on two other values */\n  orBothEqual: LogicWithComparisonOperation<any>;\n  /** Chains an OR operation with an inequality check on two other values */\n  orBothUnequal: LogicWithComparisonOperation<any>;\n  /** Chains an AND operation with an equality check on two other values */\n  andBothEqual: LogicWithComparisonOperation<any>;\n  /** Chains an AND operation with an inequality check on two other values */\n  andBothUnequal: LogicWithComparisonOperation<any>;\n  /** Chains an OR operation with a less-than comparison on two other values */\n  orThisIsLT: LogicWithComparisonOperation<number>;\n  /** Chains an OR operation with a less-than-or-equal comparison on two other values */\n  orThisIsLTE: LogicWithComparisonOperation<number>;\n  /** Chains an OR operation with a greater-than comparison on two other values */\n  orThisIsGT: LogicWithComparisonOperation<number>;\n  /** Chains an OR operation with a greater-than-or-equal comparison on two other values */\n  orThisIsGTE: LogicWithComparisonOperation<number>;\n  /** Chains an AND operation with a less-than comparison on two other values */\n  andThisIsLT: LogicWithComparisonOperation<number>;\n  /** Chains an AND operation with a less-than-or-equal comparison on two other values */\n  andThisIsLTE: LogicWithComparisonOperation<number>;\n  /** Chains an AND operation with a greater-than comparison on two other values */\n  andThisIsGT: LogicWithComparisonOperation<number>;\n  /** Chains an AND operation with a greater-than-or-equal comparison on two other values */\n  andThisIsGTE: LogicWithComparisonOperation<number>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Generic operation with logical operations available for all types.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/operations/types.ts"
+    },
+    "api:NumberOperation": {
+      "name": "NumberOperation",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/operations/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type NumberOperation = GenericOperation & {\n  /** The numeric value as a derived signal. */\n  get result(): DerivedSignal<number>;\n  /** Chains an addition operation */\n  add: MathOperation;\n  /** Chains a subtraction operation */\n  sub: MathOperation;\n  /** Chains a multiplication operation */\n  mul: MathOperation;\n  /** Chains a division operation */\n  div: MathOperation;\n  /** Chains a modulo operation */\n  mod: MathOperation;\n  /** Chains an exponentiation operation */\n  pow: MathOperation;\n  /** Checks if the value is between lower and upper (inclusive by default) */\n  isBetween: ConfinementCheckOperation;\n  /** Chains a less-than comparison */\n  isLT: ComparisonOperation<number>;\n  /** Chains a less-than-or-equal comparison */\n  isLTE: ComparisonOperation<number>;\n  /** Chains a greater-than comparison */\n  isGT: ComparisonOperation<number>;\n  /** Chains a greater-than-or-equal comparison */\n  isGTE: ComparisonOperation<number>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Number operation with math operations and comparisons.\n\nExtends `GenericOperation` with number-specific operations.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/operations/types.ts"
+    },
+    "api:StringAndArrayOperation": {
+      "name": "StringAndArrayOperation",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/operations/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type StringAndArrayOperation = GenericOperation & {\n  /** Checks whether the length is between lower and upper values. */\n  lengthBetween: ConfinementCheckOperation;\n  /** Chains a length equality comparison. */\n  lengthEquals: ComparisonOperation<number>;\n  /** Chains a length inequality comparison. */\n  lengthNotEquals: ComparisonOperation<number>;\n  /** Chains a length less-than comparison. */\n  lengthLT: ComparisonOperation<number>;\n  /** Chains a length less-than-or-equal comparison. */\n  lengthLTE: ComparisonOperation<number>;\n  /** Chains a length greater-than comparison. */\n  lengthGT: ComparisonOperation<number>;\n  /** Chains a length greater-than-or-equal comparison. */\n  lengthGTE: ComparisonOperation<number>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "String and array operation with length-based operations.\n\nExtends `GenericOperation` with length-specific operations for strings and arrays.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/operations/types.ts"
+    },
+    "api:Operation": {
+      "name": "Operation",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/operations/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type Operation<T> = T extends number\n  ? NumberOperation\n  : T extends string | unknown[]\n  ? StringAndArrayOperation\n  : GenericOperation;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Union type for all operation types, determined by the value type.",
+        "remarks": [
+          "- Number values map to `NumberOperation`\n- String or array values map to `StringAndArrayOperation`\n- Other types map to `GenericOperation`"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the operation works with"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/operations/types.ts"
+    },
+    "api:genericOp": {
+      "name": "genericOp",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/operations/generic-operation.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const genericOp = <T>(\n  input: MaybeSignalValue<T> | (() => T)\n): GenericOperation => {\n  const evaluator: () => T =\n    typeof input === \"function\"\n      ? (input as () => T)\n      : (): T => value(input as MaybeSignalValue<T>);\n\n  const opResultGetters: OperationResult = {\n    get truthy() {\n      return derive(() => !!evaluator());\n    },\n    get falsy() {\n      return derive(() => !evaluator());\n    },\n    get truthyFalsyPair() {\n      return derive(() => {\n        const truthyVal = !!evaluator();\n        const pair = [truthyVal, !truthyVal] as const;\n        return pair;\n      });\n    },\n    ternary: <Tr, Fl>(\n      valueIfTruthy: MaybeSignalValue<Tr>,\n      valueIfFalsy: MaybeSignalValue<Fl>\n    ) =>\n      derive(() => {\n        const val = evaluator();\n        return !!val ? value(valueIfTruthy) : value(valueIfFalsy);\n      }),\n  };\n\n  return {\n    ...opResultGetters,\n    or: (checkValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val || value(checkValue));\n      }),\n    orNot: (checkValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val || !value(checkValue));\n      }),\n    and: (checkValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val && value(checkValue));\n      }),\n    andNot: (checkValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val && !value(checkValue));\n      }),\n    equals: (compareValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return val === value(compareValue);\n      }),\n    notEquals: (compareValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return val !== value(compareValue);\n      }),\n    orBothEqual: (\n      subjectValue: MaybeSignalValue<any>,\n      compareValue: MaybeSignalValue<any>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) === value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orBothUnequal: (\n      subjectValue: MaybeSignalValue<any>,\n      compareValue: MaybeSignalValue<any>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) !== value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    andBothEqual: (\n      subjectValue: MaybeSignalValue<any>,\n      compareValue: MaybeSignalValue<any>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) === value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andBothUnequal: (\n      subjectValue: MaybeSignalValue<any>,\n      compareValue: MaybeSignalValue<any>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) !== value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    orThisIsLT: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) < value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orThisIsLTE: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) <= value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orThisIsGT: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) > value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orThisIsGTE: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) >= value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    andThisIsLT: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) < value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andThisIsLTE: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) <= value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andThisIsGT: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) > value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andThisIsGTE: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) >= value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates the generic operation chain for a value.",
+        "remarks": [
+          "- Used for non-numeric and non-string-or-array inputs\n- Methods return new operation objects for chaining"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signalified value or value-producing function"
+          }
+        ],
+        "returns": [
+          "A generic operation object with composable logical methods"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The value type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/operations/generic-operation.ts"
+    },
+    "api:numberOp": {
+      "name": "numberOp",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/operations/number-operation.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const numberOp = (\n  input: MaybeSignalValue<number> | (() => number)\n): NumberOperation => {\n  const evaluate: () => number =\n    typeof input === \"function\"\n      ? (input as () => number)\n      : (): number => value(input as MaybeSignalValue<number>);\n\n  return {\n    ...genericOp(input),\n    get result() {\n      return derive(evaluate);\n    },\n    add: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val + value(num);\n      }),\n    sub: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val - value(num);\n      }),\n    mul: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val * value(num);\n      }),\n    div: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val / value(num);\n      }),\n    mod: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val % value(num);\n      }),\n    pow: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val ** value(num);\n      }),\n    isBetween: (\n      lowerValue: MaybeSignalValue<number>,\n      upperValue: MaybeSignalValue<number>,\n      touchingLower = true,\n      touchingUpper = true\n    ) =>\n      genericOp(() => {\n        const val = evaluate();\n        const lowerVal = value(lowerValue);\n        const upperVal = value(upperValue);\n        const lowerCheckPass = touchingLower ? val >= lowerVal : val > lowerVal;\n        const upperCheckPass = touchingUpper ? val <= upperVal : val < upperVal;\n        return lowerCheckPass && upperCheckPass;\n      }),\n    isLT: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => evaluate() < value(compareValue)),\n    isLTE: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => evaluate() <= value(compareValue)),\n    isGT: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => evaluate() > value(compareValue)),\n    isGTE: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => evaluate() >= value(compareValue)),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates the number-specific operation chain for a value.",
+        "remarks": [
+          "- Used when the evaluated value is a number\n- Methods return new operation objects for chaining"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signalified number or value-producing function"
+          }
+        ],
+        "returns": [
+          "A number operation object with math and comparison methods"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The numeric value type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/operations/number-operation.ts"
+    },
+    "api:op": {
+      "name": "op",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/operations/index.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const op = <T>(input: MaybeSignalValue<T> | (() => T)): Operation<T> => {\n  const evaluator: () => T =\n    typeof input === \"function\"\n      ? (input as () => T)\n      : (): T => value(input as MaybeSignalValue<T>);\n  const val = evaluator();\n\n  return (\n    typeof val === \"number\"\n      ? numberOp(input as MaybeSignalValue<number> | (() => number))\n      : typeof val === \"string\" || Array.isArray(val)\n      ? stringAndArrayOp(\n          input as\n            | MaybeSignalValue<string | unknown[]>\n            | (() => string | unknown[])\n        )\n      : genericOp(input)\n  ) as Operation<T>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates an operation object for composing logical and mathematical operations.\n\nThis function evaluates the input and dispatches to the appropriate operation\nimplementation based on the evaluated type:\n- Number values → numberOp (provides math operations: add, sub, mul, div, etc.)\n- String or Array values → stringAndArrayOp (provides length-based operations)\n- Other types → genericOp (provides logical operations: or, and, equals, etc.)",
+        "remarks": [
+          "- The operation type is determined by the runtime type of the evaluated value\n- If input is a function, it is called to get the value\n- Type changes in the input signal are not reflected in the operation type\n- Methods return new operation objects for chaining\n- Final results are obtained via getters such as `truthy`, `falsy`, and `result`"
+        ],
+        "examples": [
+          "```typescript\nconst count = signal(5);\nconst operation = op(count);\nconst doubled = operation.add(5).result; // DerivedSignal<number>\n\nconst text = signal(\"hello\");\nconst textOp = op(text);\nconst isLong = textOp.lengthGT(5).truthy; // DerivedSignal<boolean>\n\nconst value = signal(10);\nconst check = op(value).isBetween(5, 15).truthy; // DerivedSignal<boolean>\n```"
+        ],
+        "params": [
+          {
+            "name": "input",
+            "description": "A signal, plain value, or value-producing function"
+          }
+        ],
+        "returns": [
+          "A type-specific operation object with chainable methods"
+        ],
+        "see": [
+          "[Operation](./api/operation.md) - For the operation type union",
+          "[MaybeSignalValue](./core/maybesignalvalue.md) - For the input type"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the operation works with"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/operations/index.ts"
+    },
+    "api:receive": {
+      "name": "receive",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/connectors.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const receive = <T>(\n  receiver: SourceSignal<T>,\n  ...transmittors: Signal<T>[]\n): SignalsEffect[] => {\n  const effects = transmittors.map((transmittor) =>\n    effect(() => (receiver.value = transmittor.value))\n  );\n  return effects;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Connects multiple transmitter signals to a single receiver signal.\n\nWhenever any transmitter changes, the receiver is updated to match that\ntransmitter's current value. If more than one transmitter changes in the same\npropagation chain, the final receiver value follows effect execution order.",
+        "remarks": [
+          "- Each transmitter gets its own effect that updates the receiver\n- Transmitters can be source or derived signals\n- Receiver must be a source signal\n- Passing no transmitters returns an empty effects array\n- The receiver remains independently mutable"
+        ],
+        "examples": [
+          "```typescript\nconst sportsEvent = signal(\"cricket @ 9am\");\nconst mediaEvent = signal(\"movie @ 3pm\");\nconst noticeBoard = signal(\"\");\n\nconst effects = receive(noticeBoard, sportsEvent, mediaEvent);\n\nsportsEvent.value = \"football @ 1pm\";\nconsole.log(noticeBoard.value); // \"football @ 1pm\"\n\nmediaEvent.value = \"concert @ 8pm\";\nconsole.log(noticeBoard.value); // \"concert @ 8pm\"\n\n// Manual update still works\nnoticeBoard.value = \"No events\";\n\n// Dispose connections\neffects.forEach(eff => eff.dispose());\n```"
+        ],
+        "params": [
+          {
+            "name": "receiver",
+            "description": "A source signal that will receive updates"
+          },
+          {
+            "name": "transmittors",
+            "description": "Multiple signals (source or derived) of the same type"
+          }
+        ],
+        "returns": [
+          "Array of effects that can be disposed to disconnect the bindings"
+        ],
+        "see": [
+          "transmit - For broadcasting from one transmitter to multiple receivers",
+          "[effect](./core/effect.md) - For the underlying effect primitive"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the signals hold"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/connectors.ts"
+    },
+    "api:transmit": {
+      "name": "transmit",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/connectors.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const transmit = <T>(\n  transmittor: Signal<T>,\n  ...receivers: SourceSignal<T>[]\n): SignalsEffect =>\n  effect(() => {\n    receivers.forEach((receiver) => (receiver.value = transmittor.value));\n  });",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Broadcasts changes from one transmitter signal to multiple receiver signals.\n\nWhen the transmitter changes, all receivers are updated synchronously to the\nsame value. Each receiver remains independently mutable.",
+        "remarks": [
+          "- A single effect manages all receiver updates\n- Transmitter can be source or derived signal\n- Receivers must be source signals\n- Passing no receivers creates a no-op effect\n- The order of receiver updates is not guaranteed"
+        ],
+        "examples": [
+          "```typescript\nconst temperature = signal(22);\nconst display1 = signal(0);\nconst display2 = signal(0);\nconst display3 = signal(0);\n\nconst effect = transmit(temperature, display1, display2, display3);\n\ntemperature.value = 25;\nconsole.log(display1.value); // 25\nconsole.log(display2.value); // 25\nconsole.log(display3.value); // 25\n\n// Manual updates still work\ndisplay1.value = 30;\n\n// Dispose connection\neffect.dispose();\n```"
+        ],
+        "params": [
+          {
+            "name": "transmittor",
+            "description": "A signal (source or derived) that broadcasts changes"
+          },
+          {
+            "name": "receivers",
+            "description": "Multiple source signals that will receive updates"
+          }
+        ],
+        "returns": [
+          "A single effect that can be disposed to disconnect the broadcast"
+        ],
+        "see": [
+          "[receive](./api/receive.md) - For connecting multiple transmitters to a receiver",
+          "[effect](./core/effect.md) - For the underlying effect primitive"
+        ],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the signals hold"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/connectors.ts"
+    }
+  },
   "categories": {
     "core": {
       "description": "Core reactive primitives and utilities",
       "symbols": [
-        "derive",
-        "DerivedSignal",
-        "DerivedValueGetterWithSignals",
-        "dispose",
         "effect",
-        "getNonSignalObject",
-        "NonSignal",
+        "dispose",
+        "valueIsSourceSignal",
+        "valueIsDerivedSignal",
+        "valueIsSignal",
+        "valueIsNonSignalObject",
+        "valueIsSignalifiedObject",
+        "valueIsNonSignalString",
+        "valueIsNonSignalStringArray",
+        "valueIsMaybeSignalValueOfStringOrArray",
+        "value",
         "Signal",
         "MaybeNonSignal",
         "MaybeSignal",
@@ -22,535 +2230,58 @@
         "NonNullSignalValue",
         "MaybeSignalValues",
         "PlainValues",
-        "PlainValue"
-      ],
-      "subcategories": {}
+        "PlainValue",
+        "DerivedSignal",
+        "DerivedValueGetterWithSignals",
+        "derive",
+        "NonSignal",
+        "getNonSignalObject",
+        "setCurrentEffect",
+        "signal",
+        "getArraySignalBaseObject",
+        "SignalsEffect",
+        "BaseArraySignal",
+        "BaseObjectSignal",
+        "BaseSourceSignal",
+        "ArraySourceSignal",
+        "ObjectSourceSignal",
+        "SourceSignal",
+        "getObjectSignalBaseObject"
+      ]
     },
     "api": {
       "description": "Higher-level convenience APIs",
       "symbols": [
         "compute",
-        "receive",
-        "transmit",
-        "promstates",
+        "StringSignalDeriverTemplateExpressions",
         "tmpl",
-        "StringSignalDeriverTemplateExpressions"
-      ],
-      "subcategories": {}
-    }
-  },
-  "symbols": {
-    "core:derive": {
-      "name": "derive",
-      "kind": "VariableDeclaration",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/derive.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "Creates a read-only derived signal computed from other signals.\nThe derived signal's value is computed by the provided function, which\nshould access `.value` on signals to establish dependencies. The value\nis recomputed whenever any tracked dependency changes.",
-        "remarks": "- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)",
-        "returns": "A derived signal with `value`, `prevValue`, and `dispose()` methods\n```typescript\nconst count = signal(5);\nconst doubled = derive(() => count.value * 2);\nconsole.log(doubled.value); // 10\n// Using previous value\nconst history = derive((prev) => {\nconst current = count.value;\nreturn prev ? [...prev, current] : [current];\n});\n```\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)",
-        "examples": [
-          "```typescript\nconst count = signal(5);\nconst doubled = derive(() => count.value * 2);\nconsole.log(doubled.value); // 10\n// Using previous value\nconst history = derive((prev) => {\nconst current = count.value;\nreturn prev ? [...prev, current] : [current];\n});\n```\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)"
-        ],
-        "params": [
-          {
-            "name": "valueGetterFn",
-            "description": "A function that computes the derived value.\nReceives the previous computed value (undefined on first run).\n```typescript\nconst count = signal(5);\nconst doubled = derive(() => count.value * 2);\nconsole.log(doubled.value); // 10\n// Using previous value\nconst history = derive((prev) => {\nconst current = count.value;\nreturn prev ? [...prev, current] : [current];\n});\n```\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)"
-          }
-        ],
-        "see": [
-          "{@link DerivedValueGetterWithSignals} - The type of the value getter function"
-        ],
-        "template": [
-          "T - The type of value the derived signal holds\nReceives the previous computed value (undefined on first run).\n```typescript\nconst count = signal(5);\nconst doubled = derive(() => count.value * 2);\nconsole.log(doubled.value); // 10\n// Using previous value\nconst history = derive((prev) => {\nconst current = count.value;\nreturn prev ? [...prev, current] : [current];\n});\n```\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)"
-        ]
-      }
-    },
-    "core:DerivedSignal": {
-      "name": "DerivedSignal",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/derive.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A read-only derived signal computed from other signals.\nDerived signals automatically recompute their value whenever any of their\ntracked dependencies change. Dependencies are established by accessing\n`.value` on signals during the initial computation.",
-        "remarks": "- The value getter function receives the previous computed value (undefined on first run)\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Calling `dispose()` stops the derived signal from tracking dependencies\n- After disposal, the value remains accessible but won't update",
-        "see": [
-          "{@link signal} - For creating mutable source signals"
-        ],
-        "template": [
-          "T - The type of value the derived signal holds\n- The value getter function receives the previous computed value (undefined on first run)\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Calling `dispose()` stops the derived signal from tracking dependencies\n- After disposal, the value remains accessible but won't update"
-        ]
-      },
-      "type": "{"
-    },
-    "core:DerivedValueGetterWithSignals": {
-      "name": "DerivedValueGetterWithSignals",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/derive.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A function that computes a derived signal's value.\nThis function receives the previous computed value and should access\n`.value` on signals to establish dependencies. The function is called\nwhenever any tracked dependency changes.\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values",
-        "remarks": "- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values",
-        "returns": "The new computed value\n```typescript\nconst count = signal(5);\nconst doubled = derive((prev) => {\nconst current = count.value;\nreturn current * 2;\n});\n```\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values",
-        "examples": [
-          "```typescript\nconst count = signal(5);\nconst doubled = derive((prev) => {\nconst current = count.value;\nreturn current * 2;\n});\n```\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values"
-        ],
-        "params": [
-          {
-            "name": "oldValue",
-            "description": "The previous computed value (undefined on first run)\n```typescript\nconst count = signal(5);\nconst doubled = derive((prev) => {\nconst current = count.value;\nreturn current * 2;\n});\n```\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values"
-          }
-        ],
-        "template": [
-          "T - The type of value to return\n```typescript\nconst count = signal(5);\nconst doubled = derive((prev) => {\nconst current = count.value;\nreturn current * 2;\n});\n```\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values"
-        ]
-      },
-      "type": "(oldValue: T | undefined) => T"
-    },
-    "core:dispose": {
-      "name": "dispose",
-      "kind": "VariableDeclaration",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/dispose.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "Disposes multiple derived signals and/or effects at once.\nThis utility function calls `.dispose()` on each argument, stopping\ndependency tracking for derived signals and marking effects for disposal.",
-        "remarks": "- Empty argument list is valid (no-op)\n- Can mix derived signals and effects in the same call\n- Disposing the same effect multiple times is safe (idempotent)\n- For derived signals: stops dependency tracking\n- For effects: marks for disposal (removed on next signal update)",
-        "examples": [
-          "```typescript\nconst count = signal(0);\nconst doubled = derive(() => count.value * 2);\nconst eff = effect(() => console.log(count.value));\n// Dispose single\ndispose(doubled);\n// Dispose multiple\ndispose(doubled, eff);\n// Mixed disposal\ndispose(doubled, eff);\n// Empty (no-op)\ndispose();\n```\n- Empty argument list is valid (no-op)\n- Can mix derived signals and effects in the same call\n- Disposing the same effect multiple times is safe (idempotent)\n- For derived signals: stops dependency tracking\n- For effects: marks for disposal (removed on next signal update)"
-        ],
-        "params": [
-          {
-            "name": "derivedSignalsOrEffects",
-            "description": "Variable arguments of derived signals\nand/or effects to dispose\n```typescript\nconst count = signal(0);\nconst doubled = derive(() => count.value * 2);\nconst eff = effect(() => console.log(count.value));\n// Dispose single\ndispose(doubled);\n// Dispose multiple\ndispose(doubled, eff);\n// Mixed disposal\ndispose(doubled, eff);\n// Empty (no-op)\ndispose();\n```\n- Empty argument list is valid (no-op)\n- Can mix derived signals and effects in the same call\n- Disposing the same effect multiple times is safe (idempotent)\n- For derived signals: stops dependency tracking\n- For effects: marks for disposal (removed on next signal update)"
-          }
-        ],
-        "see": [
-          "{@link DerivedSignal.dispose} - For disposing individual derived signals"
-        ]
-      }
-    },
-    "core:effect": {
-      "name": "effect",
-      "kind": "VariableDeclaration",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/effect.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "Registers a function to run whenever its accessed signals change.\nThe function runs immediately when `effect()` is called, and re-runs\nsynchronously whenever any tracked signal's value changes. Dependencies\nare established by accessing `.value` on signals during execution.",
-        "remarks": "- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately",
-        "returns": "The input function augmented with `canDisposeNow` and `dispose()`\nmethods for cleanup\n```typescript\nconst count = signal(0);\n// Simple effect\neffect(() => {\nconsole.log(\"Count is:\", count.value);\n});\n// Multiple signal tracking\nconst name = signal(\"John\");\nconst age = signal(30);\neffect(() => {\nconsole.log(`${name.value} is ${age.value} years old`);\n});\n// Disposal\nconst eff = effect(() => {\nconsole.log(count.value);\n});\neff.dispose();\ncount.value = 5; // Effect won't run\n```\n- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately",
-        "examples": [
-          "```typescript\nconst count = signal(0);\n// Simple effect\neffect(() => {\nconsole.log(\"Count is:\", count.value);\n});\n// Multiple signal tracking\nconst name = signal(\"John\");\nconst age = signal(30);\neffect(() => {\nconsole.log(`${name.value} is ${age.value} years old`);\n});\n// Disposal\nconst eff = effect(() => {\nconsole.log(count.value);\n});\neff.dispose();\ncount.value = 5; // Effect won't run\n```\n- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately"
-        ],
-        "params": [
-          {
-            "name": "fn",
-            "description": "A function that should access `.value` on signals to establish\ndependencies. Contains side effects (logging, DOM updates, etc.).\nmethods for cleanup\n```typescript\nconst count = signal(0);\n// Simple effect\neffect(() => {\nconsole.log(\"Count is:\", count.value);\n});\n// Multiple signal tracking\nconst name = signal(\"John\");\nconst age = signal(30);\neffect(() => {\nconsole.log(`${name.value} is ${age.value} years old`);\n});\n// Disposal\nconst eff = effect(() => {\nconsole.log(count.value);\n});\neff.dispose();\ncount.value = 5; // Effect won't run\n```\n- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately"
-          }
-        ],
-        "see": [
-          "{@link signal} - For creating signals"
-        ]
-      }
-    },
-    "core:getNonSignalObject": {
-      "name": "getNonSignalObject",
-      "kind": "VariableDeclaration",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/non-signal.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "Wraps a plain value in a NonSignal object for runtime type discrimination.\nThis function is useful when you need to explicitly mark a value as a\nnon-signal for runtime type checking in complex type scenarios.",
-        "remarks": "- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type",
-        "returns": "A NonSignal object with the wrapped value\n```typescript\nconst nonSig = getNonSignalObject(42);\nconsole.log(nonSig.type); // \"non-signal\"\nconsole.log(nonSig.value); // 42\n```\n- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type",
-        "examples": [
-          "```typescript\nconst nonSig = getNonSignalObject(42);\nconsole.log(nonSig.type); // \"non-signal\"\nconsole.log(nonSig.value); // 42\n```\n- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type"
-        ],
-        "params": [
-          {
-            "name": "input",
-            "description": "Any JavaScript value to wrap\n```typescript\nconst nonSig = getNonSignalObject(42);\nconsole.log(nonSig.type); // \"non-signal\"\nconsole.log(nonSig.value); // 42\n```\n- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type"
-          }
-        ],
-        "see": [
-          "{@link NonSignal} - The NonSignal type"
-        ],
-        "template": [
-          "T - The type of value to wrap\n```typescript\nconst nonSig = getNonSignalObject(42);\nconsole.log(nonSig.type); // \"non-signal\"\nconsole.log(nonSig.value); // 42\n```\n- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type"
-        ]
-      }
-    },
-    "core:NonSignal": {
-      "name": "NonSignal",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/non-signal.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A runtime type wrapper for plain values.\nNonSignal objects are used for runtime type discrimination in complex\ntype scenarios where TypeScript's compile-time types are insufficient.\nThey enable distinguishing between plain values and signalified objects\nat runtime.",
-        "remarks": "- Used with `MaybeSignal` types to resolve ambiguity at runtime\n- Has a `type: \"non-signal\"` property for runtime type checking\n- The `value` property holds the wrapped plain value",
-        "see": [
-          "{@link Signal} - For signal objects"
-        ],
-        "template": [
-          "T - The type of value wrapped\n- Used with `MaybeSignal` types to resolve ambiguity at runtime\n- Has a `type: \"non-signal\"` property for runtime type checking\n- The `value` property holds the wrapped plain value"
-        ]
-      },
-      "type": "{"
-    },
-    "core:Signal": {
-      "name": "Signal",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A union type representing either a source or derived signal.",
-        "see": [
-          "{@link SourceSignal} - For mutable source signals"
-        ],
-        "template": [
-          "T - The type of value the signal holds"
-        ]
-      },
-      "type": "SourceSignal<T> | DerivedSignal<T>"
-    },
-    "core:MaybeNonSignal": {
-      "name": "MaybeNonSignal",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A union type representing either a non-signal object or a plain value.",
-        "see": [
-          "{@link NonSignal} - For non-signal objects"
-        ],
-        "template": [
-          "T - The type of value"
-        ]
-      },
-      "type": "T | NonSignal<T>"
-    },
-    "core:MaybeSignal": {
-      "name": "MaybeSignal",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A union type representing a signal or a plain value.\nThis is commonly used for function parameters that can accept either\na signal or a plain value of the same type.",
-        "see": [
-          "{@link Signal} - For signal types"
-        ],
-        "template": [
-          "T - The type of value"
-        ]
-      },
-      "type": "T | Signal<T>"
-    },
-    "core:MaybeSourceSignal": {
-      "name": "MaybeSourceSignal",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A union type representing a source signal or a plain value.",
-        "see": [
-          "{@link SourceSignal} - For source signal type"
-        ],
-        "template": [
-          "T - The type of value"
-        ]
-      },
-      "type": "T | SourceSignal<T>"
-    },
-    "core:MaybeDerivedSignal": {
-      "name": "MaybeDerivedSignal",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A union type representing a derived signal or a plain value.",
-        "see": [
-          "{@link DerivedSignal} - For derived signal type"
-        ],
-        "template": [
-          "T - The type of value"
-        ]
-      },
-      "type": "T | DerivedSignal<T>"
-    },
-    "core:SignalifiedObject": {
-      "name": "SignalifiedObject",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A union type representing a signalified object (signal or non-signal).",
-        "see": [
-          "{@link Signal} - For signal types"
-        ],
-        "template": [
-          "T - The type of value"
-        ]
-      },
-      "type": "NonSignal<T> | Signal<T>"
-    },
-    "core:MaybeSignalValue": {
-      "name": "MaybeSignalValue",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A union type representing a signal, non-signal, or plain value.\nThis is the most permissive type for values that may or may not be signalified.",
-        "see": [
-          "{@link SignalifiedObject} - For signalified objects"
-        ],
-        "template": [
-          "T - The type of value"
-        ]
-      },
-      "type": "T | NonSignal<T> | Signal<T>"
-    },
-    "core:NonNullSignalValue": {
-      "name": "NonNullSignalValue",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "A utility type that removes null and undefined from signal realm types.\nThis is similar to TypeScript's `NonNullable` but handles signal types specifically.",
-        "template": [
-          "S - The type to make non-null"
-        ]
-      },
-      "type": "S extends null | undefined"
-    },
-    "core:MaybeSignalValues": {
-      "name": "MaybeSignalValues",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "Converts a tuple type to a tuple of MaybeSignalValue types.\nFunctions are left as-is, while other values are converted to MaybeSignalValue.",
-        "see": [
-          "{@link MaybeSignalValue} - For the MaybeSignalValue type"
-        ],
-        "template": [
-          "T - The tuple type to convert"
-        ]
-      },
-      "type": "{"
-    },
-    "core:PlainValues": {
-      "name": "PlainValues",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "Extracts plain values from a MaybeSignalValues tuple.\nThis is the inverse of MaybeSignalValues, converting signalified values\nback to their plain types.",
-        "see": [
-          "{@link MaybeSignalValues} - For the MaybeSignalValues type"
-        ],
-        "template": [
-          "T - The MaybeSignalValues tuple to extract from"
-        ]
-      }
-    },
-    "core:PlainValue": {
-      "name": "PlainValue",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "core",
-      "tsdoc": {
-        "summary": "Extracts a plain value from a MaybeSignalValue.\nIf the input is a signalified object, returns the wrapped value.\nOtherwise, returns the input as-is.",
-        "see": [
-          "{@link MaybeSignalValue} - For the MaybeSignalValue type"
-        ],
-        "template": [
-          "I - The MaybeSignalValue type"
-        ]
-      }
-    },
-    "api:compute": {
-      "name": "compute",
-      "kind": "VariableDeclaration",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/compute.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "api",
-      "tsdoc": {
-        "summary": "Creates a derived signal from a function with signalified arguments.\nThis is a convenience wrapper around `derive` that automatically unwraps\nsignal arguments before passing them to the function. The derived signal\nrecomputes whenever any of the signalified arguments changes.",
-        "remarks": "- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function",
-        "returns": "A derived signal of the function's return type\n```typescript\nconst a = signal(5);\nconst b = signal(3);\nconst sum = compute((x: number, y: number) => x + y, a, b);\nconsole.log(sum.value); // 8\n// Mixed signals and plain values\nconst sum2 = compute((x: number, y: number) => x + y, a, 10);\nconsole.log(sum2.value); // 15\n// Complex computation\nconst base = signal(100);\nconst rate = signal(0.1);\nconst years = signal(5);\nconst interest = compute(\n(b: number, r: number, y: number) => b * Math.pow(1 + r, y),\nbase, rate, years\n);\n```\n- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function",
-        "examples": [
-          "```typescript\nconst a = signal(5);\nconst b = signal(3);\nconst sum = compute((x: number, y: number) => x + y, a, b);\nconsole.log(sum.value); // 8\n// Mixed signals and plain values\nconst sum2 = compute((x: number, y: number) => x + y, a, 10);\nconsole.log(sum2.value); // 15\n// Complex computation\nconst base = signal(100);\nconst rate = signal(0.1);\nconst years = signal(5);\nconst interest = compute(\n(b: number, r: number, y: number) => b * Math.pow(1 + r, y),\nbase, rate, years\n);\n```\n- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function"
-        ],
-        "params": [
-          {
-            "name": "computerFn",
-            "description": "A function that takes plain values and returns a value\nthe function's parameter types\n```typescript\nconst a = signal(5);\nconst b = signal(3);\nconst sum = compute((x: number, y: number) => x + y, a, b);\nconsole.log(sum.value); // 8\n// Mixed signals and plain values\nconst sum2 = compute((x: number, y: number) => x + y, a, 10);\nconsole.log(sum2.value); // 15\n// Complex computation\nconst base = signal(100);\nconst rate = signal(0.1);\nconst years = signal(5);\nconst interest = compute(\n(b: number, r: number, y: number) => b * Math.pow(1 + r, y),\nbase, rate, years\n);\n```\n- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function"
-          }
-        ],
-        "see": [
-          "{@link derive} - For the underlying derived signal primitive"
-        ],
-        "template": [
-          "F - The function type\nthe function's parameter types\n```typescript\nconst a = signal(5);\nconst b = signal(3);\nconst sum = compute((x: number, y: number) => x + y, a, b);\nconsole.log(sum.value); // 8\n// Mixed signals and plain values\nconst sum2 = compute((x: number, y: number) => x + y, a, 10);\nconsole.log(sum2.value); // 15\n// Complex computation\nconst base = signal(100);\nconst rate = signal(0.1);\nconst years = signal(5);\nconst interest = compute(\n(b: number, r: number, y: number) => b * Math.pow(1 + r, y),\nbase, rate, years\n);\n```\n- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function"
-        ]
-      }
-    },
-    "api:receive": {
-      "name": "receive",
-      "kind": "VariableDeclaration",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/connectors.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "api",
-      "tsdoc": {
-        "summary": "Connects multiple transmitter signals to a receiver signal.\nWhen any transmitter's value changes, the receiver's value is updated to match.\nIf multiple transmitters change simultaneously, the receiver gets the last one's value.\nThe receiver can still be updated independently.",
-        "remarks": "- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)",
-        "returns": "Array of effects for disposing the connections\n```typescript\nconst sportsEvent = signal(\"cricket @ 9am\");\nconst mediaEvent = signal(\"movie @ 3pm\");\nconst noticeBoard = signal(\"\");\nconst effects = receive(noticeBoard, sportsEvent, mediaEvent);\nsportsEvent.value = \"football @ 1pm\";\nconsole.log(noticeBoard.value); // \"football @ 1pm\"\nmediaEvent.value = \"concert @ 8pm\";\nconsole.log(noticeBoard.value); // \"concert @ 8pm\"\n// Manual update still works\nnoticeBoard.value = \"No events\";\n// Dispose connections\neffects.forEach(eff => eff.dispose());\n```\n- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)",
-        "examples": [
-          "```typescript\nconst sportsEvent = signal(\"cricket @ 9am\");\nconst mediaEvent = signal(\"movie @ 3pm\");\nconst noticeBoard = signal(\"\");\nconst effects = receive(noticeBoard, sportsEvent, mediaEvent);\nsportsEvent.value = \"football @ 1pm\";\nconsole.log(noticeBoard.value); // \"football @ 1pm\"\nmediaEvent.value = \"concert @ 8pm\";\nconsole.log(noticeBoard.value); // \"concert @ 8pm\"\n// Manual update still works\nnoticeBoard.value = \"No events\";\n// Dispose connections\neffects.forEach(eff => eff.dispose());\n```\n- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)"
-        ],
-        "params": [
-          {
-            "name": "receiver",
-            "description": "A source signal that will receive updates\n```typescript\nconst sportsEvent = signal(\"cricket @ 9am\");\nconst mediaEvent = signal(\"movie @ 3pm\");\nconst noticeBoard = signal(\"\");\nconst effects = receive(noticeBoard, sportsEvent, mediaEvent);\nsportsEvent.value = \"football @ 1pm\";\nconsole.log(noticeBoard.value); // \"football @ 1pm\"\nmediaEvent.value = \"concert @ 8pm\";\nconsole.log(noticeBoard.value); // \"concert @ 8pm\"\n// Manual update still works\nnoticeBoard.value = \"No events\";\n// Dispose connections\neffects.forEach(eff => eff.dispose());\n```\n- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)"
-          }
-        ],
-        "see": [
-          "{@link transmit} - For broadcasting from one transmitter to multiple receivers"
-        ],
-        "template": [
-          "T - The type of value the signals hold\n```typescript\nconst sportsEvent = signal(\"cricket @ 9am\");\nconst mediaEvent = signal(\"movie @ 3pm\");\nconst noticeBoard = signal(\"\");\nconst effects = receive(noticeBoard, sportsEvent, mediaEvent);\nsportsEvent.value = \"football @ 1pm\";\nconsole.log(noticeBoard.value); // \"football @ 1pm\"\nmediaEvent.value = \"concert @ 8pm\";\nconsole.log(noticeBoard.value); // \"concert @ 8pm\"\n// Manual update still works\nnoticeBoard.value = \"No events\";\n// Dispose connections\neffects.forEach(eff => eff.dispose());\n```\n- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)"
-        ]
-      }
-    },
-    "api:transmit": {
-      "name": "transmit",
-      "kind": "VariableDeclaration",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/connectors.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "api",
-      "tsdoc": {
-        "summary": "Broadcasts changes from one transmitter signal to multiple receiver signals.\nWhen the transmitter's value changes, all receivers are updated to match.\nAll receivers are updated synchronously. Each receiver can still be updated independently.",
-        "remarks": "- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates",
-        "returns": "A single effect for disposing the connection\n```typescript\nconst temperature = signal(22);\nconst display1 = signal(0);\nconst display2 = signal(0);\nconst display3 = signal(0);\nconst effect = transmit(temperature, display1, display2, display3);\ntemperature.value = 25;\nconsole.log(display1.value); // 25\nconsole.log(display2.value); // 25\nconsole.log(display3.value); // 25\n// Manual updates still work\ndisplay1.value = 30;\n// Dispose connection\neffect.dispose();\n```\n- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates",
-        "examples": [
-          "```typescript\nconst temperature = signal(22);\nconst display1 = signal(0);\nconst display2 = signal(0);\nconst display3 = signal(0);\nconst effect = transmit(temperature, display1, display2, display3);\ntemperature.value = 25;\nconsole.log(display1.value); // 25\nconsole.log(display2.value); // 25\nconsole.log(display3.value); // 25\n// Manual updates still work\ndisplay1.value = 30;\n// Dispose connection\neffect.dispose();\n```\n- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates"
-        ],
-        "params": [
-          {
-            "name": "transmittor",
-            "description": "A signal (source or derived) that broadcasts changes\n```typescript\nconst temperature = signal(22);\nconst display1 = signal(0);\nconst display2 = signal(0);\nconst display3 = signal(0);\nconst effect = transmit(temperature, display1, display2, display3);\ntemperature.value = 25;\nconsole.log(display1.value); // 25\nconsole.log(display2.value); // 25\nconsole.log(display3.value); // 25\n// Manual updates still work\ndisplay1.value = 30;\n// Dispose connection\neffect.dispose();\n```\n- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates"
-          }
-        ],
-        "see": [
-          "{@link receive} - For connecting multiple transmitters to a receiver"
-        ],
-        "template": [
-          "T - The type of value the signals hold\n```typescript\nconst temperature = signal(22);\nconst display1 = signal(0);\nconst display2 = signal(0);\nconst display3 = signal(0);\nconst effect = transmit(temperature, display1, display2, display3);\ntemperature.value = 25;\nconsole.log(display1.value); // 25\nconsole.log(display2.value); // 25\nconsole.log(display3.value); // 25\n// Manual updates still work\ndisplay1.value = 30;\n// Dispose connection\neffect.dispose();\n```\n- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates"
-        ]
-      }
-    },
-    "api:promstates": {
-      "name": "promstates",
-      "kind": "VariableDeclaration",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/promstates.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "api",
-      "tsdoc": {
-        "summary": "Creates promise state signals for async operations.\nThis function returns a tuple containing a promise runner function and three\nderived signals that track the promise's state: result, error, and running status.",
-        "remarks": "- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved",
-        "returns": "A tuple of:\n- `runPromise`: Function to run the promise\n- `result`: Derived signal of the promise result\n- `error`: Derived signal of the promise error\n- `isRunning`: Derived signal of whether the promise is running\n```typescript\nconst promiseFn = async (value: number) => value * 2;\nconst [runPromise, result, error, isRunning] = promstates(promiseFn, 0);\nawait runPromise(5);\nconsole.log(result.value); // 10\nconsole.log(error.value); // undefined\nawait runPromise(-1); // Assume this throws\nconsole.log(result.value); // 10 (preserved)\nconsole.log(error.value); // Error instance\n// Best practice: always check error first\nif (error.value) {\nconsole.error(error.value);\n} else {\nconsole.log(result.value);\n}\n```\n- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved",
-        "examples": [
-          "```typescript\nconst promiseFn = async (value: number) => value * 2;\nconst [runPromise, result, error, isRunning] = promstates(promiseFn, 0);\nawait runPromise(5);\nconsole.log(result.value); // 10\nconsole.log(error.value); // undefined\nawait runPromise(-1); // Assume this throws\nconsole.log(result.value); // 10 (preserved)\nconsole.log(error.value); // Error instance\n// Best practice: always check error first\nif (error.value) {\nconsole.error(error.value);\n} else {\nconsole.log(result.value);\n}\n```\n- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved"
-        ],
-        "params": [
-          {
-            "name": "promiseFn",
-            "description": "A promise-returning function\n- `runPromise`: Function to run the promise\n- `result`: Derived signal of the promise result\n- `error`: Derived signal of the promise error\n- `isRunning`: Derived signal of whether the promise is running\n```typescript\nconst promiseFn = async (value: number) => value * 2;\nconst [runPromise, result, error, isRunning] = promstates(promiseFn, 0);\nawait runPromise(5);\nconsole.log(result.value); // 10\nconsole.log(error.value); // undefined\nawait runPromise(-1); // Assume this throws\nconsole.log(result.value); // 10 (preserved)\nconsole.log(error.value); // Error instance\n// Best practice: always check error first\nif (error.value) {\nconsole.error(error.value);\n} else {\nconsole.log(result.value);\n}\n```\n- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved"
-          }
-        ],
-        "see": [
-          "{@link DerivedSignal} - For the derived signal type"
-        ],
-        "template": [
-          "R - The type of the promise result\n- `runPromise`: Function to run the promise\n- `result`: Derived signal of the promise result\n- `error`: Derived signal of the promise error\n- `isRunning`: Derived signal of whether the promise is running\n```typescript\nconst promiseFn = async (value: number) => value * 2;\nconst [runPromise, result, error, isRunning] = promstates(promiseFn, 0);\nawait runPromise(5);\nconsole.log(result.value); // 10\nconsole.log(error.value); // undefined\nawait runPromise(-1); // Assume this throws\nconsole.log(result.value); // 10 (preserved)\nconsole.log(error.value); // Error instance\n// Best practice: always check error first\nif (error.value) {\nconsole.error(error.value);\n} else {\nconsole.log(result.value);\n}\n```\n- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved"
-        ]
-      }
-    },
-    "api:tmpl": {
-      "name": "tmpl",
-      "kind": "VariableDeclaration",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/tmpl.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "api",
-      "tsdoc": {
-        "summary": "Tagged template function for string interpolation with signals.\nCreates a derived signal of the interpolated string that recomputes whenever\nany signal in the expressions changes.",
-        "remarks": "- Expressions can be signals (accessed via `.value`), deriver functions, or plain values\n- Null/undefined values are converted to empty strings\n- All values are converted to strings via `.toString()`\n- Works with any combination of signals, functions, and plain values",
-        "returns": "A derived signal of the interpolated string\n```typescript\nconst name = signal(\"World\");\nconst greeting = tmpl`Hello ${name}`;\nconsole.log(greeting.value); // \"Hello World\"\nname.value = \"Alice\";\nconsole.log(greeting.value); // \"Hello Alice\"\n// Multiple expressions\nconst firstName = signal(\"John\");\nconst lastName = signal(\"Doe\");\nconst fullName = tmpl`${firstName} ${lastName}`;\n// Mixed expressions\nconst count = signal(5);\nconst message = tmpl`Count: ${count}`;\n// Function expressions\nconst doubled = tmpl`Double is ${() => count.value * 2}`;\n```\n- Expressions can be signals (accessed via `.value`), deriver functions, or plain values\n- Null/undefined values are converted to empty strings\n- All values are converted to strings via `.toString()`\n- Works with any combination of signals, functions, and plain values",
-        "examples": [
-          "```typescript\nconst name = signal(\"World\");\nconst greeting = tmpl`Hello ${name}`;\nconsole.log(greeting.value); // \"Hello World\"\nname.value = \"Alice\";\nconsole.log(greeting.value); // \"Hello Alice\"\n// Multiple expressions\nconst firstName = signal(\"John\");\nconst lastName = signal(\"Doe\");\nconst fullName = tmpl`${firstName} ${lastName}`;\n// Mixed expressions\nconst count = signal(5);\nconst message = tmpl`Count: ${count}`;\n// Function expressions\nconst doubled = tmpl`Double is ${() => count.value * 2}`;\n```\n- Expressions can be signals (accessed via `.value`), deriver functions, or plain values\n- Null/undefined values are converted to empty strings\n- All values are converted to strings via `.toString()`\n- Works with any combination of signals, functions, and plain values"
-        ],
-        "params": [
-          {
-            "name": "strings",
-            "description": "The static string parts of the template literal\n```typescript\nconst name = signal(\"World\");\nconst greeting = tmpl`Hello ${name}`;\nconsole.log(greeting.value); // \"Hello World\"\nname.value = \"Alice\";\nconsole.log(greeting.value); // \"Hello Alice\"\n// Multiple expressions\nconst firstName = signal(\"John\");\nconst lastName = signal(\"Doe\");\nconst fullName = tmpl`${firstName} ${lastName}`;\n// Mixed expressions\nconst count = signal(5);\nconst message = tmpl`Count: ${count}`;\n// Function expressions\nconst doubled = tmpl`Double is ${() => count.value * 2}`;\n```\n- Expressions can be signals (accessed via `.value`), deriver functions, or plain values\n- Null/undefined values are converted to empty strings\n- All values are converted to strings via `.toString()`\n- Works with any combination of signals, functions, and plain values"
-          }
-        ],
-        "see": [
-          "{@link DerivedSignal} - For the derived signal type"
-        ]
-      }
-    },
-    "api:StringSignalDeriverTemplateExpressions": {
-      "name": "StringSignalDeriverTemplateExpressions",
-      "kind": "TypeAlias",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/tmpl.ts",
-      "isExported": true,
-      "isPublic": true,
-      "category": "api",
-      "tsdoc": {
-        "summary": "The expressions allowed inside ${} of the tagged template function.\n- `Signal<any>`: Use when you have a signal handy\n- `DerivedValueGetterWithSignals<any>`: Use to derive a signal before passing to tmpl\n- `any`: Use when the type is unknown or may/may not be a signal",
-        "remarks": "- `Signal<any>`: Use when you have a signal handy\n- `DerivedValueGetterWithSignals<any>`: Use to derive a signal before passing to tmpl\n- `any`: Use when the type is unknown or may/may not be a signal"
-      },
-      "type": "("
+        "promstates",
+        "stringTrap",
+        "SignalifiedFunction",
+        "GenericTrap",
+        "NumberSignalTrap",
+        "StringSignalTrap",
+        "ArraySignalTrap",
+        "RecordSignalTrap",
+        "SignalTrap",
+        "getDesignalifiedMethodParams",
+        "arrayTrap",
+        "objectTrap",
+        "trap",
+        "numberTrap",
+        "genericTrap",
+        "stringAndArrayOp",
+        "OperationResult",
+        "GenericOperation",
+        "NumberOperation",
+        "StringAndArrayOperation",
+        "Operation",
+        "genericOp",
+        "numberOp",
+        "op",
+        "receive",
+        "transmit"
+      ]
     }
   }
 }
