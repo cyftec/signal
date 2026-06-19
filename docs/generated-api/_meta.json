@@ -1,0 +1,556 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-06-19T05:17:36.398Z",
+  "categories": {
+    "core": {
+      "description": "Core reactive primitives and utilities",
+      "symbols": [
+        "derive",
+        "DerivedSignal",
+        "DerivedValueGetterWithSignals",
+        "dispose",
+        "effect",
+        "getNonSignalObject",
+        "NonSignal",
+        "Signal",
+        "MaybeNonSignal",
+        "MaybeSignal",
+        "MaybeSourceSignal",
+        "MaybeDerivedSignal",
+        "SignalifiedObject",
+        "MaybeSignalValue",
+        "NonNullSignalValue",
+        "MaybeSignalValues",
+        "PlainValues",
+        "PlainValue"
+      ],
+      "subcategories": {}
+    },
+    "api": {
+      "description": "Higher-level convenience APIs",
+      "symbols": [
+        "compute",
+        "receive",
+        "transmit",
+        "promstates",
+        "tmpl",
+        "StringSignalDeriverTemplateExpressions"
+      ],
+      "subcategories": {}
+    }
+  },
+  "symbols": {
+    "core:derive": {
+      "name": "derive",
+      "kind": "VariableDeclaration",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/derive.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "Creates a read-only derived signal computed from other signals.\nThe derived signal's value is computed by the provided function, which\nshould access `.value` on signals to establish dependencies. The value\nis recomputed whenever any tracked dependency changes.",
+        "remarks": "- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)",
+        "returns": "A derived signal with `value`, `prevValue`, and `dispose()` methods\n```typescript\nconst count = signal(5);\nconst doubled = derive(() => count.value * 2);\nconsole.log(doubled.value); // 10\n// Using previous value\nconst history = derive((prev) => {\nconst current = count.value;\nreturn prev ? [...prev, current] : [current];\n});\n```\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)",
+        "examples": [
+          "```typescript\nconst count = signal(5);\nconst doubled = derive(() => count.value * 2);\nconsole.log(doubled.value); // 10\n// Using previous value\nconst history = derive((prev) => {\nconst current = count.value;\nreturn prev ? [...prev, current] : [current];\n});\n```\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)"
+        ],
+        "params": [
+          {
+            "name": "valueGetterFn",
+            "description": "A function that computes the derived value.\nReceives the previous computed value (undefined on first run).\n```typescript\nconst count = signal(5);\nconst doubled = derive(() => count.value * 2);\nconsole.log(doubled.value); // 10\n// Using previous value\nconst history = derive((prev) => {\nconst current = count.value;\nreturn prev ? [...prev, current] : [current];\n});\n```\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)"
+          }
+        ],
+        "see": [
+          "{@link DerivedValueGetterWithSignals} - The type of the value getter function"
+        ],
+        "template": [
+          "T - The type of value the derived signal holds\nReceives the previous computed value (undefined on first run).\n```typescript\nconst count = signal(5);\nconst doubled = derive(() => count.value * 2);\nconsole.log(doubled.value); // 10\n// Using previous value\nconst history = derive((prev) => {\nconst current = count.value;\nreturn prev ? [...prev, current] : [current];\n});\n```\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)"
+        ]
+      }
+    },
+    "core:DerivedSignal": {
+      "name": "DerivedSignal",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/derive.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A read-only derived signal computed from other signals.\nDerived signals automatically recompute their value whenever any of their\ntracked dependencies change. Dependencies are established by accessing\n`.value` on signals during the initial computation.",
+        "remarks": "- The value getter function receives the previous computed value (undefined on first run)\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Calling `dispose()` stops the derived signal from tracking dependencies\n- After disposal, the value remains accessible but won't update",
+        "see": [
+          "{@link signal} - For creating mutable source signals"
+        ],
+        "template": [
+          "T - The type of value the derived signal holds\n- The value getter function receives the previous computed value (undefined on first run)\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Calling `dispose()` stops the derived signal from tracking dependencies\n- After disposal, the value remains accessible but won't update"
+        ]
+      },
+      "type": "{"
+    },
+    "core:DerivedValueGetterWithSignals": {
+      "name": "DerivedValueGetterWithSignals",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/derive.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A function that computes a derived signal's value.\nThis function receives the previous computed value and should access\n`.value` on signals to establish dependencies. The function is called\nwhenever any tracked dependency changes.\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values",
+        "remarks": "- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values",
+        "returns": "The new computed value\n```typescript\nconst count = signal(5);\nconst doubled = derive((prev) => {\nconst current = count.value;\nreturn current * 2;\n});\n```\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values",
+        "examples": [
+          "```typescript\nconst count = signal(5);\nconst doubled = derive((prev) => {\nconst current = count.value;\nreturn current * 2;\n});\n```\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values"
+        ],
+        "params": [
+          {
+            "name": "oldValue",
+            "description": "The previous computed value (undefined on first run)\n```typescript\nconst count = signal(5);\nconst doubled = derive((prev) => {\nconst current = count.value;\nreturn current * 2;\n});\n```\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values"
+          }
+        ],
+        "template": [
+          "T - The type of value to return\n```typescript\nconst count = signal(5);\nconst doubled = derive((prev) => {\nconst current = count.value;\nreturn current * 2;\n});\n```\n- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values"
+        ]
+      },
+      "type": "(oldValue: T | undefined) => T"
+    },
+    "core:dispose": {
+      "name": "dispose",
+      "kind": "VariableDeclaration",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/dispose.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "Disposes multiple derived signals and/or effects at once.\nThis utility function calls `.dispose()` on each argument, stopping\ndependency tracking for derived signals and marking effects for disposal.",
+        "remarks": "- Empty argument list is valid (no-op)\n- Can mix derived signals and effects in the same call\n- Disposing the same effect multiple times is safe (idempotent)\n- For derived signals: stops dependency tracking\n- For effects: marks for disposal (removed on next signal update)",
+        "examples": [
+          "```typescript\nconst count = signal(0);\nconst doubled = derive(() => count.value * 2);\nconst eff = effect(() => console.log(count.value));\n// Dispose single\ndispose(doubled);\n// Dispose multiple\ndispose(doubled, eff);\n// Mixed disposal\ndispose(doubled, eff);\n// Empty (no-op)\ndispose();\n```\n- Empty argument list is valid (no-op)\n- Can mix derived signals and effects in the same call\n- Disposing the same effect multiple times is safe (idempotent)\n- For derived signals: stops dependency tracking\n- For effects: marks for disposal (removed on next signal update)"
+        ],
+        "params": [
+          {
+            "name": "derivedSignalsOrEffects",
+            "description": "Variable arguments of derived signals\nand/or effects to dispose\n```typescript\nconst count = signal(0);\nconst doubled = derive(() => count.value * 2);\nconst eff = effect(() => console.log(count.value));\n// Dispose single\ndispose(doubled);\n// Dispose multiple\ndispose(doubled, eff);\n// Mixed disposal\ndispose(doubled, eff);\n// Empty (no-op)\ndispose();\n```\n- Empty argument list is valid (no-op)\n- Can mix derived signals and effects in the same call\n- Disposing the same effect multiple times is safe (idempotent)\n- For derived signals: stops dependency tracking\n- For effects: marks for disposal (removed on next signal update)"
+          }
+        ],
+        "see": [
+          "{@link DerivedSignal.dispose} - For disposing individual derived signals"
+        ]
+      }
+    },
+    "core:effect": {
+      "name": "effect",
+      "kind": "VariableDeclaration",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/effect.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "Registers a function to run whenever its accessed signals change.\nThe function runs immediately when `effect()` is called, and re-runs\nsynchronously whenever any tracked signal's value changes. Dependencies\nare established by accessing `.value` on signals during execution.",
+        "remarks": "- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately",
+        "returns": "The input function augmented with `canDisposeNow` and `dispose()`\nmethods for cleanup\n```typescript\nconst count = signal(0);\n// Simple effect\neffect(() => {\nconsole.log(\"Count is:\", count.value);\n});\n// Multiple signal tracking\nconst name = signal(\"John\");\nconst age = signal(30);\neffect(() => {\nconsole.log(`${name.value} is ${age.value} years old`);\n});\n// Disposal\nconst eff = effect(() => {\nconsole.log(count.value);\n});\neff.dispose();\ncount.value = 5; // Effect won't run\n```\n- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately",
+        "examples": [
+          "```typescript\nconst count = signal(0);\n// Simple effect\neffect(() => {\nconsole.log(\"Count is:\", count.value);\n});\n// Multiple signal tracking\nconst name = signal(\"John\");\nconst age = signal(30);\neffect(() => {\nconsole.log(`${name.value} is ${age.value} years old`);\n});\n// Disposal\nconst eff = effect(() => {\nconsole.log(count.value);\n});\neff.dispose();\ncount.value = 5; // Effect won't run\n```\n- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately"
+        ],
+        "params": [
+          {
+            "name": "fn",
+            "description": "A function that should access `.value` on signals to establish\ndependencies. Contains side effects (logging, DOM updates, etc.).\nmethods for cleanup\n```typescript\nconst count = signal(0);\n// Simple effect\neffect(() => {\nconsole.log(\"Count is:\", count.value);\n});\n// Multiple signal tracking\nconst name = signal(\"John\");\nconst age = signal(30);\neffect(() => {\nconsole.log(`${name.value} is ${age.value} years old`);\n});\n// Disposal\nconst eff = effect(() => {\nconsole.log(count.value);\n});\neff.dispose();\ncount.value = 5; // Effect won't run\n```\n- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately"
+          }
+        ],
+        "see": [
+          "{@link signal} - For creating signals"
+        ]
+      }
+    },
+    "core:getNonSignalObject": {
+      "name": "getNonSignalObject",
+      "kind": "VariableDeclaration",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/non-signal.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "Wraps a plain value in a NonSignal object for runtime type discrimination.\nThis function is useful when you need to explicitly mark a value as a\nnon-signal for runtime type checking in complex type scenarios.",
+        "remarks": "- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type",
+        "returns": "A NonSignal object with the wrapped value\n```typescript\nconst nonSig = getNonSignalObject(42);\nconsole.log(nonSig.type); // \"non-signal\"\nconsole.log(nonSig.value); // 42\n```\n- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type",
+        "examples": [
+          "```typescript\nconst nonSig = getNonSignalObject(42);\nconsole.log(nonSig.type); // \"non-signal\"\nconsole.log(nonSig.value); // 42\n```\n- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type"
+        ],
+        "params": [
+          {
+            "name": "input",
+            "description": "Any JavaScript value to wrap\n```typescript\nconst nonSig = getNonSignalObject(42);\nconsole.log(nonSig.type); // \"non-signal\"\nconsole.log(nonSig.value); // 42\n```\n- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type"
+          }
+        ],
+        "see": [
+          "{@link NonSignal} - The NonSignal type"
+        ],
+        "template": [
+          "T - The type of value to wrap\n```typescript\nconst nonSig = getNonSignalObject(42);\nconsole.log(nonSig.type); // \"non-signal\"\nconsole.log(nonSig.value); // 42\n```\n- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type"
+        ]
+      }
+    },
+    "core:NonSignal": {
+      "name": "NonSignal",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/non-signal.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A runtime type wrapper for plain values.\nNonSignal objects are used for runtime type discrimination in complex\ntype scenarios where TypeScript's compile-time types are insufficient.\nThey enable distinguishing between plain values and signalified objects\nat runtime.",
+        "remarks": "- Used with `MaybeSignal` types to resolve ambiguity at runtime\n- Has a `type: \"non-signal\"` property for runtime type checking\n- The `value` property holds the wrapped plain value",
+        "see": [
+          "{@link Signal} - For signal objects"
+        ],
+        "template": [
+          "T - The type of value wrapped\n- Used with `MaybeSignal` types to resolve ambiguity at runtime\n- Has a `type: \"non-signal\"` property for runtime type checking\n- The `value` property holds the wrapped plain value"
+        ]
+      },
+      "type": "{"
+    },
+    "core:Signal": {
+      "name": "Signal",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A union type representing either a source or derived signal.",
+        "see": [
+          "{@link SourceSignal} - For mutable source signals"
+        ],
+        "template": [
+          "T - The type of value the signal holds"
+        ]
+      },
+      "type": "SourceSignal<T> | DerivedSignal<T>"
+    },
+    "core:MaybeNonSignal": {
+      "name": "MaybeNonSignal",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A union type representing either a non-signal object or a plain value.",
+        "see": [
+          "{@link NonSignal} - For non-signal objects"
+        ],
+        "template": [
+          "T - The type of value"
+        ]
+      },
+      "type": "T | NonSignal<T>"
+    },
+    "core:MaybeSignal": {
+      "name": "MaybeSignal",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A union type representing a signal or a plain value.\nThis is commonly used for function parameters that can accept either\na signal or a plain value of the same type.",
+        "see": [
+          "{@link Signal} - For signal types"
+        ],
+        "template": [
+          "T - The type of value"
+        ]
+      },
+      "type": "T | Signal<T>"
+    },
+    "core:MaybeSourceSignal": {
+      "name": "MaybeSourceSignal",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A union type representing a source signal or a plain value.",
+        "see": [
+          "{@link SourceSignal} - For source signal type"
+        ],
+        "template": [
+          "T - The type of value"
+        ]
+      },
+      "type": "T | SourceSignal<T>"
+    },
+    "core:MaybeDerivedSignal": {
+      "name": "MaybeDerivedSignal",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A union type representing a derived signal or a plain value.",
+        "see": [
+          "{@link DerivedSignal} - For derived signal type"
+        ],
+        "template": [
+          "T - The type of value"
+        ]
+      },
+      "type": "T | DerivedSignal<T>"
+    },
+    "core:SignalifiedObject": {
+      "name": "SignalifiedObject",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A union type representing a signalified object (signal or non-signal).",
+        "see": [
+          "{@link Signal} - For signal types"
+        ],
+        "template": [
+          "T - The type of value"
+        ]
+      },
+      "type": "NonSignal<T> | Signal<T>"
+    },
+    "core:MaybeSignalValue": {
+      "name": "MaybeSignalValue",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A union type representing a signal, non-signal, or plain value.\nThis is the most permissive type for values that may or may not be signalified.",
+        "see": [
+          "{@link SignalifiedObject} - For signalified objects"
+        ],
+        "template": [
+          "T - The type of value"
+        ]
+      },
+      "type": "T | NonSignal<T> | Signal<T>"
+    },
+    "core:NonNullSignalValue": {
+      "name": "NonNullSignalValue",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "A utility type that removes null and undefined from signal realm types.\nThis is similar to TypeScript's `NonNullable` but handles signal types specifically.",
+        "template": [
+          "S - The type to make non-null"
+        ]
+      },
+      "type": "S extends null | undefined"
+    },
+    "core:MaybeSignalValues": {
+      "name": "MaybeSignalValues",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "Converts a tuple type to a tuple of MaybeSignalValue types.\nFunctions are left as-is, while other values are converted to MaybeSignalValue.",
+        "see": [
+          "{@link MaybeSignalValue} - For the MaybeSignalValue type"
+        ],
+        "template": [
+          "T - The tuple type to convert"
+        ]
+      },
+      "type": "{"
+    },
+    "core:PlainValues": {
+      "name": "PlainValues",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "Extracts plain values from a MaybeSignalValues tuple.\nThis is the inverse of MaybeSignalValues, converting signalified values\nback to their plain types.",
+        "see": [
+          "{@link MaybeSignalValues} - For the MaybeSignalValues type"
+        ],
+        "template": [
+          "T - The MaybeSignalValues tuple to extract from"
+        ]
+      }
+    },
+    "core:PlainValue": {
+      "name": "PlainValue",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "core",
+      "tsdoc": {
+        "summary": "Extracts a plain value from a MaybeSignalValue.\nIf the input is a signalified object, returns the wrapped value.\nOtherwise, returns the input as-is.",
+        "see": [
+          "{@link MaybeSignalValue} - For the MaybeSignalValue type"
+        ],
+        "template": [
+          "I - The MaybeSignalValue type"
+        ]
+      }
+    },
+    "api:compute": {
+      "name": "compute",
+      "kind": "VariableDeclaration",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/compute.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "api",
+      "tsdoc": {
+        "summary": "Creates a derived signal from a function with signalified arguments.\nThis is a convenience wrapper around `derive` that automatically unwraps\nsignal arguments before passing them to the function. The derived signal\nrecomputes whenever any of the signalified arguments changes.",
+        "remarks": "- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function",
+        "returns": "A derived signal of the function's return type\n```typescript\nconst a = signal(5);\nconst b = signal(3);\nconst sum = compute((x: number, y: number) => x + y, a, b);\nconsole.log(sum.value); // 8\n// Mixed signals and plain values\nconst sum2 = compute((x: number, y: number) => x + y, a, 10);\nconsole.log(sum2.value); // 15\n// Complex computation\nconst base = signal(100);\nconst rate = signal(0.1);\nconst years = signal(5);\nconst interest = compute(\n(b: number, r: number, y: number) => b * Math.pow(1 + r, y),\nbase, rate, years\n);\n```\n- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function",
+        "examples": [
+          "```typescript\nconst a = signal(5);\nconst b = signal(3);\nconst sum = compute((x: number, y: number) => x + y, a, b);\nconsole.log(sum.value); // 8\n// Mixed signals and plain values\nconst sum2 = compute((x: number, y: number) => x + y, a, 10);\nconsole.log(sum2.value); // 15\n// Complex computation\nconst base = signal(100);\nconst rate = signal(0.1);\nconst years = signal(5);\nconst interest = compute(\n(b: number, r: number, y: number) => b * Math.pow(1 + r, y),\nbase, rate, years\n);\n```\n- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function"
+        ],
+        "params": [
+          {
+            "name": "computerFn",
+            "description": "A function that takes plain values and returns a value\nthe function's parameter types\n```typescript\nconst a = signal(5);\nconst b = signal(3);\nconst sum = compute((x: number, y: number) => x + y, a, b);\nconsole.log(sum.value); // 8\n// Mixed signals and plain values\nconst sum2 = compute((x: number, y: number) => x + y, a, 10);\nconsole.log(sum2.value); // 15\n// Complex computation\nconst base = signal(100);\nconst rate = signal(0.1);\nconst years = signal(5);\nconst interest = compute(\n(b: number, r: number, y: number) => b * Math.pow(1 + r, y),\nbase, rate, years\n);\n```\n- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function"
+          }
+        ],
+        "see": [
+          "{@link derive} - For the underlying derived signal primitive"
+        ],
+        "template": [
+          "F - The function type\nthe function's parameter types\n```typescript\nconst a = signal(5);\nconst b = signal(3);\nconst sum = compute((x: number, y: number) => x + y, a, b);\nconsole.log(sum.value); // 8\n// Mixed signals and plain values\nconst sum2 = compute((x: number, y: number) => x + y, a, 10);\nconsole.log(sum2.value); // 15\n// Complex computation\nconst base = signal(100);\nconst rate = signal(0.1);\nconst years = signal(5);\nconst interest = compute(\n(b: number, r: number, y: number) => b * Math.pow(1 + r, y),\nbase, rate, years\n);\n```\n- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments don't trigger recomputation\n- Arguments are unwrapped using the `value()` function"
+        ]
+      }
+    },
+    "api:receive": {
+      "name": "receive",
+      "kind": "VariableDeclaration",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/connectors.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "api",
+      "tsdoc": {
+        "summary": "Connects multiple transmitter signals to a receiver signal.\nWhen any transmitter's value changes, the receiver's value is updated to match.\nIf multiple transmitters change simultaneously, the receiver gets the last one's value.\nThe receiver can still be updated independently.",
+        "remarks": "- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)",
+        "returns": "Array of effects for disposing the connections\n```typescript\nconst sportsEvent = signal(\"cricket @ 9am\");\nconst mediaEvent = signal(\"movie @ 3pm\");\nconst noticeBoard = signal(\"\");\nconst effects = receive(noticeBoard, sportsEvent, mediaEvent);\nsportsEvent.value = \"football @ 1pm\";\nconsole.log(noticeBoard.value); // \"football @ 1pm\"\nmediaEvent.value = \"concert @ 8pm\";\nconsole.log(noticeBoard.value); // \"concert @ 8pm\"\n// Manual update still works\nnoticeBoard.value = \"No events\";\n// Dispose connections\neffects.forEach(eff => eff.dispose());\n```\n- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)",
+        "examples": [
+          "```typescript\nconst sportsEvent = signal(\"cricket @ 9am\");\nconst mediaEvent = signal(\"movie @ 3pm\");\nconst noticeBoard = signal(\"\");\nconst effects = receive(noticeBoard, sportsEvent, mediaEvent);\nsportsEvent.value = \"football @ 1pm\";\nconsole.log(noticeBoard.value); // \"football @ 1pm\"\nmediaEvent.value = \"concert @ 8pm\";\nconsole.log(noticeBoard.value); // \"concert @ 8pm\"\n// Manual update still works\nnoticeBoard.value = \"No events\";\n// Dispose connections\neffects.forEach(eff => eff.dispose());\n```\n- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)"
+        ],
+        "params": [
+          {
+            "name": "receiver",
+            "description": "A source signal that will receive updates\n```typescript\nconst sportsEvent = signal(\"cricket @ 9am\");\nconst mediaEvent = signal(\"movie @ 3pm\");\nconst noticeBoard = signal(\"\");\nconst effects = receive(noticeBoard, sportsEvent, mediaEvent);\nsportsEvent.value = \"football @ 1pm\";\nconsole.log(noticeBoard.value); // \"football @ 1pm\"\nmediaEvent.value = \"concert @ 8pm\";\nconsole.log(noticeBoard.value); // \"concert @ 8pm\"\n// Manual update still works\nnoticeBoard.value = \"No events\";\n// Dispose connections\neffects.forEach(eff => eff.dispose());\n```\n- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)"
+          }
+        ],
+        "see": [
+          "{@link transmit} - For broadcasting from one transmitter to multiple receivers"
+        ],
+        "template": [
+          "T - The type of value the signals hold\n```typescript\nconst sportsEvent = signal(\"cricket @ 9am\");\nconst mediaEvent = signal(\"movie @ 3pm\");\nconst noticeBoard = signal(\"\");\nconst effects = receive(noticeBoard, sportsEvent, mediaEvent);\nsportsEvent.value = \"football @ 1pm\";\nconsole.log(noticeBoard.value); // \"football @ 1pm\"\nmediaEvent.value = \"concert @ 8pm\";\nconsole.log(noticeBoard.value); // \"concert @ 8pm\"\n// Manual update still works\nnoticeBoard.value = \"No events\";\n// Dispose connections\neffects.forEach(eff => eff.dispose());\n```\n- Each transmitter has its own effect that updates the receiver\n- If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)\n- Empty transmitters array returns empty effects array\n- Transmitters can be source or derived signals\n- Receiver must be a source signal (mutable)"
+        ]
+      }
+    },
+    "api:transmit": {
+      "name": "transmit",
+      "kind": "VariableDeclaration",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/connectors.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "api",
+      "tsdoc": {
+        "summary": "Broadcasts changes from one transmitter signal to multiple receiver signals.\nWhen the transmitter's value changes, all receivers are updated to match.\nAll receivers are updated synchronously. Each receiver can still be updated independently.",
+        "remarks": "- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates",
+        "returns": "A single effect for disposing the connection\n```typescript\nconst temperature = signal(22);\nconst display1 = signal(0);\nconst display2 = signal(0);\nconst display3 = signal(0);\nconst effect = transmit(temperature, display1, display2, display3);\ntemperature.value = 25;\nconsole.log(display1.value); // 25\nconsole.log(display2.value); // 25\nconsole.log(display3.value); // 25\n// Manual updates still work\ndisplay1.value = 30;\n// Dispose connection\neffect.dispose();\n```\n- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates",
+        "examples": [
+          "```typescript\nconst temperature = signal(22);\nconst display1 = signal(0);\nconst display2 = signal(0);\nconst display3 = signal(0);\nconst effect = transmit(temperature, display1, display2, display3);\ntemperature.value = 25;\nconsole.log(display1.value); // 25\nconsole.log(display2.value); // 25\nconsole.log(display3.value); // 25\n// Manual updates still work\ndisplay1.value = 30;\n// Dispose connection\neffect.dispose();\n```\n- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates"
+        ],
+        "params": [
+          {
+            "name": "transmittor",
+            "description": "A signal (source or derived) that broadcasts changes\n```typescript\nconst temperature = signal(22);\nconst display1 = signal(0);\nconst display2 = signal(0);\nconst display3 = signal(0);\nconst effect = transmit(temperature, display1, display2, display3);\ntemperature.value = 25;\nconsole.log(display1.value); // 25\nconsole.log(display2.value); // 25\nconsole.log(display3.value); // 25\n// Manual updates still work\ndisplay1.value = 30;\n// Dispose connection\neffect.dispose();\n```\n- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates"
+          }
+        ],
+        "see": [
+          "{@link receive} - For connecting multiple transmitters to a receiver"
+        ],
+        "template": [
+          "T - The type of value the signals hold\n```typescript\nconst temperature = signal(22);\nconst display1 = signal(0);\nconst display2 = signal(0);\nconst display3 = signal(0);\nconst effect = transmit(temperature, display1, display2, display3);\ntemperature.value = 25;\nconsole.log(display1.value); // 25\nconsole.log(display2.value); // 25\nconsole.log(display3.value); // 25\n// Manual updates still work\ndisplay1.value = 30;\n// Dispose connection\neffect.dispose();\n```\n- A single effect manages all receiver updates\n- Empty receivers array creates an effect that does nothing\n- Transmitter can be source or derived signal\n- Receivers must be source signals (mutable)\n- No guarantee about the order of receiver updates"
+        ]
+      }
+    },
+    "api:promstates": {
+      "name": "promstates",
+      "kind": "VariableDeclaration",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/promstates.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "api",
+      "tsdoc": {
+        "summary": "Creates promise state signals for async operations.\nThis function returns a tuple containing a promise runner function and three\nderived signals that track the promise's state: result, error, and running status.",
+        "remarks": "- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved",
+        "returns": "A tuple of:\n- `runPromise`: Function to run the promise\n- `result`: Derived signal of the promise result\n- `error`: Derived signal of the promise error\n- `isRunning`: Derived signal of whether the promise is running\n```typescript\nconst promiseFn = async (value: number) => value * 2;\nconst [runPromise, result, error, isRunning] = promstates(promiseFn, 0);\nawait runPromise(5);\nconsole.log(result.value); // 10\nconsole.log(error.value); // undefined\nawait runPromise(-1); // Assume this throws\nconsole.log(result.value); // 10 (preserved)\nconsole.log(error.value); // Error instance\n// Best practice: always check error first\nif (error.value) {\nconsole.error(error.value);\n} else {\nconsole.log(result.value);\n}\n```\n- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved",
+        "examples": [
+          "```typescript\nconst promiseFn = async (value: number) => value * 2;\nconst [runPromise, result, error, isRunning] = promstates(promiseFn, 0);\nawait runPromise(5);\nconsole.log(result.value); // 10\nconsole.log(error.value); // undefined\nawait runPromise(-1); // Assume this throws\nconsole.log(result.value); // 10 (preserved)\nconsole.log(error.value); // Error instance\n// Best practice: always check error first\nif (error.value) {\nconsole.error(error.value);\n} else {\nconsole.log(result.value);\n}\n```\n- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved"
+        ],
+        "params": [
+          {
+            "name": "promiseFn",
+            "description": "A promise-returning function\n- `runPromise`: Function to run the promise\n- `result`: Derived signal of the promise result\n- `error`: Derived signal of the promise error\n- `isRunning`: Derived signal of whether the promise is running\n```typescript\nconst promiseFn = async (value: number) => value * 2;\nconst [runPromise, result, error, isRunning] = promstates(promiseFn, 0);\nawait runPromise(5);\nconsole.log(result.value); // 10\nconsole.log(error.value); // undefined\nawait runPromise(-1); // Assume this throws\nconsole.log(result.value); // 10 (preserved)\nconsole.log(error.value); // Error instance\n// Best practice: always check error first\nif (error.value) {\nconsole.error(error.value);\n} else {\nconsole.log(result.value);\n}\n```\n- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved"
+          }
+        ],
+        "see": [
+          "{@link DerivedSignal} - For the derived signal type"
+        ],
+        "template": [
+          "R - The type of the promise result\n- `runPromise`: Function to run the promise\n- `result`: Derived signal of the promise result\n- `error`: Derived signal of the promise error\n- `isRunning`: Derived signal of whether the promise is running\n```typescript\nconst promiseFn = async (value: number) => value * 2;\nconst [runPromise, result, error, isRunning] = promstates(promiseFn, 0);\nawait runPromise(5);\nconsole.log(result.value); // 10\nconsole.log(error.value); // undefined\nawait runPromise(-1); // Assume this throws\nconsole.log(result.value); // 10 (preserved)\nconsole.log(error.value); // Error instance\n// Best practice: always check error first\nif (error.value) {\nconsole.error(error.value);\n} else {\nconsole.log(result.value);\n}\n```\n- On success: `result` is updated, `error` is set to `undefined`\n- On failure: `error` is updated, `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value provided, result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved"
+        ]
+      }
+    },
+    "api:tmpl": {
+      "name": "tmpl",
+      "kind": "VariableDeclaration",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/tmpl.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "api",
+      "tsdoc": {
+        "summary": "Tagged template function for string interpolation with signals.\nCreates a derived signal of the interpolated string that recomputes whenever\nany signal in the expressions changes.",
+        "remarks": "- Expressions can be signals (accessed via `.value`), deriver functions, or plain values\n- Null/undefined values are converted to empty strings\n- All values are converted to strings via `.toString()`\n- Works with any combination of signals, functions, and plain values",
+        "returns": "A derived signal of the interpolated string\n```typescript\nconst name = signal(\"World\");\nconst greeting = tmpl`Hello ${name}`;\nconsole.log(greeting.value); // \"Hello World\"\nname.value = \"Alice\";\nconsole.log(greeting.value); // \"Hello Alice\"\n// Multiple expressions\nconst firstName = signal(\"John\");\nconst lastName = signal(\"Doe\");\nconst fullName = tmpl`${firstName} ${lastName}`;\n// Mixed expressions\nconst count = signal(5);\nconst message = tmpl`Count: ${count}`;\n// Function expressions\nconst doubled = tmpl`Double is ${() => count.value * 2}`;\n```\n- Expressions can be signals (accessed via `.value`), deriver functions, or plain values\n- Null/undefined values are converted to empty strings\n- All values are converted to strings via `.toString()`\n- Works with any combination of signals, functions, and plain values",
+        "examples": [
+          "```typescript\nconst name = signal(\"World\");\nconst greeting = tmpl`Hello ${name}`;\nconsole.log(greeting.value); // \"Hello World\"\nname.value = \"Alice\";\nconsole.log(greeting.value); // \"Hello Alice\"\n// Multiple expressions\nconst firstName = signal(\"John\");\nconst lastName = signal(\"Doe\");\nconst fullName = tmpl`${firstName} ${lastName}`;\n// Mixed expressions\nconst count = signal(5);\nconst message = tmpl`Count: ${count}`;\n// Function expressions\nconst doubled = tmpl`Double is ${() => count.value * 2}`;\n```\n- Expressions can be signals (accessed via `.value`), deriver functions, or plain values\n- Null/undefined values are converted to empty strings\n- All values are converted to strings via `.toString()`\n- Works with any combination of signals, functions, and plain values"
+        ],
+        "params": [
+          {
+            "name": "strings",
+            "description": "The static string parts of the template literal\n```typescript\nconst name = signal(\"World\");\nconst greeting = tmpl`Hello ${name}`;\nconsole.log(greeting.value); // \"Hello World\"\nname.value = \"Alice\";\nconsole.log(greeting.value); // \"Hello Alice\"\n// Multiple expressions\nconst firstName = signal(\"John\");\nconst lastName = signal(\"Doe\");\nconst fullName = tmpl`${firstName} ${lastName}`;\n// Mixed expressions\nconst count = signal(5);\nconst message = tmpl`Count: ${count}`;\n// Function expressions\nconst doubled = tmpl`Double is ${() => count.value * 2}`;\n```\n- Expressions can be signals (accessed via `.value`), deriver functions, or plain values\n- Null/undefined values are converted to empty strings\n- All values are converted to strings via `.toString()`\n- Works with any combination of signals, functions, and plain values"
+          }
+        ],
+        "see": [
+          "{@link DerivedSignal} - For the derived signal type"
+        ]
+      }
+    },
+    "api:StringSignalDeriverTemplateExpressions": {
+      "name": "StringSignalDeriverTemplateExpressions",
+      "kind": "TypeAlias",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/tmpl.ts",
+      "isExported": true,
+      "isPublic": true,
+      "category": "api",
+      "tsdoc": {
+        "summary": "The expressions allowed inside ${} of the tagged template function.\n- `Signal<any>`: Use when you have a signal handy\n- `DerivedValueGetterWithSignals<any>`: Use to derive a signal before passing to tmpl\n- `any`: Use when the type is unknown or may/may not be a signal",
+        "remarks": "- `Signal<any>`: Use when you have a signal handy\n- `DerivedValueGetterWithSignals<any>`: Use to derive a signal before passing to tmpl\n- `any`: Use when the type is unknown or may/may not be a signal"
+      },
+      "type": "("
+    }
+  }
+}
