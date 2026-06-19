@@ -21,8 +21,8 @@
     "bun-types": "^1.3.14"
   },
   "scripts": {
-    "docs:api": "bun scripts/generate-api-docs.ts",
+    "docs:api": "bun docs/scripts/generate-api-docs.ts",
     "docs:build": "echo 'Documentation site build not yet implemented'",
-    "docs": "bun scripts/generate-api-docs.ts && echo 'Documentation site build not yet implemented'"
+    "docs": "bun docs/scripts/generate-api-docs.ts && echo 'Documentation site build not yet implemented'"
   }
 }

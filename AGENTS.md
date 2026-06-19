@@ -14,10 +14,10 @@ Do not assume behavior from any other reactive system.
 
 Before making changes, read:
 
-1. docs/semantics.md
-2. docs/behavior.md
-3. docs/architecture.md
-4. docs/llm-guide.md
+1. docs-architecture/semantics.md
+2. docs-architecture/behavior.md
+3. docs-architecture/overview.md
+4. docs-architecture/llm-guide.md
 
 These documents are part of the repository contract.
 

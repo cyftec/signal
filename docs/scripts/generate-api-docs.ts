@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 /**
  * Automated API Documentation Generator
- * 
+ *
  * This script generates API documentation from TypeScript source code and TSDoc comments.
  * It parses source files using regex to extract public exports and their TSDoc comments.
- * 
+ *
  * Generated files are placed in docs/generated-api/ and should not be manually edited.
- * 
+ *
  * @remarks
  * - Source code is the source of truth
  * - TSDoc comments are extracted from public exports
@@ -137,16 +137,16 @@ class SimpleParser {
       while ((match = importRegex.exec(content)) !== null) {
         const importPath = match[1];
         if (!importPath.startsWith(".")) continue; // Skip node_modules
-        
+
         const dirPath = path.dirname(fullPath);
         const resolvedPath = path.resolve(dirPath, importPath);
-        
+
         // Try both .ts file and directory with index.ts
         const possiblePaths = [
           resolvedPath + ".ts",
           path.join(resolvedPath, "index.ts"),
         ];
-        
+
         for (const possiblePath of possiblePaths) {
           if (!visited.has(possiblePath)) {
             queue.push(possiblePath);
@@ -182,19 +182,27 @@ class SimpleParser {
 
   private parseExports(content: string, category: "core" | "api"): string[] {
     const exports: string[] = [];
-    
+
     if (category === "core") {
       // Look for: export * from "./_core";
       const match = content.match(/export\s+\*\s+from\s+["']\.\/_core["']/);
       if (match) {
-        const coreIndexPath = path.resolve(path.dirname(CONFIG.entryPoint), "./_core/index.ts");
+        const coreIndexPath = path.resolve(
+          path.dirname(CONFIG.entryPoint),
+          "./_core/index.ts",
+        );
         const coreContent = this.sourceFiles.get(coreIndexPath);
         if (coreContent) {
-          const coreExports = coreContent.match(/export\s+\*\s+from\s+["']\.\/([^"']+)["']/g) || [];
+          const coreExports =
+            coreContent.match(/export\s+\*\s+from\s+["']\.\/([^"']+)["']/g) ||
+            [];
           for (const exp of coreExports) {
             const fileMatch = exp.match(/["']\.\/([^"']+)["']/);
             if (fileMatch) {
-              const filePath = path.resolve(path.dirname(coreIndexPath), `${fileMatch[1]}.ts`);
+              const filePath = path.resolve(
+                path.dirname(coreIndexPath),
+                `${fileMatch[1]}.ts`,
+              );
               const fileContent = this.sourceFiles.get(filePath);
               if (fileContent) {
                 const names = this.extractExportNames(fileContent);
@@ -208,14 +216,22 @@ class SimpleParser {
       // Look for: export * from "./api";
       const match = content.match(/export\s+\*\s+from\s+["']\.\/api["']/);
       if (match) {
-        const apiIndexPath = path.resolve(path.dirname(CONFIG.entryPoint), "./api/index.ts");
+        const apiIndexPath = path.resolve(
+          path.dirname(CONFIG.entryPoint),
+          "./api/index.ts",
+        );
         const apiContent = this.sourceFiles.get(apiIndexPath);
         if (apiContent) {
-          const apiExports = apiContent.match(/export\s+\*\s+from\s+["']\.\/([^"']+)["']/g) || [];
+          const apiExports =
+            apiContent.match(/export\s+\*\s+from\s+["']\.\/([^"']+)["']/g) ||
+            [];
           for (const exp of apiExports) {
             const fileMatch = exp.match(/["']\.\/([^"']+)["']/);
             if (fileMatch) {
-              const filePath = path.resolve(path.dirname(apiIndexPath), `${fileMatch[1]}.ts`);
+              const filePath = path.resolve(
+                path.dirname(apiIndexPath),
+                `${fileMatch[1]}.ts`,
+              );
               const fileContent = this.sourceFiles.get(filePath);
               if (fileContent) {
                 const names = this.extractExportNames(fileContent);
@@ -232,15 +248,19 @@ class SimpleParser {
 
   private extractExportNames(content: string): string[] {
     const names: string[] = [];
-    
+
     // export const name = ...
-    const constMatches = content.matchAll(/export\s+(?:const|function)\s+(\w+)/g);
+    const constMatches = content.matchAll(
+      /export\s+(?:const|function)\s+(\w+)/g,
+    );
     for (const match of constMatches) {
       names.push(match[1]);
     }
 
     // export type Name = ...
-    const typeMatches = content.matchAll(/export\s+(?:type|interface)\s+(\w+)/g);
+    const typeMatches = content.matchAll(
+      /export\s+(?:type|interface)\s+(\w+)/g,
+    );
     for (const match of typeMatches) {
       names.push(match[1]);
     }
@@ -266,7 +286,9 @@ class SimpleParser {
           kind: this.determineKind(content, name),
           filePath: filePath.replace(/^\.\//, ""),
           isExported: true,
-          isPublic: !CONFIG.excludePatterns.some((pattern) => pattern.test(name)),
+          isPublic: !CONFIG.excludePatterns.some((pattern) =>
+            pattern.test(name),
+          ),
           category,
           subcategory: this.determineSubcategory(filePath, category),
         };
@@ -293,47 +315,58 @@ class SimpleParser {
   }
 
   private determineKind(content: string, name: string): string {
-    if (new RegExp(`export\\s+const\\s+${name}\\b`).test(content)) return "VariableDeclaration";
-    if (new RegExp(`export\\s+function\\s+${name}\\b`).test(content)) return "FunctionDeclaration";
-    if (new RegExp(`export\\s+type\\s+${name}\\b`).test(content)) return "TypeAlias";
-    if (new RegExp(`export\\s+interface\\s+${name}\\b`).test(content)) return "InterfaceDeclaration";
-    if (new RegExp(`export\\s+class\\s+${name}\\b`).test(content)) return "ClassDeclaration";
+    if (new RegExp(`export\\s+const\\s+${name}\\b`).test(content))
+      return "VariableDeclaration";
+    if (new RegExp(`export\\s+function\\s+${name}\\b`).test(content))
+      return "FunctionDeclaration";
+    if (new RegExp(`export\\s+type\\s+${name}\\b`).test(content))
+      return "TypeAlias";
+    if (new RegExp(`export\\s+interface\\s+${name}\\b`).test(content))
+      return "InterfaceDeclaration";
+    if (new RegExp(`export\\s+class\\s+${name}\\b`).test(content))
+      return "ClassDeclaration";
     return "Unknown";
   }
 
   private parseTSDoc(content: string, name: string): TSDoc {
     const tsdoc: TSDoc = {};
-    
+
     // Find the export statement with its exact position
-    const exportPattern = new RegExp(`export\\s+(?:const|function|type|interface|class)\\s+${name}\\b`);
+    const exportPattern = new RegExp(
+      `export\\s+(?:const|function|type|interface|class)\\s+${name}\\b`,
+    );
     const exportMatch = content.search(exportPattern);
-    
+
     if (exportMatch !== -1) {
       // Look backwards from the export to find the immediately preceding JSDoc comment
       const beforeExport = content.substring(0, exportMatch);
-      
+
       // Find the last JSDoc comment that ends with only whitespace before the export
       const jsdocPattern = /\/\*\*([\s\S]*?)\*\//g;
       let match;
       let lastValidMatch = null;
       let lastValidEnd = 0;
-      
+
       while ((match = jsdocPattern.exec(beforeExport)) !== null) {
-        const afterJSDoc = beforeExport.substring(match.index + match[0].length);
+        const afterJSDoc = beforeExport.substring(
+          match.index + match[0].length,
+        );
         // Check if there's only whitespace between this JSDoc and the export
         if (afterJSDoc.trim().length === 0) {
           lastValidMatch = match;
           lastValidEnd = match.index + match[0].length;
         }
       }
-      
+
       if (lastValidMatch) {
         const comment = lastValidMatch[1];
         tsdoc.summary = this.extractSummary(comment);
         tsdoc.remarks = this.extractTag(comment, "remarks");
-        tsdoc.returns = this.extractTag(comment, "returns") || this.extractTag(comment, "return");
+        tsdoc.returns =
+          this.extractTag(comment, "returns") ||
+          this.extractTag(comment, "return");
         tsdoc.deprecated = this.extractTag(comment, "deprecated");
-        
+
         const examples = this.extractAllTags(comment, "example");
         if (examples.length > 0) {
           tsdoc.examples = examples;
@@ -365,13 +398,21 @@ class SimpleParser {
     // Clean up whitespace and remove leading asterisks
     return withoutTags
       .split("\n")
-      .map((line) => line.trim().replace(/^\s*\*\s?/, "").trim())
+      .map((line) =>
+        line
+          .trim()
+          .replace(/^\s*\*\s?/, "")
+          .trim(),
+      )
       .filter((line) => line.length > 0 && !line.startsWith("@"))
       .join("\n");
   }
 
   private extractTag(comment: string, tagName: string): string | undefined {
-    const pattern = new RegExp(`@${tagName}\\s+([\\s\\S]*?)(?=\\n\\s*@\\w+\\s|$)`, "i");
+    const pattern = new RegExp(
+      `@${tagName}\\s+([\\s\\S]*?)(?=\\n\\s*@\\w+\\s|$)`,
+      "i",
+    );
     const match = comment.match(pattern);
     if (match) {
       let content = match[1].trim();
@@ -379,7 +420,12 @@ class SimpleParser {
       content = content.replace(/[\s\*]*$/, "");
       return content
         .split("\n")
-        .map((line) => line.trim().replace(/^\s*\*\s?/, "").trim())
+        .map((line) =>
+          line
+            .trim()
+            .replace(/^\s*\*\s?/, "")
+            .trim(),
+        )
         .filter((line) => line.length > 0 && !line.startsWith("@"))
         .join("\n");
     }
@@ -387,7 +433,10 @@ class SimpleParser {
   }
 
   private extractAllTags(comment: string, tagName: string): string[] {
-    const pattern = new RegExp(`@${tagName}\\s+([\\s\\S]*?)(?=\\n\\s*@\\w+\\s|$)`, "gi");
+    const pattern = new RegExp(
+      `@${tagName}\\s+([\\s\\S]*?)(?=\\n\\s*@\\w+\\s|$)`,
+      "gi",
+    );
     const matches = comment.matchAll(pattern);
     return Array.from(matches).map((m) => {
       let content = m[1].trim();
@@ -395,7 +444,12 @@ class SimpleParser {
       content = content.replace(/[\s\*]*$/, "");
       return content
         .split("\n")
-        .map((line) => line.trim().replace(/^\s*\*\s?/, "").trim())
+        .map((line) =>
+          line
+            .trim()
+            .replace(/^\s*\*\s?/, "")
+            .trim(),
+        )
         .filter((line) => line.length > 0 && !line.startsWith("@"))
         .join("\n");
     });
@@ -409,7 +463,12 @@ class SimpleParser {
       const description = match[2]
         .trim()
         .split("\n")
-        .map((line) => line.trim().replace(/^\s*\*\s?/, "").trim())
+        .map((line) =>
+          line
+            .trim()
+            .replace(/^\s*\*\s?/, "")
+            .trim(),
+        )
         .filter((line) => line.length > 0 && !line.startsWith("@"))
         .join("\n");
       params.push({ name: match[1], description });
@@ -419,13 +478,15 @@ class SimpleParser {
 
   private extractTypeInfo(content: string, name: string, apiSymbol: ApiSymbol) {
     // Extract function signature
-    const funcPattern = new RegExp(`export\\s+(?:const|function)\\s+${name}\\s*(?:<[^>]+>)?\\s*\\(([^)]*)\\)\\s*(?::\\s*([^\\n;]+))?`);
+    const funcPattern = new RegExp(
+      `export\\s+(?:const|function)\\s+${name}\\s*(?:<[^>]+>)?\\s*\\(([^)]*)\\)\\s*(?::\\s*([^\\n;]+))?`,
+    );
     const funcMatch = content.match(funcPattern);
-    
+
     if (funcMatch) {
       apiSymbol.signature = funcMatch[0];
       apiSymbol.returnType = funcMatch[2] || "void";
-      
+
       // Extract parameters
       const paramsStr = funcMatch[1];
       if (paramsStr.trim()) {
@@ -467,41 +528,64 @@ class SimpleParser {
     }
 
     // Extract type alias
-    const typePattern = new RegExp(`export\\s+type\\s+${name}\\s*(?:<[^>]+>)?\\s*=\\s*([^\\n;]+)`);
+    const typePattern = new RegExp(
+      `export\\s+type\\s+${name}\\s*(?:<[^>]+>)?\\s*=\\s*([^\\n;]+)`,
+    );
     const typeMatch = content.match(typePattern);
     if (typeMatch) {
       apiSymbol.type = typeMatch[1].trim();
     }
 
     // Extract interface
-    const interfacePattern = new RegExp(`export\\s+interface\\s+${name}\\s*(?:<[^>]+>)?\\s*\\{([\\s\\S]*?)\\n\\}`);
+    const interfacePattern = new RegExp(
+      `export\\s+interface\\s+${name}\\s*(?:<[^>]+>)?\\s*\\{([\\s\\S]*?)\\n\\}`,
+    );
     const interfaceMatch = content.match(interfacePattern);
     if (interfaceMatch) {
       apiSymbol.type = `interface ${name} { ... }`;
     }
   }
 
-  private determineSubcategory(filePath: string, category: "core" | "api"): string | undefined {
+  private determineSubcategory(
+    filePath: string,
+    category: "core" | "api",
+  ): string | undefined {
     const relativePath = filePath.replace(process.cwd(), "");
-    
+
     // Extract the directory name from the file path
     // e.g., /Users/ck/Desktop/packages/signal/src/_core/signal/source-signal.ts -> signal
     // e.g., /Users/ck/Desktop/packages/signal/src/_core/utils/type-checkers.ts -> utils
-    
-    if (relativePath.includes("/utils/") && !relativePath.endsWith("/utils/index.ts")) return "utils";
-    if (relativePath.includes("/signal/") && !relativePath.endsWith("/signal/index.ts")) return "signal";
-    if (relativePath.includes("/traps/") && !relativePath.endsWith("/traps/index.ts")) return "traps";
-    if (relativePath.includes("/operations/") && !relativePath.endsWith("/operations/index.ts")) return "operations";
-    
+
+    if (
+      relativePath.includes("/utils/") &&
+      !relativePath.endsWith("/utils/index.ts")
+    )
+      return "utils";
+    if (
+      relativePath.includes("/signal/") &&
+      !relativePath.endsWith("/signal/index.ts")
+    )
+      return "signal";
+    if (
+      relativePath.includes("/traps/") &&
+      !relativePath.endsWith("/traps/index.ts")
+    )
+      return "traps";
+    if (
+      relativePath.includes("/operations/") &&
+      !relativePath.endsWith("/operations/index.ts")
+    )
+      return "operations";
+
     // Check if it's in a subdirectory (not index.ts)
-    const pathParts = relativePath.split("/").filter(p => p);
+    const pathParts = relativePath.split("/").filter((p) => p);
     if (pathParts.length >= 4) {
       const fileName = pathParts[pathParts.length - 1];
       if (fileName !== "index.ts") {
         return pathParts[pathParts.length - 2];
       }
     }
-    
+
     return undefined;
   }
 }
@@ -513,7 +597,7 @@ class SimpleParser {
 class MarkdownGenerator {
   static generate(symbol: ApiSymbol): string {
     const lines: string[] = [];
-    
+
     // Generated notice
     lines.push(CONFIG.generatedNotice);
     lines.push("");
@@ -675,7 +759,9 @@ class MetadataGenerator {
           if (!metadata.categories.core.subcategories[symbol.subcategory]) {
             metadata.categories.core.subcategories[symbol.subcategory] = [];
           }
-          metadata.categories.core.subcategories[symbol.subcategory].push(symbol.name);
+          metadata.categories.core.subcategories[symbol.subcategory].push(
+            symbol.name,
+          );
         }
       } else {
         metadata.categories.api.symbols.push(symbol.name);
@@ -683,7 +769,9 @@ class MetadataGenerator {
           if (!metadata.categories.api.subcategories[symbol.subcategory]) {
             metadata.categories.api.subcategories[symbol.subcategory] = [];
           }
-          metadata.categories.api.subcategories[symbol.subcategory].push(symbol.name);
+          metadata.categories.api.subcategories[symbol.subcategory].push(
+            symbol.name,
+          );
         }
       }
     }
@@ -737,17 +825,27 @@ async function main() {
 
     const markdown = MarkdownGenerator.generate(symbol);
     const slug = MarkdownGenerator.slugify(symbol.name);
-    
+
     let filePath: string;
     if (symbol.category === "core") {
       if (symbol.subcategory) {
-        filePath = path.join(CONFIG.outputDir, symbol.category, symbol.subcategory, `${slug}.md`);
+        filePath = path.join(
+          CONFIG.outputDir,
+          symbol.category,
+          symbol.subcategory,
+          `${slug}.md`,
+        );
       } else {
         filePath = path.join(CONFIG.outputDir, symbol.category, `${slug}.md`);
       }
     } else {
       if (symbol.subcategory) {
-        filePath = path.join(CONFIG.outputDir, symbol.category, symbol.subcategory, `${slug}.md`);
+        filePath = path.join(
+          CONFIG.outputDir,
+          symbol.category,
+          symbol.subcategory,
+          `${slug}.md`,
+        );
       } else {
         filePath = path.join(CONFIG.outputDir, symbol.category, `${slug}.md`);
       }
@@ -761,7 +859,7 @@ async function main() {
   const metadata = MetadataGenerator.generate(symbols);
   FileSystem.writeFile(
     path.join(CONFIG.outputDir, "_meta.json"),
-    JSON.stringify(metadata, null, 2)
+    JSON.stringify(metadata, null, 2),
   );
   console.log(`  ✓ Generated: ${path.join(CONFIG.outputDir, "_meta.json")}`);
 
