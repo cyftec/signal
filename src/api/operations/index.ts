@@ -5,29 +5,49 @@ import { stringAndArrayOp } from "./string-and-array-operation";
 import type { Operation } from "./types";
 
 /**
- * Factory function that creates type-specific operation objects.
+ * Creates an operation object for composing logical and mathematical operations on signals.
  *
  * This function evaluates the input (which can be a signal, plain value, or function)
  * and dispatches to the appropriate operation implementation based on the evaluated type:
- * - Number values -> numberOp (provides math operations: add, sub, mul, div, etc.)
- * - String or Array values -> stringAndArrayOp (provides length-based operations)
- * - Other types -> genericOp (provides logical operations: or, and, equals, etc.)
+ * - Number values → numberOp (provides math operations: add, sub, mul, div, etc.)
+ * - String or Array values → stringAndArrayOp (provides length-based operations)
+ * - Other types → genericOp (provides logical operations: or, and, equals, etc.)
  *
- * The function supports both direct values and functions that compute values,
- * allowing for dynamic operation creation.
- *
- * @param input A signal, plain value, or function that evaluates to a value
+ * @template T - The type of value the operation works with
+ * @param input - A signal, plain value, or function that evaluates to a value
  * @returns A type-specific operation object with chainable methods
+ *
+ * @example
+ * ```typescript
+ * const count = signal(5);
+ * const operation = op(count);
+ * const doubled = operation.add(5).result; // DerivedSignal<number>
+ *
+ * const text = signal("hello");
+ * const textOp = op(text);
+ * const isLong = textOp.lengthGT(5).truthy; // DerivedSignal<boolean>
+ *
+ * const value = signal(10);
+ * const check = op(value).isBetween(5, 15).truthy; // DerivedSignal<boolean>
+ * ```
+ *
+ * @remarks
+ * - The operation type is determined by the runtime type of the evaluated value
+ * - If input is a function, it's called to get the value
+ * - Type changes in the input signal are not reflected in the operation type
+ * - All methods return new operation objects (chaining)
+ * - Final result is obtained via getters (truthy, falsy, result, etc.)
+ *
+ * @see {@link Operation} - For the operation type union
+ * @see {@link MaybeSignalValue} - For the input type
  */
 export const op = <T>(input: MaybeSignalValue<T> | (() => T)): Operation<T> => {
-  // Create an evaluator function that handles both direct values and functions
   const evaluator: () => T =
     typeof input === "function"
       ? (input as () => T)
       : (): T => value(input as MaybeSignalValue<T>);
   const val = evaluator();
 
-  // Dispatch to type-specific operation based on evaluated value type
   return (
     typeof val === "number"
       ? numberOp(input as MaybeSignalValue<number> | (() => number))

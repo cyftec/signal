@@ -6,98 +6,104 @@ import {
 } from "../_core";
 
 /**
- * When two or more signals are same, yet they exist independently, in
- * some cases you would want to connect them. So that, the change in one should
- * reflect in the other.
+ * Connects multiple transmitter signals to a receiver signal.
  *
- * This method is for receiving changes from multiple transmittor signals. Any change
- * in any of the transmittor signal will result in an update in the receiver
- * signal, where the current value of the receiver is the last updated transmittor
- * signal's value.
- * @param receiver a source-signal (which can be updated manually) of type T
- * which will recieve updates
- * @param transmittors multiple signals (source or derived) of the same type T as of the ```receiver```
- * @returns list of signal effects for disposing them when necessary
+ * When any transmitter's value changes, the receiver's value is updated to match.
+ * If multiple transmitters change simultaneously, the receiver gets the last one's value.
+ * The receiver can still be updated independently.
  *
+ * @template T - The type of value the signals hold
+ * @param receiver - A source signal that will receive updates
+ * @param transmittors - Multiple signals (source or derived) of the same type
+ * @returns Array of effects for disposing the connections
  *
- * Example
+ * @example
+ * ```typescript
+ * const sportsEvent = signal("cricket @ 9am");
+ * const mediaEvent = signal("movie @ 3pm");
+ * const noticeBoard = signal("");
+ *
+ * const effects = receive(noticeBoard, sportsEvent, mediaEvent);
+ *
+ * sportsEvent.value = "football @ 1pm";
+ * console.log(noticeBoard.value); // "football @ 1pm"
+ *
+ * mediaEvent.value = "concert @ 8pm";
+ * console.log(noticeBoard.value); // "concert @ 8pm"
+ *
+ * // Manual update still works
+ * noticeBoard.value = "No events";
+ *
+ * // Dispose connections
+ * effects.forEach(eff => eff.dispose());
  * ```
- * const sportsEvents = ["cricket @ 9am", "football @ 1pm", "kabaddi @ 6pm"];
- * const mediaEvents = ["movie afternoon @ 3pm", "concert @ 8pm"];
  *
- * const currentSportsEvent = signal("");
- * const currentMediaEvent = signal("");
- * const eventsNoticeBoardMessage = signal("");
+ * @remarks
+ * - Each transmitter has its own effect that updates the receiver
+ * - If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)
+ * - Empty transmitters array returns empty effects array
+ * - Transmitters can be source or derived signals
+ * - Receiver must be a source signal (mutable)
  *
- * receive(eventsNoticeBoardMessage, sportsEvents, mediaEvents);
- * eventsNoticeBoardMessage.value = "No event hapening currently"
- * ```
- * Suppose if above current event signals are getting updated based on
- * the time of the day, let's say at 1pm ```currentSportsEvent``` signal gets
- * updated from "cricket @ 9am" to "football @ 1pm". Then ```eventsNoticeBoardMessage```
- * will show current sports event message. Then at 3pm, ```currentMediaEvent``` gets
- * updated as "movie afternoon @ 3pm", then ```eventsNoticeBoardMessage``` will update
- * from "football @ 1pm" to "movie afternoon @ 3pm";
- *
- * Notice that the receiver signal, can still be updated with any value independently.
+ * @see {@link transmit} - For broadcasting from one transmitter to multiple receivers
+ * @see {@link effect} - For the underlying effect primitive
  */
 export const receive = <T>(
   receiver: SourceSignal<T>,
   ...transmittors: Signal<T>[]
 ): SignalsEffect[] => {
-  // Create an effect for each transmitter that updates the receiver
-  // when the transmitter's value changes
   const effects = transmittors.map((transmittor) =>
     effect(() => (receiver.value = transmittor.value))
   );
-  // Return all effects so they can be disposed if needed
   return effects;
 };
 
 /**
- * When two or more signals are same, yet they exist independently, in
- * some cases you would want to connect them. So that, the change in one should
- * reflect in the other.
+ * Broadcasts changes from one transmitter signal to multiple receiver signals.
  *
- * This method is for broadcasting changes from one transmittor signal to multiple
- * receiver signals. Any change in the transmittor signal will result in an update
- * in all the receiver signals.
- * @param transmittor a source or derived signal of type T
- * @param receivers multiple signals (source or derived) of the same type T as of the ```receiver```
- * @returns a signal effect for disposing it when necessary
+ * When the transmitter's value changes, all receivers are updated to match.
+ * All receivers are updated synchronously. Each receiver can still be updated independently.
  *
+ * @template T - The type of value the signals hold
+ * @param transmittor - A signal (source or derived) that broadcasts changes
+ * @param receivers - Multiple source signals that will receive updates
+ * @returns A single effect for disposing the connection
  *
- * Example
+ * @example
+ * ```typescript
+ * const temperature = signal(22);
+ * const display1 = signal(0);
+ * const display2 = signal(0);
+ * const display3 = signal(0);
+ *
+ * const effect = transmit(temperature, display1, display2, display3);
+ *
+ * temperature.value = 25;
+ * console.log(display1.value); // 25
+ * console.log(display2.value); // 25
+ * console.log(display3.value); // 25
+ *
+ * // Manual updates still work
+ * display1.value = 30;
+ *
+ * // Dispose connection
+ * effect.dispose();
  * ```
- * const satelliteBangaloreCurrentTemparature = signal("22C");
  *
- * const tvChannelBangaloreTempNews = signal("");
- * const radioChannelBangaloreTempNews = signal("");
- * const internetArticleBangaloreTempNews = signal("");
+ * @remarks
+ * - A single effect manages all receiver updates
+ * - Empty receivers array creates an effect that does nothing
+ * - Transmitter can be source or derived signal
+ * - Receivers must be source signals (mutable)
+ * - No guarantee about the order of receiver updates
  *
- * transmit(
- *   satelliteBangaloreCurrentTemparature,
- *   tvChannelBangaloreTempNews,
- *   radioChannelBangaloreTempNews,
- *   internetArticleBangaloreTempNews,
- * );
- *
- * tvChannelBangaloreTempNews.value = "Samll interruption. See ads meanwhile."
- *
- *
- * ```
- * For above example, any change in the value of ```satelliteBangaloreCurrentTemparature```
- * will result in an update in all the receiver signals i.e. ```tvChannelBangaloreTempNews```,
- * ```radioChannelBangaloreTempNews``` and ```internetArticleBangaloreTempNews```.
- *
- * Notice that all the receiver signals, can still be updated with any value independently.
+ * @see {@link receive} - For connecting multiple transmitters to a receiver
+ * @see {@link effect} - For the underlying effect primitive
  */
 export const transmit = <T>(
   transmittor: Signal<T>,
   ...receivers: SourceSignal<T>[]
 ): SignalsEffect =>
   effect(() => {
-    // Update all receivers with the transmitter's current value
-    // This runs synchronously whenever the transmitter changes
     receivers.forEach((receiver) => (receiver.value = transmittor.value));
   });

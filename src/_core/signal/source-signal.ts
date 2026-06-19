@@ -27,22 +27,48 @@ export const setCurrentEffect = (effect: SignalsEffect | null) =>
   (_currentSignalEffect = effect);
 
 /**
- * A function which converts plain javascript data into a signal.
+ * Creates a mutable source signal from any JavaScript value.
  *
- * A signal is a basic data unit that can automatically alert functions or
- * computations when the data it holds changes.
+ * A signal is a reactive data unit that automatically notifies dependent
+ * computations when its value changes. Signals use a global variable-based
+ * dependency tracking system to establish relationships with effects.
  *
- * The automatic alert of the changed value occurs with the help of an effect
- * method. See the 'effect' method implementation in this project for details
- * about how it enables a signal to propagate changes
+ * @template T - The type of value the signal holds
+ * @param input - Any JavaScript value to convert to a signal
+ * @returns A source signal with a `value` getter/setter. For arrays, includes
+ * mutation methods (push, pop, splice, etc.). For plain objects, includes a
+ * `set()` method for partial updates.
  *
- * @param input any javascript data type which need to be changed into a signal
- * @returns a signalified version of plain javascript data
+ * @example
+ * ```typescript
+ * // Primitive values
+ * const count = signal(0);
+ * count.value = 1;
+ * console.log(count.value); // 1
+ *
+ * // Object values with partial updates
+ * const user = signal({ name: "John", age: 30 });
+ * user.set({ age: 31 }); // Shallow merge
+ * console.log(user.value); // { name: "John", age: 31 }
+ *
+ * // Array values with mutation methods
+ * const items = signal([1, 2, 3]);
+ * items.push(4);
+ * items.remove((item) => item % 2 === 0); // Custom method
+ * ```
+ *
+ * @remarks
+ * - Setting a signal's value to the same value (strict equality) does not trigger effects
+ * - Effects are triggered synchronously and immediately upon value change
+ * - Signal values are stored immutably via `@cyftech/immutjs`
+ * - Object `set()` performs shallow merge, not deep merge
+ * - Array mutation methods create new arrays internally but feel mutable
+ *
+ * @see {@link effect} - For registering functions to run when signal values change
+ * @see {@link derive} - For creating read-only derived signals
  */
 export const signal = <T>(input: T): SourceSignal<T> => {
-  // Store the value immutably using @cyftech/immutjs
   let _value = immut(input);
-  // Set of effects that depend on this signal
   const _effects = new Set<SignalsEffect>();
 
   /**

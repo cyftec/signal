@@ -1,46 +1,51 @@
 import { setCurrentEffect, type SignalsEffect } from "./signal";
 
 /**
- * A function which takes a function as argument and this argument
- * input function should (ideally) contain one or many signals
- * whose values are called with '<some_signal>.value'.
+ * Registers a function to run whenever its accessed signals change.
  *
- * When an 'effect' is run, its argument input function gets registered
- * to all the signals whose values are called inside that function
+ * The function runs immediately when `effect()` is called, and re-runs
+ * synchronously whenever any tracked signal's value changes. Dependencies
+ * are established by accessing `.value` on signals during execution.
  *
- * @param fn a signal currentEffect function
- * @returns the same input function but modified into a SignalsEffect type,
- * for using it to dispose the effect when necessary
+ * @param fn - A function that should access `.value` on signals to establish
+ * dependencies. Contains side effects (logging, DOM updates, etc.).
+ * @returns The input function augmented with `canDisposeNow` and `dispose()`
+ * methods for cleanup
  *
- * 1. Correct usage: one or many signals values are called/used,
- * ```
+ * @example
+ * ```typescript
+ * const count = signal(0);
+ *
+ * // Simple effect
  * effect(() => {
- *   console.log(someSignal.value);
- *   someGlobalVar = anotherNumberSignal.value + 42;
- * })
- * ```
- * For above code the effect function will be executed every time when
- * any of `someSignal`'s or `anotherNumberSignal`'s value is changed.
+ *   console.log("Count is:", count.value);
+ * });
  *
- * 2. Incorrect usage: ```'.value'``` is not used inside effect function,
- * ```
- * let someSignal: Signal<any>;
+ * // Multiple signal tracking
+ * const name = signal("John");
+ * const age = signal(30);
  * effect(() => {
- *   someSignal = anotherSignal;
- * })
- * ```
- * Above code will only execute only once and never again.
+ *   console.log(`${name.value} is ${age.value} years old`);
+ * });
  *
- * 3. A noteworthy case when effect function runs only once,
+ * // Disposal
+ * const eff = effect(() => {
+ *   console.log(count.value);
+ * });
+ * eff.dispose();
+ * count.value = 5; // Effect won't run
  * ```
- * effect(() => {
- *   if(false) return;
- *   console.log(someSignal.value);
- * })
- * ```
- * In above code, since the `someSignal.value` is never called due to
- * prior if statement return. This effect is not registered to `someSignal`
- * signal. And hence will never run after first time.
+ *
+ * @remarks
+ * - The function runs immediately when `effect()` is called
+ * - Dependencies are only tracked for signals whose `.value` is accessed during execution
+ * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
+ * - Effects run synchronously when dependencies change
+ * - Disposal is lazy - effects are removed on the next signal update, not immediately
+ *
+ * @see {@link signal} - For creating signals
+ * @see {@link derive} - For creating derived signals
+ * @see {@link dispose} - For disposing multiple effects or derived signals
  */
 export const effect = (fn: () => void): SignalsEffect => {
   const signalsEffect = fn as SignalsEffect;

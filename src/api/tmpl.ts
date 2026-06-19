@@ -8,18 +8,12 @@ import {
 } from "../_core";
 
 /**
- * The expressions required inside ${} of the tagged template function @see tmpl
+ * The expressions allowed inside ${} of the tagged template function.
  *
- * Types
- * @type {Signal<any>} need to be passed when you have the signal handy and entire
- * template literal along with this signal is used to derive the final string signal
- *
- * @type {DerivedValueGetterWithSignals} need to passed when you want to derive a signal (from one or may other signals)
- * before passing it to the tagged template literal method -  'tmpl'.
- * This is same as using derive(() => someOtherSignal.value)
- *
- * @type {any} is used when you don't know what is the type of the passed variable
- * particularly helpful in some cases when it may or maynot be a signal
+ * @remarks
+ * - `Signal<any>`: Use when you have a signal handy
+ * - `DerivedValueGetterWithSignals<any>`: Use to derive a signal before passing to tmpl
+ * - `any`: Use when the type is unknown or may/may not be a signal
  */
 export type StringSignalDeriverTemplateExpressions = (
   | Signal<any>
@@ -28,10 +22,45 @@ export type StringSignalDeriverTemplateExpressions = (
 )[];
 
 /**
- * A tagged template function to derive string signal from any expression
- * @param plain-string content outside ${} in template literal
- * @param expressions inside ${} in template literal
- * @returns Derived string signal
+ * Tagged template function for string interpolation with signals.
+ *
+ * Creates a derived signal of the interpolated string that recomputes whenever
+ * any signal in the expressions changes.
+ *
+ * @param strings - The static string parts of the template literal
+ * @param tlExpressions - The dynamic expressions inside ${}
+ * @returns A derived signal of the interpolated string
+ *
+ * @example
+ * ```typescript
+ * const name = signal("World");
+ * const greeting = tmpl`Hello ${name}`;
+ * console.log(greeting.value); // "Hello World"
+ *
+ * name.value = "Alice";
+ * console.log(greeting.value); // "Hello Alice"
+ *
+ * // Multiple expressions
+ * const firstName = signal("John");
+ * const lastName = signal("Doe");
+ * const fullName = tmpl`${firstName} ${lastName}`;
+ *
+ * // Mixed expressions
+ * const count = signal(5);
+ * const message = tmpl`Count: ${count}`;
+ *
+ * // Function expressions
+ * const doubled = tmpl`Double is ${() => count.value * 2}`;
+ * ```
+ *
+ * @remarks
+ * - Expressions can be signals (accessed via `.value`), deriver functions, or plain values
+ * - Null/undefined values are converted to empty strings
+ * - All values are converted to strings via `.toString()`
+ * - Works with any combination of signals, functions, and plain values
+ *
+ * @see {@link DerivedSignal} - For the derived signal type
+ * @see {@link derive} - For the underlying derived signal primitive
  */
 export const tmpl = (
   strings: TemplateStringsArray,

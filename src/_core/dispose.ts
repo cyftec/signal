@@ -2,24 +2,42 @@ import type { DerivedSignal } from "./derive";
 import type { SignalsEffect } from "./signal";
 
 /**
- * A function which takes one or multiple arguments of either a
- * DerivedSignal type or a SignalsEffect type. And it disposes each
- * of those effects or derived signals.
+ * Disposes multiple derived signals and/or effects at once.
  *
- * When an 'effect' or 'derive' is run, their argument input function
- * gets registered as effect methods in all of the root signals (whose
- * values are used in that argument function). Whenever any of the root
- * signals are changed the 'effect' or 'derive' method are run every time.
+ * This utility function calls `.dispose()` on each argument, stopping
+ * dependency tracking for derived signals and marking effects for disposal.
  *
- * There are scenarios when a particular 'effect' or 'derive'(d) signal is
- * not required any more. But even in this case, their registered methods
- * in every root signals run every time any of those root signals change.
- * To unregister those 'effect' or 'derive'(d) signal methods from all the
- * root signals, this method simply changes the disposable status of those
- * methods.
+ * @param derivedSignalsOrEffects - Variable arguments of derived signals
+ * and/or effects to dispose
  *
- * @param derivedSignalsOrEffects one or multiple arguments of either a
- * DerivedSignal type or a SignalsEffect type
+ * @example
+ * ```typescript
+ * const count = signal(0);
+ * const doubled = derive(() => count.value * 2);
+ * const eff = effect(() => console.log(count.value));
+ *
+ * // Dispose single
+ * dispose(doubled);
+ *
+ * // Dispose multiple
+ * dispose(doubled, eff);
+ *
+ * // Mixed disposal
+ * dispose(doubled, eff);
+ *
+ * // Empty (no-op)
+ * dispose();
+ * ```
+ *
+ * @remarks
+ * - Empty argument list is valid (no-op)
+ * - Can mix derived signals and effects in the same call
+ * - Disposing the same effect multiple times is safe (idempotent)
+ * - For derived signals: stops dependency tracking
+ * - For effects: marks for disposal (removed on next signal update)
+ *
+ * @see {@link DerivedSignal.dispose} - For disposing individual derived signals
+ * @see {@link SignalsEffect.dispose} - For disposing individual effects
  */
 export const dispose = (
   ...derivedSignalsOrEffects: (DerivedSignal<any> | SignalsEffect)[]

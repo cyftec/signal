@@ -8,21 +8,43 @@ import { stringTrap } from "./string-trap";
 import type { SignalTrap } from "./types";
 
 /**
- * A method which traps a MaybeSignalValue and returns handy derived signals
- * of most-frequently required transforms
+ * Creates a type-specific trap object with convenient derived signal methods.
  *
  * This function uses runtime type checking to dispatch to the appropriate
  * type-specific trap implementation. The dispatch order is:
- * 1. Number values -> numberTrap (provides math operations, formatting)
- * 2. String values -> stringTrap (provides string manipulation methods)
- * 3. Array values -> arrayTrap (provides array transformation methods)
- * 4. Plain objects -> objectTrap (provides property access methods)
- * 5. Other types -> genericTrap (provides basic string and fallback methods)
+ * 1. Number values → numberTrap (provides math operations, formatting)
+ * 2. String values → stringTrap (provides string manipulation methods)
+ * 3. Array values → arrayTrap (provides array transformation methods)
+ * 4. Plain objects → objectTrap (provides property access methods)
+ * 5. Other types → genericTrap (provides basic string and fallback methods)
  *
- * @param input any value for which transformed derived signal is required
- * @see MaybeSignalValue
- * @returns an object of handy transform methods as its properties, which return
- * derived signal
+ * @template T - The type of value to trap
+ * @param input - A signal or plain value for which transformed derived signals are required
+ * @returns A type-specific trap object with methods that return derived signals
+ *
+ * @example
+ * ```typescript
+ * const count = signal(5);
+ * const trapped = trap(count); // NumberSignalTrap
+ * const doubled = trapped.add(5).result;
+ *
+ * const name = signal("hello");
+ * const nameTrap = trap(name); // StringSignalTrap
+ * const upper = nameTrap.UPPERCASE;
+ *
+ * const items = signal([1, 2, 3]);
+ * const itemsTrap = trap(items); // ArraySignalTrap
+ * const filtered = itemsTrap.filter(x => x > 1);
+ * ```
+ *
+ * @remarks
+ * - The trap type is determined by the runtime type of the unwrapped value at creation time
+ * - Type changes in the input signal are not reflected in the trap type
+ * - All methods return derived signals that update when the input changes
+ * - For object trap: throws if the value is not a plain object
+ *
+ * @see {@link SignalTrap} - For the trap type union
+ * @see {@link MaybeSignalValue} - For the input type
  */
 export const trap = <T>(input: MaybeSignalValue<T>) => {
   return (

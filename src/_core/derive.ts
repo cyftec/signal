@@ -2,72 +2,101 @@ import { effect } from "./effect";
 import { signal } from "./signal";
 
 /**
- * It is the read-only version of a source signal.
+ * A read-only derived signal computed from other signals.
  *
- * A derived signal can be derived from both a source and/or an another
- * derived signal. The subscribers of a derived signal are triggered only when the value of a
- * root source signal (from where it is derived), changes.
+ * Derived signals automatically recompute their value whenever any of their
+ * tracked dependencies change. Dependencies are established by accessing
+ * `.value` on signals during the initial computation.
  *
- * @see SourceSignal
+ * @template T - The type of value the derived signal holds
+ *
+ * @remarks
+ * - The value getter function receives the previous computed value (undefined on first run)
+ * - Dependencies are only tracked for signals whose `.value` is accessed during execution
+ * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
+ * - Calling `dispose()` stops the derived signal from tracking dependencies
+ * - After disposal, the value remains accessible but won't update
+ *
+ * @see {@link signal} - For creating mutable source signals
+ * @see {@link effect} - For registering functions to run when signal values change
  */
 export type DerivedSignal<T> = {
+  /** Runtime type discriminator for derived signals */
   type: "derived-signal";
+  /** The previous computed value (undefined on first computation) */
   get prevValue(): T | undefined;
+  /** The current computed value */
   get value(): T;
   /**
-   * The DerivedSignal are derived using the @see effect method.
+   * Stops the derived signal from tracking its dependencies.
    *
-   * There are scenarios when a derived signal is not required any more.
-   * But even in this case, their deriver (effect) method runs every time any of
-   * the dependent signals change. To unregister those effects from all the
-   * dependent signals, this method simply changes the disposable status of those
-   * methods. The dependent signals, upon finding if the effect method is
-   * disposable, unregisters them and never run them again.
+   * After calling dispose(), the derived signal's value remains accessible
+   * but will no longer update when its dependencies change.
    */
   dispose: () => void;
 };
 
 /**
- * A function that should be passed to 'derive' method for getting a derived value signal
+ * A function that computes a derived signal's value.
  *
- * It should (ideally) contain one or many signals along with their values. It processes
- * those signal values and returns the value desired to be used as value of the derived signal
- * @param oldValue the previous return value of this method
- * @return any value desired to be used as value of derived signal
- * @see derive
+ * This function receives the previous computed value and should access
+ * `.value` on signals to establish dependencies. The function is called
+ * whenever any tracked dependency changes.
  *
+ * @template T - The type of value to return
+ * @param oldValue - The previous computed value (undefined on first run)
+ * @returns The new computed value
  *
- * Examples:
- * 1. Correct usage: one or many signals with their values,
+ * @example
+ * ```typescript
+ * const count = signal(5);
+ * const doubled = derive((prev) => {
+ *   const current = count.value;
+ *   return current * 2;
+ * });
  * ```
- * const numberDeriver = () => {
- *   console.log(someSignal.value);
- *   return anotherNumberSignal.value + 42;
- * }
- * ```
- * For above code the numberDeriver function will be executed every time when
- * any of ```someSignal``` or ```anotherNumberSignal``` is changed.
  *
- * 2. Incorrect usage: ```'.value'``` is not used inside deriver function,
- * ```
- * let someSignal: Signal<any>;
- * const numberDeriver = () => {
- *   someSignal = anotherSignal;
- *   return 42;
- * }
- * ```
- * Above code will only execute the first time and never later.
+ * @remarks
+ * - Always access signals via `.value` to establish dependencies
+ * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
+ * - The previous value is the previous RETURN value, not the previous dependency values
  */
 export type DerivedValueGetterWithSignals<T> = (oldValue: T | undefined) => T;
 
 /**
- * A method which return a read-only signal derived from one or many
- * source signals
+ * Creates a read-only derived signal computed from other signals.
  *
- * @param valueGetterFn A deriver method which processes one or many signal values
- * and returns the value desired to be used as value of the derived signal
- * @see DerivedValueGetterWithSignals
- * @returns a read-only signal which is returned from valueGetterFn param
+ * The derived signal's value is computed by the provided function, which
+ * should access `.value` on signals to establish dependencies. The value
+ * is recomputed whenever any tracked dependency changes.
+ *
+ * @template T - The type of value the derived signal holds
+ * @param valueGetterFn - A function that computes the derived value.
+ * Receives the previous computed value (undefined on first run).
+ * @returns A derived signal with `value`, `prevValue`, and `dispose()` methods
+ *
+ * @example
+ * ```typescript
+ * const count = signal(5);
+ * const doubled = derive(() => count.value * 2);
+ * console.log(doubled.value); // 10
+ *
+ * // Using previous value
+ * const history = derive((prev) => {
+ *   const current = count.value;
+ *   return prev ? [...prev, current] : [current];
+ * });
+ * ```
+ *
+ * @remarks
+ * - Dependencies are only tracked for signals whose `.value` is accessed during execution
+ * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
+ * - The previous value is undefined on the first computation
+ * - Derived signals can depend on other derived signals (chaining)
+ *
+ * @see {@link DerivedValueGetterWithSignals} - The type of the value getter function
+ * @see {@link signal} - For creating mutable source signals
+ * @see {@link effect} - For registering functions to run when signal values change
  */
 export const derive = <T>(
   valueGetterFn: DerivedValueGetterWithSignals<T>,

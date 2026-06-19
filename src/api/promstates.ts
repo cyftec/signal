@@ -2,11 +2,53 @@ import { type DerivedSignal, signal } from "../_core";
 import { trap } from "./traps";
 
 /**
- * A function to derive signalled states of a promise
- * @param promiseFn A promise returning function from which prmoise states will be derived
- * @param initialValue to make sure that return of promise is initialized with some value
- * @param ultimately Callback to run in 'finally' block of the promise
- * @returns promise runner function along with the derived signal states of the promise
+ * Creates promise state signals for async operations.
+ *
+ * This function returns a tuple containing a promise runner function and three
+ * derived signals that track the promise's state: result, error, and running status.
+ *
+ * @template R - The type of the promise result
+ * @template Args - The type of the promise function's arguments
+ * @template I - The type of the initial value
+ * @param promiseFn - A promise-returning function
+ * @param initialValue - Optional initial value for the result signal
+ * @param ultimately - Optional callback to run in the promise's finally block
+ * @returns A tuple of:
+ * - `runPromise`: Function to run the promise
+ * - `result`: Derived signal of the promise result
+ * - `error`: Derived signal of the promise error
+ * - `isRunning`: Derived signal of whether the promise is running
+ *
+ * @example
+ * ```typescript
+ * const promiseFn = async (value: number) => value * 2;
+ * const [runPromise, result, error, isRunning] = promstates(promiseFn, 0);
+ *
+ * await runPromise(5);
+ * console.log(result.value); // 10
+ * console.log(error.value); // undefined
+ *
+ * await runPromise(-1); // Assume this throws
+ * console.log(result.value); // 10 (preserved)
+ * console.log(error.value); // Error instance
+ *
+ * // Best practice: always check error first
+ * if (error.value) {
+ *   console.error(error.value);
+ * } else {
+ *   console.log(result.value);
+ * }
+ * ```
+ *
+ * @remarks
+ * - On success: `result` is updated, `error` is set to `undefined`
+ * - On failure: `error` is updated, `result` preserves the previous successful result
+ * - The `ultimately` callback runs in the finally block
+ * - The promise can be run multiple times
+ * - If no initial value provided, result signal starts as `undefined`
+ * - If the promise fails multiple times, the last successful result is preserved
+ *
+ * @see {@link DerivedSignal} - For the derived signal type
  */
 export const promstates = <R, Args extends Array<any>, I>(
   promiseFn: (...args: Args) => Promise<R>,
@@ -51,19 +93,19 @@ export const promstates = <R, Args extends Array<any>, I>(
       .catch((e) => {
         const prevResult = state.value.result;
         /**
-         * result.value is not set to undefined or 'intialValue' because, if the promise
-         * is run multiple times, ideally last result.value should not be
-         * overriden due to current error.
+         * Result preservation on error:
          *
-         * Best Practise: Always check error first while using this method.
-         * Explanation: There's a chance that promiseFn errors out when run
-         * at nth time. In that case, the result of (n-1)th time is still intact
-         * and not overriden. While error has some value due to promise failure
-         * at the nth time.
+         * The result is NOT set to undefined or initialValue when an error occurs.
+         * This design choice ensures that if the promise is run multiple times and
+         * fails on the nth run, the result from the (n-1)th successful run is preserved.
          *
-         * Notice in catch block that error.value is always reset whenever
-         * there is a success. There is no point of preserving the error
-         * of the last run.
+         * Best practice: Always check error first while using promstates.
+         * Rationale: If the promise fails on a subsequent run, the previous successful
+         * result remains intact and accessible, while the error signal is updated with
+         * the current error.
+         *
+         * Note: The error signal is always reset to undefined on success. There is no
+         * value in preserving the error from the last run when a new success occurs.
          */
         state.value = {
           isRunning: false,
