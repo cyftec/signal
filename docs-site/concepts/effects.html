@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Effects - Side effects that run when signals change in Signal.">
+  <meta name="keywords" content="signal effects, side effects, execution, disposal">
+  <title>Effects - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="index.html" class="active">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="../ai-guide/index.html">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="index.html" class="active">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="../ai-guide/index.html">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">Concepts</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Effects</span>
+        </nav>
+        
+        <h1>Effects</h1>
+        <p>Side effects that run when signals change.</p>
+        
+        <h2 id="creating-effects">Creating Effects</h2>
+        <p>Use the <code>effect()</code> function to register a callback that runs when accessed signals change.</p>
+        
+        <div class="api-signature">effect(fn: () => void): SignalsEffect</div>
+        
+        <h3>Basic Example</h3>
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+
+effect(() => {
+  console.log("Count is:", count.value);
+});
+
+count.value = 1; // Logs: "Count is: 1"
+count.value = 2; // Logs: "Count is: 2"</code></pre>
+        </div>
+        
+        <h2 id="immediate-execution">Immediate Execution</h2>
+        <p>Effects run immediately when created, not just when dependencies change.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+
+effect(() => {
+  console.log("Count is:", count.value);
+});
+// Logs: "Count is: 0" immediately</code></pre>
+        </div>
+        
+        <h2 id="dependency-tracking">Dependency Tracking</h2>
+        <p>Effects track dependencies based on which signals are accessed during execution.</p>
+        
+        <div class="callout warning">
+          <p class="callout-title">Important</p>
+          <p>Effects only register to signals if <code>.value</code> is accessed during execution. Conditional access may not establish dependencies.</p>
+        </div>
+        
+        <h3>Correct Pattern</h3>
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// CORRECT - Always access signals
+const shouldLog = signal(false);
+const count = signal(0);
+
+effect(() => {
+  if (shouldLog.value) {
+    console.log(count.value);
+  } else {
+    count.value; // Access to track dependency
+  }
+});</code></pre>
+        </div>
+        
+        <h2 id="multiple-dependencies">Multiple Dependencies</h2>
+        <p>Effects can track multiple signals by accessing their values.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const firstName = signal("John");
+const lastName = signal("Doe");
+
+effect(() => {
+  console.log(`${firstName.value} ${lastName.value}`);
+});
+
+firstName.value = "Jane"; // Effect runs
+lastName.value = "Smith"; // Effect runs</code></pre>
+        </div>
+        
+        <h2 id="synchronous-execution">Synchronous Execution</h2>
+        <p>Effects run synchronously when their dependencies change.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+let runCount = 0;
+
+effect(() => {
+  runCount++;
+  count.value;
+});
+
+console.log(runCount); // 1 (immediate execution)
+count.value = 1;
+console.log(runCount); // 2 (synchronous update)
+count.value = 2;
+console.log(runCount); // 3 (synchronous update)</code></pre>
+        </div>
+        
+        <h2 id="disposal">Disposal</h2>
+        <p>Call <code>dispose()</code> on an effect to mark it for cleanup.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+const eff = effect(() => {
+  console.log(count.value);
+});
+
+eff.dispose(); // Marks for disposal
+count.value = 1; // Effect is removed without running</code></pre>
+        </div>
+        
+        <h3>Lazy Cleanup</h3>
+        <p>Disposed effects are removed on the next signal update, not immediately.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+const eff = effect(() => console.log(count.value));
+
+eff.dispose();
+// Effect is still registered until next signal update
+count.value = 1; // Effect is removed here</code></pre>
+        </div>
+        
+        <h2 id="nested-effects">Nested Effects</h2>
+        <p>Effects can be nested within other effects.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+
+effect(() => {
+  console.log("Outer:", count.value);
+  
+  effect(() => {
+    console.log("Inner:", count.value);
+  });
+});</code></pre>
+        </div>
+        
+        <h2 id="error-handling">Error Handling</h2>
+        <p>If an effect throws an error, the error propagates immediately and may prevent subsequent runs.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+
+effect(() => {
+  try {
+    if (count.value < 0) throw new Error("Negative value");
+    console.log(count.value);
+  } catch (error) {
+    console.error("Effect error:", error);
+  }
+});</code></pre>
+        </div>
+        
+        <h2 id="edge-cases">Edge Cases</h2>
+        
+        <h3>No Signal Access</h3>
+        <p>If an effect doesn't access any signal values, it runs only once.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>effect(() => {
+  console.log("Runs once");
+});
+// Never runs again</code></pre>
+        </div>
+        
+        <h3>Same Value Updates</h3>
+        <p>Effects don't run if a signal is set to the same value.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+let runCount = 0;
+
+effect(() => {
+  runCount++;
+  count.value;
+});
+
+count.value = 0; // No change, effect doesn't run
+console.log(runCount); // 1</code></pre>
+        </div>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="lifecycle-updates.html" class="nav-card">
+            <h3 class="nav-card-title">Lifecycle and Updates</h3>
+            <p class="nav-card-description">Understand execution timing and propagation.</p>
+          </a>
+          <a href="../architecture/index.html" class="nav-card">
+            <h3 class="nav-card-title">Architecture</h3>
+            <p class="nav-card-description">Explore internal design details.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#creating-effects" class="toc-link">Creating Effects</a></li>
+            <li class="toc-item"><a href="#immediate-execution" class="toc-link">Immediate Execution</a></li>
+            <li class="toc-item"><a href="#dependency-tracking" class="toc-link">Dependency Tracking</a></li>
+            <li class="toc-item"><a href="#multiple-dependencies" class="toc-link">Multiple Dependencies</a></li>
+            <li class="toc-item"><a href="#synchronous-execution" class="toc-link">Synchronous Execution</a></li>
+            <li class="toc-item"><a href="#disposal" class="toc-link">Disposal</a></li>
+            <li class="toc-item"><a href="#nested-effects" class="toc-link">Nested Effects</a></li>
+            <li class="toc-item"><a href="#error-handling" class="toc-link">Error Handling</a></li>
+            <li class="toc-item"><a href="#edge-cases" class="toc-link">Edge Cases</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

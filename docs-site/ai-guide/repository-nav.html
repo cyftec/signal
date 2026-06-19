@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Repository Navigation Guide - Navigate the Signal repository structure effectively.">
+  <meta name="keywords" content="signal repository navigation, structure, file organization">
+  <title>Repository Navigation Guide - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="index.html" class="active">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="index.html" class="active">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">AI Guide</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Repository Navigation Guide</span>
+        </nav>
+        
+        <h1>Repository Navigation Guide</h1>
+        <p>Navigate the Signal repository structure effectively.</p>
+        
+        <h2 id="repository-structure">Repository Structure</h2>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>signal/
+├── src/
+│   ├── _core/           # Core primitives
+│   │   ├── signal/      # Source signal implementation
+│   │   ├── derive.ts    # Derived signal implementation
+│   │   ├── effect.ts    # Effect implementation
+│   │   ├── dispose.ts   # Disposal utility
+│   │   └── utils/       # Type checkers and utilities
+│   └── api/             # Higher-level APIs
+│       ├── operations/  # Composable operations
+│       ├── traps/       # Type-specific utilities
+│       ├── connectors.ts # Signal connections
+│       ├── template.ts  # String interpolation
+│       ├── promstates.ts # Promise states
+│       └── compute.ts   # Function-based derived signals
+├── tests/               # Test suite
+├── docs/                # Documentation
+│   ├── architecture.md  # Architecture notes
+│   ├── behavior.md      # Behavioral inventory
+│   ├── semantics.md     # Semantics and guarantees
+│   └── llm-guide.md     # AI guide (this file)
+└── package.json</code></pre>
+        </div>
+        
+        <h2 id="key-files">Key Files</h2>
+        
+        <h3>Core Implementation</h3>
+        <ul>
+          <li><code>src/_core/signal/</code> - Source signal implementation with array/object extensions</li>
+          <li><code>src/_core/derive.ts</code> - Derived signal implementation</li>
+          <li><code>src/_core/effect.ts</code> - Effect implementation with global tracking</li>
+          <li><code>src/_core/dispose.ts</code> - Disposal utility function</li>
+        </ul>
+        
+        <h3>API Layer</h3>
+        <ul>
+          <li><code>src/api/operations/</code> - Composable operations (op)</li>
+          <li><code>src/api/traps/</code> - Type-specific utilities (trap)</li>
+          <li><code>src/api/connectors.ts</code> - Signal-to-signal connections (transmit, receive)</li>
+          <li><code>src/api/template.ts</code> - String interpolation (tmpl)</li>
+          <li><code>src/api/promstates.ts</code> - Promise state management</li>
+          <li><code>src/api/compute.ts</code> - Function-based derived signals</li>
+        </ul>
+        
+        <h3>Documentation</h3>
+        <ul>
+          <li><code>docs/architecture.md</code> - High-level architecture and design decisions</li>
+          <li><code>docs/behavior.md</code> - Complete API behavioral inventory</li>
+          <li><code>docs/semantics.md</code> - Guarantees and non-guarantees</li>
+          <li><code>docs/llm-guide.md</code> - Comprehensive AI guide</li>
+        </ul>
+        
+        <h3>Tests</h3>
+        <ul>
+          <li><code>tests/signal.test.ts</code> - Core signal tests</li>
+          <li><code>tests/derive.test.ts</code> - Derived signal tests</li>
+          <li><code>tests/effect.test.ts</code> - Effect tests</li>
+          <li><code>tests/operations.test.ts</code> - Operations tests</li>
+          <li><code>tests/traps.test.ts</code> - Trap tests</li>
+          <li><code>tests/connectors.test.ts</code> - Connector tests</li>
+          <li><code>tests/promstates.test.ts</code> - Promise states tests</li>
+        </ul>
+        
+        <h2 id="navigation-strategies">Navigation Strategies</h2>
+        
+        <h3>Understanding an API</h3>
+        <ol>
+          <li>Start with <code>docs/behavior.md</code> for behavioral documentation</li>
+          <li>Check corresponding test file for examples</li>
+          <li>Review implementation in <code>src/_core/</code> or <code>src/api/</code></li>
+          <li>Refer to <code>docs/semantics.md</code> for guarantees</li>
+        </ol>
+        
+        <h3>Debugging Issues</h3>
+        <ol>
+          <li>Check <code>docs/semantics.md</code> for non-guarantees</li>
+          <li>Review <code>docs/architecture.md</code> for implementation details</li>
+          <li>Check <code>docs/llm-guide.md</code> common mistakes section</li>
+          <li>Examine relevant test cases for expected behavior</li>
+        </ol>
+        
+        <h3>Code Generation</h3>
+        <ol>
+          <li>Use <code>docs/llm-guide.md</code> as primary reference</li>
+          <li>Consult <code>docs/behavior.md</code> for API details</li>
+          <li>Check <code>docs/semantics.md</code> for behavioral guarantees</li>
+          <li>Review <code>docs/architecture.md</code> for implementation constraints</li>
+        </ol>
+        
+        <h2 id="documentation-priorities">Documentation Priorities</h2>
+        
+        <h3>For Understanding Behavior</h3>
+        <ol>
+          <li><code>docs/behavior.md</code> - Complete API reference</li>
+          <li><code>docs/semantics.md</code> - Guarantees and edge cases</li>
+          <li><code>docs/architecture.md</code> - Implementation details</li>
+        </ol>
+        
+        <h3>For Code Generation</h3>
+        <ol>
+          <li><code>docs/llm-guide.md</code> - AI-specific guidance</li>
+          <li><code>docs/behavior.md</code> - API signatures and behavior</li>
+          <li><code>docs/semantics.md</code> - What to rely on vs not rely on</li>
+        </ol>
+        
+        <h3>For Debugging</h3>
+        <ol>
+          <li><code>docs/llm-guide.md</code> - Common mistakes</li>
+          <li><code>docs/semantics.md</code> - Non-guarantees and ambiguities</li>
+          <li><code>docs/architecture.md</code> - Implementation invariants</li>
+          <li>Test files - Verified behavior examples</li>
+        </ol>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="../docs/behavior.md" class="nav-card">
+            <h3 class="nav-card-title">Behavioral Inventory</h3>
+            <p class="nav-card-description">Complete API behavioral documentation.</p>
+          </a>
+          <a href="../docs/architecture.md" class="nav-card">
+            <h3 class="nav-card-title">Architecture Notes</h3>
+            <p class="nav-card-description">High-level architecture and design decisions.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#repository-structure" class="toc-link">Repository Structure</a></li>
+            <li class="toc-item"><a href="#key-files" class="toc-link">Key Files</a></li>
+            <li class="toc-item"><a href="#navigation-strategies" class="toc-link">Navigation Strategies</a></li>
+            <li class="toc-item"><a href="#documentation-priorities" class="toc-link">Documentation Priorities</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Design Trade-offs - Areas where Signal differs from common signal libraries.">
+  <meta name="keywords" content="signal trade-offs, differences from common libraries, design decisions">
+  <title>Design Trade-offs - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="index.html" class="active">Architecture</a>
+        <a href="../ai-guide/index.html">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="index.html" class="active">Architecture</a>
+      <a href="../ai-guide/index.html">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">Architecture</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Design Trade-offs</span>
+        </nav>
+        
+        <h1>Design Trade-offs</h1>
+        <p>Areas where Signal differs from common signal libraries.</p>
+        
+        <h2 id="global-variable-dependency-tracking">1. Global Variable Dependency Tracking</h2>
+        
+        <h3>Difference</h3>
+        <p>Most libraries use explicit dependency graphs or stacks. Signal uses a single module-level variable.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Simpler</strong> - Less complex implementation</li>
+          <li><strong>Less flexible</strong> - Not suitable for nested scenarios</li>
+        </ul>
+        
+        <h2 id="no-batching">2. No Batching</h2>
+        
+        <h3>Difference</h3>
+        <p>SolidJS, Preact Signals, Angular Signals all have batching. Signal has no batching mechanism.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Predictable</strong> - Immediate, synchronous execution</li>
+          <li><strong>More executions</strong> - Every update triggers effects immediately</li>
+        </ul>
+        
+        <h2 id="derived-signal-implementation">3. Derived Signal Implementation</h2>
+        
+        <h3>Difference</h3>
+        <p>Most libraries have dedicated derived signal nodes. Signal wraps a source signal + effect.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Consistent</strong> - Reuses existing primitives</li>
+          <li><strong>Indirect</strong> - More layers of abstraction</li>
+        </ul>
+        
+        <h2 id="array-mutation-methods">4. Array Mutation Methods</h2>
+        
+        <h3>Difference</h3>
+        <p>Most signal libraries treat arrays as immutable. Signal provides mutating methods (push, pop, etc.).</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Familiar API</strong> - Feels like standard array methods</li>
+          <li><strong>Internally immutable</strong> - Methods create new arrays internally</li>
+        </ul>
+        
+        <h2 id="custom-array-methods">5. Custom Array Methods</h2>
+        
+        <h3>Difference</h3>
+        <p>Signal includes <code>remove()</code> method (inverse of filter), not standard in JavaScript or other signal libraries.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Convenient</strong> - Useful for common patterns</li>
+          <li><strong>Non-standard</strong> - Not available in other libraries</li>
+        </ul>
+        
+        <h2 id="no-scheduling">6. No Scheduling</h2>
+        
+        <h3>Difference</h3>
+        <p>No microtask scheduling or deferred execution. All propagation is synchronous.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Simple</strong> - No scheduling complexity</li>
+          <li><strong>Different</strong> - Unlike most frameworks that use scheduling for performance</li>
+        </ul>
+        
+        <h2 id="type-discrimination">7. Type Discrimination</h2>
+        
+        <h3>Difference</h3>
+        <p>Uses <code>type</code> property on all signal objects for runtime type checking.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Flexible</strong> - Enables runtime type checking for complex scenarios</li>
+          <li><strong>Uncommon</strong> - Not common in other signal libraries</li>
+        </ul>
+        
+        <h2 id="non-signal-objects">8. Non-Signal Objects</h2>
+        
+        <h3>Difference</h3>
+        <p>Explicit runtime type wrapper for plain values. Used for type discrimination in complex type scenarios.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Powerful</strong> - Enables advanced type patterns</li>
+          <li><strong>Verbose</strong> - Requires explicit wrapping</li>
+        </ul>
+        
+        <h2 id="effect-registration-condition">9. Effect Registration Condition</h2>
+        
+        <h3>Difference</h3>
+        <p>Effects only register to signals if <code>.value</code> is accessed during execution. Different from automatic dependency collection.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Explicit</strong> - Clear when dependencies are tracked</li>
+          <li><strong>Error-prone</strong> - Easy to miss dependencies with conditional logic</li>
+        </ul>
+        
+        <h2 id="disposal-cleanup-timing">10. Disposal Cleanup Timing</h2>
+        
+        <h3>Difference</h3>
+        <p>Disposed effects are not removed immediately. They are removed on the next signal update.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Lazy</strong> - Cleanup happens during normal updates</li>
+          <li><strong>Delayed</strong> - Effects may run one more time after disposal</li>
+        </ul>
+        
+        <h2 id="array-signal-implementation">11. Array Signal Implementation</h2>
+        
+        <h3>Difference</h3>
+        <p>Array mutation methods create new arrays internally but the API feels like standard array mutation.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Familiar</strong> - Standard array method names</li>
+          <li><strong>Surprising</strong> - Internally immutable but feels mutable</li>
+        </ul>
+        
+        <h2 id="derived-signal-previous-value">12. Derived Signal Previous Value</h2>
+        
+        <h3>Difference</h3>
+        <p>Derived signals expose <code>prevValue</code> getter. This is uncommon in other signal libraries.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Useful</strong> - Helpful for diffing or change detection</li>
+          <li><strong>Extra</strong> - Additional state to maintain</li>
+        </ul>
+        
+        <h2 id="object-signal-partial-updates">13. Object Signal Partial Updates</h2>
+        
+        <h3>Difference</h3>
+        <p>Object signals have <code>set(partial)</code> method for partial updates. Different from full replacement.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Convenient</strong> - Easy partial updates</li>
+          <li><strong>Shallow</strong> - Only shallow merge, not deep merge</li>
+        </ul>
+        
+        <h2 id="no-automatic-disposal">14. No Automatic Disposal</h2>
+        
+        <h3>Difference</h3>
+        <p>No automatic disposal based on scope or lifecycle. Manual disposal required.</p>
+        
+        <h3>Trade-off</h3>
+        <ul>
+          <li><strong>Explicit</strong> - Clear lifecycle management</li>
+          <li><strong>Manual</strong> - Requires developer discipline</li>
+        </ul>
+        
+        <h2 id="summary">Summary</h2>
+        <p>Signal makes intentional design decisions that differ from common signal libraries:</p>
+        
+        <ul>
+          <li><strong>Simplicity over complexity</strong> - Global variable tracking, no batching, no scheduling</li>
+          <li><strong>Explicit over implicit</strong> - Manual disposal, explicit dependency access</li>
+          <li><strong>Familiarity over purity</strong> - Array mutation methods, partial object updates</li>
+          <li><strong>Flexibility over constraints</strong> - Type discrimination, non-signal objects</li>
+        </ul>
+        
+        <p>These trade-offs make Signal simpler to understand and implement, while requiring more explicit patterns from developers.</p>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="../ai-guide/index.html" class="nav-card">
+            <h3 class="nav-card-title">AI Guide</h3>
+            <p class="nav-card-description">Explore implementation details for AI agents.</p>
+          </a>
+          <a href="../guide/best-practices.html" class="nav-card">
+            <h3 class="nav-card-title">Best Practices</h3>
+            <p class="nav-card-description">Learn recommended patterns for signal code.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#global-variable-dependency-tracking" class="toc-link">1. Global Variable Dependency Tracking</a></li>
+            <li class="toc-item"><a href="#no-batching" class="toc-link">2. No Batching</a></li>
+            <li class="toc-item"><a href="#derived-signal-implementation" class="toc-link">3. Derived Signal Implementation</a></li>
+            <li class="toc-item"><a href="#array-mutation-methods" class="toc-link">4. Array Mutation Methods</a></li>
+            <li class="toc-item"><a href="#custom-array-methods" class="toc-link">5. Custom Array Methods</a></li>
+            <li class="toc-item"><a href="#no-scheduling" class="toc-link">6. No Scheduling</a></li>
+            <li class="toc-item"><a href="#type-discrimination" class="toc-link">7. Type Discrimination</a></li>
+            <li class="toc-item"><a href="#non-signal-objects" class="toc-link">8. Non-Signal Objects</a></li>
+            <li class="toc-item"><a href="#effect-registration-condition" class="toc-link">9. Effect Registration Condition</a></li>
+            <li class="toc-item"><a href="#disposal-cleanup-timing" class="toc-link">10. Disposal Cleanup Timing</a></li>
+            <li class="toc-item"><a href="#array-signal-implementation" class="toc-link">11. Array Signal Implementation</a></li>
+            <li class="toc-item"><a href="#derived-signal-previous-value" class="toc-link">12. Derived Signal Previous Value</a></li>
+            <li class="toc-item"><a href="#object-signal-partial-updates" class="toc-link">13. Object Signal Partial Updates</a></li>
+            <li class="toc-item"><a href="#no-automatic-disposal" class="toc-link">14. No Automatic Disposal</a></li>
+            <li class="toc-item"><a href="#summary" class="toc-link">Summary</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

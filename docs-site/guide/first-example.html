@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="First Example - A complete walkthrough of building a simple reactive application with Signal.">
+  <meta name="keywords" content="signal example, tutorial, reactive application, walkthrough">
+  <title>First Example - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="index.html" class="active">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="../ai-guide/index.html">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="index.html" class="active">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="../ai-guide/index.html">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">Guide</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">First Example</span>
+        </nav>
+        
+        <h1>First Example</h1>
+        <p>Let's build a simple traffic light controller to understand how signals work in practice.</p>
+        
+        <h2 id="the-problem">The Problem</h2>
+        <p>We want to create a traffic light that cycles through green, yellow, and red states every 10 seconds, and display appropriate messages to users.</p>
+        
+        <h2 id="step-1-create-the-signal">Step 1: Create the Signal</h2>
+        <p>First, create a signal to track the current traffic light color:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>import { signal } from "@cyftech/signal";
+
+const color = signal("green");</code></pre>
+        </div>
+        
+        <h2 id="step-2-cycle-the-colors">Step 2: Cycle the Colors</h2>
+        <p>Set up an interval to cycle through the colors:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const TRAFFIC_LIGHT_CHANGE_CUTOFF_IN_MS = 10000;
+
+setInterval(() => {
+  if (color.value === "green") color.value = "yellow";
+  if (color.value === "yellow") color.value = "red";
+  if (color.value === "red") color.value = "green";
+}, TRAFFIC_LIGHT_CHANGE_CUTOFF_IN_MS);</code></pre>
+        </div>
+        
+        <h2 id="step-3-react-to-changes">Step 3: React to Changes</h2>
+        <p>Use an effect to display messages when the color changes:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>import { effect } from "@cyftech/signal";
+
+effect(() => {
+  if (color.value === "green")
+    updateUiWithMessage("Keep moving. Don't congest the traffic.");
+
+  if (color.value === "yellow")
+    updateUiWithMessage("Slow down! Signal is about to stop.");
+
+  if (color.value === "red")
+    updateUiWithMessage("STOP. Please do not cross the crossing.");
+});</code></pre>
+        </div>
+        
+        <h2 id="complete-example">Complete Example</h2>
+        <p>Here's the complete code:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>import { signal, effect } from "@cyftech/signal";
+
+const color = signal("green");
+const TRAFFIC_LIGHT_CHANGE_CUTOFF_IN_MS = 10000;
+
+setInterval(() => {
+  if (color.value === "green") color.value = "yellow";
+  if (color.value === "yellow") color.value = "red";
+  if (color.value === "red") color.value = "green";
+}, TRAFFIC_LIGHT_CHANGE_CUTOFF_IN_MS);
+
+// the callback in effect method gets executed every time the value of 'color' signal changes
+effect(() => {
+  if (color.value === "green")
+    updateUiWithMessage("Keep moving. Don't congest the traffic.");
+
+  if (color.value === "yellow")
+    updateUiWithMessage("Slow down! Signal is about to stop.");
+
+  if (color.value === "red")
+    updateUiWithMessage("STOP. Please do not cross the crossing.");
+});</code></pre>
+        </div>
+        
+        <h2 id="how-it-works">How It Works</h2>
+        <ul>
+          <li><strong>Signal creation</strong>: <code>signal("green")</code> creates a reactive signal with initial value "green"</li>
+          <li><strong>Value updates</strong>: Setting <code>color.value</code> triggers all registered effects</li>
+          <li><strong>Effect registration</strong>: The effect runs immediately and tracks that it depends on <code>color.value</code></li>
+          <li><strong>Automatic re-runs</strong>: When <code>color.value</code> changes, the effect re-runs automatically</li>
+        </ul>
+        
+        <h2 id="key-takeaways">Key Takeaways</h2>
+        <div class="callout">
+          <p class="callout-title">Important</p>
+          <p>Effects must access <code>.value</code> during execution to establish dependencies. If you conditionally access a signal, it won't be tracked if the condition is false on the first run.</p>
+        </div>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="common-patterns.html" class="nav-card">
+            <h3 class="nav-card-title">Common Patterns</h3>
+            <p class="nav-card-description">Explore more patterns and techniques.</p>
+          </a>
+          <a href="best-practices.html" class="nav-card">
+            <h3 class="nav-card-title">Best Practices</h3>
+            <p class="nav-card-description">Learn recommended practices for signal code.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#the-problem" class="toc-link">The Problem</a></li>
+            <li class="toc-item"><a href="#step-1-create-the-signal" class="toc-link">Step 1: Create the Signal</a></li>
+            <li class="toc-item"><a href="#step-2-cycle-the-colors" class="toc-link">Step 2: Cycle the Colors</a></li>
+            <li class="toc-item"><a href="#step-3-react-to-changes" class="toc-link">Step 3: React to Changes</a></li>
+            <li class="toc-item"><a href="#complete-example" class="toc-link">Complete Example</a></li>
+            <li class="toc-item"><a href="#how-it-works" class="toc-link">How It Works</a></li>
+            <li class="toc-item"><a href="#key-takeaways" class="toc-link">Key Takeaways</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

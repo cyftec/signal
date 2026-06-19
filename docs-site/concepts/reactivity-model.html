@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Reactivity Model - How Signal's dependency tracking and automatic updates work.">
+  <meta name="keywords" content="signal reactivity, dependency tracking, automatic updates, global variable tracking">
+  <title>Reactivity Model - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="index.html" class="active">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="../ai-guide/index.html">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="index.html" class="active">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="../ai-guide/index.html">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">Concepts</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Reactivity Model</span>
+        </nav>
+        
+        <h1>Reactivity Model</h1>
+        <p>How Signal's dependency tracking and automatic updates work.</p>
+        
+        <h2 id="global-variable-tracking">Global Variable Tracking</h2>
+        <p>Signal uses a global variable-based dependency tracking system instead of explicit dependency graphs. This is a key architectural difference from many other signal libraries.</p>
+        
+        <h3>How It Works</h3>
+        <ol>
+          <li>When <code>effect()</code> is called, it sets a module-level <code>_currentSignalEffect</code> variable before executing the function</li>
+          <li>When a signal's <code>.value</code> getter is called, it checks if <code>_currentSignalEffect</code> exists</li>
+          <li>If it exists, the effect is added to the signal's internal <code>_effects</code> Set</li>
+          <li>After effect execution, <code>_currentSignalEffect</code> is set back to <code>null</code></li>
+        </ol>
+        
+        <h3>Implications</h3>
+        <ul>
+          <li>Effects must access <code>.value</code> during execution to establish dependencies</li>
+          <li>No explicit dependency graph - each signal maintains a Set of registered effects</li>
+          <li>Dependencies are tracked implicitly through the global variable during execution</li>
+          <li>Simpler implementation but less flexible for nested scenarios</li>
+        </ul>
+        
+        <h2 id="dependency-establishment">Dependency Establishment</h2>
+        <p>An effect or derived signal establishes a dependency on a signal only if the signal's <code>.value</code> getter is accessed during execution.</p>
+        
+        <div class="callout warning">
+          <p class="callout-title">Important</p>
+          <p>If a signal's <code>.value</code> is accessed conditionally and the condition is false during initial execution, that signal will not be tracked as a dependency.</p>
+        </div>
+        
+        <h3>Example</h3>
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// WRONG - count won't be tracked if shouldShow is false initially
+const shouldShow = signal(false);
+const count = signal(5);
+const displayed = derive(() => {
+  if (shouldShow.value) {
+    return count.value;
+  }
+  return 0;
+});
+
+// CORRECT - Always access the signal
+const displayed = derive(() => {
+  return shouldShow.value ? count.value : 0;
+});</code></pre>
+        </div>
+        
+        <h2 id="no-automatic-dependency-collection">No Automatic Dependency Collection</h2>
+        <p>Unlike some other signal libraries, Signal does not automatically collect dependencies beyond what is accessed during execution.</p>
+        
+        <h3>Guarantees</h3>
+        <ul>
+          <li>Dependencies are established during the initial execution of an effect or derived signal computation</li>
+          <li>Once a dependency is established, the effect or derived signal will re-run whenever that signal's value changes</li>
+          <li>Dependencies are not automatically re-evaluated on subsequent executions</li>
+        </ul>
+        
+        <h3>Non-Guarantees</h3>
+        <ul>
+          <li>No automatic dependency collection beyond what is accessed during execution</li>
+          <li>No guarantee that conditional dependencies will be tracked if the condition is false during initial execution</li>
+          <li>No guarantee about the internal mechanism of dependency tracking</li>
+        </ul>
+        
+        <h2 id="synchronous-execution">Synchronous Execution</h2>
+        <p>Signal has no batching or deferred execution. All updates are synchronous and immediate.</p>
+        
+        <h3>Execution Flow</h3>
+        <ol>
+          <li>Signal value is set via setter</li>
+          <li>Signal checks if new value equals old value (short-circuits if equal)</li>
+          <li>Signal updates internal value using <code>immut()</code></li>
+          <li>Signal iterates through its <code>_effects</code> Set</li>
+          <li>For each effect: if <code>canDisposeNow</code> is true, remove it; otherwise, execute it</li>
+          <li>Effects may access other signals' <code>.value</code>, triggering their effects recursively</li>
+        </ol>
+        
+        <h3>Guarantees</h3>
+        <ul>
+          <li>Setting a signal's value to a new value triggers all registered effects synchronously</li>
+          <li>Setting a signal's value to the same value does not trigger effects</li>
+          <li>Effects are triggered in the order they were registered to the signal</li>
+          <li>When an effect runs, it may access other signals' values, triggering their effects recursively</li>
+          <li>All propagation is synchronous and immediate</li>
+        </ul>
+        
+        <h2 id="no-batching">No Batching</h2>
+        <p>Signal has no batching mechanism. Every signal update triggers all dependent effects immediately.</p>
+        
+        <div class="callout info">
+          <p class="callout-title">Note</p>
+          <p>This is different from SolidJS, Preact Signals, and Angular Signals, which all have batching mechanisms.</p>
+        </div>
+        
+        <h3>Implications</h3>
+        <ul>
+          <li>Multiple signal updates in sequence will trigger effects for each update</li>
+          <li>No manual batch API is provided</li>
+          <li>Each signal update triggers all dependent effects immediately</li>
+        </ul>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="state-flow.html" class="nav-card">
+            <h3 class="nav-card-title">State Flow</h3>
+            <p class="nav-card-description">Understand how state changes propagate.</p>
+          </a>
+          <a href="derived-values.html" class="nav-card">
+            <h3 class="nav-card-title">Derived Values</h3>
+            <p class="nav-card-description">Learn about computed values.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#global-variable-tracking" class="toc-link">Global Variable Tracking</a></li>
+            <li class="toc-item"><a href="#dependency-establishment" class="toc-link">Dependency Establishment</a></li>
+            <li class="toc-item"><a href="#no-automatic-dependency-collection" class="toc-link">No Automatic Dependency Collection</a></li>
+            <li class="toc-item"><a href="#synchronous-execution" class="toc-link">Synchronous Execution</a></li>
+            <li class="toc-item"><a href="#no-batching" class="toc-link">No Batching</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

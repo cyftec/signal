@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Performance - Signal's performance characteristics and considerations.">
+  <meta name="keywords" content="signal performance, performance characteristics, considerations">
+  <title>Performance - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="index.html" class="active">Architecture</a>
+        <a href="../ai-guide/index.html">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="index.html" class="active">Architecture</a>
+      <a href="../ai-guide/index.html">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">Architecture</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Performance</span>
+        </nav>
+        
+        <h1>Performance</h1>
+        <p>Signal's performance characteristics and considerations.</p>
+        
+        <h2 id="performance-guarantees">Performance Guarantees</h2>
+        <p>Signal provides minimal performance guarantees:</p>
+        
+        <ul>
+          <li>No guarantee about the maximum depth of recursive effect triggering</li>
+          <li>No guarantee about performance characteristics of effect execution</li>
+          <li>No guarantee about the order of effect execution across multiple signals when a single update triggers effects on multiple signals</li>
+        </ul>
+        
+        <div class="callout warning">
+          <p class="callout-title">Important</p>
+          <p>Performance may vary based on the number of signals, effects, and complexity of computations.</p>
+        </div>
+        
+        <h2 id="synchronous-execution-overhead">Synchronous Execution Overhead</h2>
+        <p>Since all updates are synchronous, there is no deferred execution overhead.</p>
+        
+        <h3>Benefits</h3>
+        <ul>
+          <li>Predictable execution timing</li>
+          <li>No microtask queue overhead</li>
+          <li>Immediate feedback on state changes</li>
+        </ul>
+        
+        <h3>Considerations</h3>
+        <ul>
+          <li>Multiple rapid updates may cause many effect executions</li>
+          <li>No automatic batching to coalesce updates</li>
+          <li>Deep effect chains may cause stack depth issues</li>
+        </ul>
+        
+        <h2 id="memory-overhead">Memory Overhead</h2>
+        <p>Signal has minimal memory overhead due to its design:</p>
+        
+        <h3>Per-Signal Overhead</h3>
+        <ul>
+          <li>Source signal: value + Set of effects</li>
+          <li>Derived signal: source signal + effect (internal)</li>
+          <li>Effect: function + disposal flag</li>
+        </ul>
+        
+        <h3>No Explicit Graph</h3>
+        <ul>
+          <li>No dependency graph data structure</li>
+          <li>Each signal maintains only its direct effects</li>
+          <li>Reduced memory footprint compared to graph-based approaches</li>
+        </ul>
+        
+        <h2 id="immutable-value-storage">Immutable Value Storage</h2>
+        <p>Signal values are stored immutably using <code>@cyftech/immutjs</code>.</p>
+        
+        <h3>Benefits</h3>
+        <ul>
+          <li>Prevents accidental mutations</li>
+          <li>Enables easy change detection via strict equality</li>
+          <li>Consistent behavior across data types</li>
+        </ul>
+        
+        <h3>Considerations</h3>
+        <ul>
+          <li>Immutable copies have memory overhead</li>
+          <li>Large objects/arrays may be expensive to copy</li>
+          <li>Frequent updates to large structures may impact performance</li>
+        </ul>
+        
+        <h2 id="effect-execution-cost">Effect Execution Cost</h2>
+        <p>Effect execution cost depends on the complexity of the effect function.</p>
+        
+        <h3>Factors</h3>
+        <ul>
+          <li>Number of signals accessed</li>
+          <li>Complexity of computations in the effect</li>
+          <li>Number of nested effects triggered</li>
+          <li>DOM updates or other side effects</li>
+        </ul>
+        
+        <h3>Optimization Tips</h3>
+        <ul>
+          <li>Keep effects focused on single responsibilities</li>
+          <li>Move complex computations to derived signals</li>
+          <li>Dispose effects when no longer needed</li>
+          <li>Avoid deep nesting of effects</li>
+        </ul>
+        
+        <h2 id="derived-signal-computation-cost">Derived Signal Computation Cost</h2>
+        <p>Derived signals recompute whenever dependencies change.</p>
+        
+        <h3>Factors</h3>
+        <ul>
+          <li>Complexity of the value getter function</li>
+          <li>Number of dependencies</li>
+          <li>Frequency of dependency changes</li>
+        </ul>
+        
+        <h3>Optimization Tips</h3>
+        <ul>
+          <li>Keep derived signal computations simple</li>
+          <li>Use memoization for expensive computations</li>
+          <li>Dispose derived signals when no longer needed</li>
+          <li>Consider splitting complex derived signals</li>
+        </ul>
+        
+        <h2 id="disposal-performance">Disposal Performance</h2>
+        <p>Disposal uses a lazy cleanup strategy.</p>
+        
+        <h3>Benefits</h3>
+        <ul>
+          <li>Disposal is O(1) - just sets a flag</li>
+          <li>Cleanup happens during normal signal updates</li>
+          <li>No separate cleanup pass needed</li>
+        </ul>
+        
+        <h3>Considerations</h3>
+        <ul>
+          <li>Disposed effects may run one more time</li>
+          <li>Cleanup only happens on next signal update</li>
+          <li>Signals that never update won't clean up disposed effects</li>
+        </ul>
+        
+        <h2 id="comparison-with-batched-approaches">Comparison with Batched Approaches</h2>
+        
+        <h3>Batched Libraries (SolidJS, Preact, Angular)</h3>
+        <ul>
+          <li><strong>Pros</strong>: Coalesce multiple updates, reduce effect executions</li>
+          <li><strong>Cons</strong>: Deferred execution, microtask overhead, more complex implementation</li>
+        </ul>
+        
+        <h3>Signal (No Batching)</h3>
+        <ul>
+          <li><strong>Pros</strong>: Immediate execution, simpler implementation, predictable timing</li>
+          <li><strong>Cons</strong>: More effect executions, no automatic coalescing</li>
+        </ul>
+        
+        <h2 id="performance-best-practices">Performance Best Practices</h2>
+        
+        <ul>
+          <li><strong>Dispose when done</strong> - Always dispose effects and derived signals when no longer needed</li>
+          <li><strong>Avoid unnecessary updates</strong> - Check if values actually changed before setting</li>
+          <li><strong>Keep effects simple</strong> - Move complex logic to derived signals</li>
+          <li><strong>Avoid deep nesting</strong> - Deep effect chains may cause performance issues</li>
+          <li><strong>Use derived signals for computations</strong> - Keep effects focused on side effects</li>
+        </ul>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="trade-offs.html" class="nav-card">
+            <h3 class="nav-card-title">Design Trade-offs</h3>
+            <p class="nav-card-description">Learn about areas that differ from common libraries.</p>
+          </a>
+          <a href="../ai-guide/index.html" class="nav-card">
+            <h3 class="nav-card-title">AI Guide</h3>
+            <p class="nav-card-description">Explore implementation details for AI agents.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#performance-guarantees" class="toc-link">Performance Guarantees</a></li>
+            <li class="toc-item"><a href="#synchronous-execution-overhead" class="toc-link">Synchronous Execution Overhead</a></li>
+            <li class="toc-item"><a href="#memory-overhead" class="toc-link">Memory Overhead</a></li>
+            <li class="toc-item"><a href="#immutable-value-storage" class="toc-link">Immutable Value Storage</a></li>
+            <li class="toc-item"><a href="#effect-execution-cost" class="toc-link">Effect Execution Cost</a></li>
+            <li class="toc-item"><a href="#derived-signal-computation-cost" class="toc-link">Derived Signal Computation Cost</a></li>
+            <li class="toc-item"><a href="#disposal-performance" class="toc-link">Disposal Performance</a></li>
+            <li class="toc-item"><a href="#comparison-with-batched-approaches" class="toc-link">Comparison with Batched Approaches</a></li>
+            <li class="toc-item"><a href="#performance-best-practices" class="toc-link">Performance Best Practices</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

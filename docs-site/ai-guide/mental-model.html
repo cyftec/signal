@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Mental Model - Library overview and key architectural characteristics of Signal.">
+  <meta name="keywords" content="signal mental model, library overview, architectural characteristics">
+  <title>Mental Model - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="index.html" class="active">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="index.html" class="active">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">AI Guide</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Mental Model</span>
+        </nav>
+        
+        <h1>Mental Model</h1>
+        <p>Library overview and key architectural characteristics.</p>
+        
+        <h2 id="library-overview">Library Overview</h2>
+        <p>@cyftech/signal is a TypeScript implementation of reactive signals with three core primitives:</p>
+        
+        <ul>
+          <li><strong>signal</strong> - Creates mutable source signals from plain values</li>
+          <li><strong>derive</strong> - Creates read-only derived signals computed from other signals</li>
+          <li><strong>effect</strong> - Registers functions to run when dependent signals change</li>
+        </ul>
+        
+        <h2 id="key-architectural-characteristics">Key Architectural Characteristics</h2>
+        
+        <h3>Critical Differences from Common Signal Libraries</h3>
+        
+        <ol>
+          <li><strong>Global Variable Dependency Tracking</strong> - Uses a module-level <code>_currentSignalEffect</code> variable instead of explicit dependency graphs</li>
+          <li><strong>No Batching</strong> - All updates are synchronous and immediate - no deferred execution</li>
+          <li><strong>Derived Signal Implementation</strong> - Wraps a source signal + effect pattern (not a dedicated node)</li>
+          <li><strong>Array Mutation Methods</strong> - Provides mutating methods (push, pop, etc.) that create new arrays internally</li>
+          <li><strong>Custom Array Methods</strong> - Includes <code>remove()</code> method (inverse of filter)</li>
+          <li><strong>No Scheduling</strong> - No microtask scheduling - all propagation is synchronous</li>
+          <li><strong>Type Discrimination</strong> - Uses <code>type</code> property on all signal objects for runtime type checking</li>
+          <li><strong>NonSignal Objects</strong> - Explicit runtime type wrapper for plain values</li>
+        </ol>
+        
+        <h2 id="dependency">Dependency</h2>
+        
+        <ul>
+          <li><code>@cyftech/immutjs</code> (v0.1.0) - Used for immutable value handling
+            <ul>
+              <li><code>immut()</code> - Creates immutable copy of value</li>
+              <li><code>newVal()</code> - Extracts value from immutable wrapper</li>
+              <li><code>isPlainObject()</code> - Type checking for plain objects</li>
+            </ul>
+          </li>
+        </ul>
+        
+        <h2 id="core-primitives-mental-model">Core Primitives Mental Model</h2>
+        
+        <h3>signal(input: T): SourceSignal&lt;T&gt;</h3>
+        <p>Creates a mutable source signal from any JavaScript value. The signal stores values immutably and triggers effects synchronously when the value changes.</p>
+        
+        <h3>derive(valueGetterFn: (oldValue: T | undefined) => T): DerivedSignal&lt;T&gt;</h3>
+        <p>Creates a read-only derived signal computed from other signals. Dependencies are tracked only when signals are accessed during the value getter function's execution.</p>
+        
+        <h3>effect(fn: () => void): SignalsEffect</h3>
+        <p>Registers a function to run whenever its accessed signals change. The function runs immediately and re-runs synchronously when dependencies change.</p>
+        
+        <h2 id="critical-implementation-insight">Critical Implementation Insight</h2>
+        
+        <div class="callout warning">
+          <p class="callout-title">Critical</p>
+          <p>The library uses a <strong>global variable-based dependency tracking system</strong>. This means:</p>
+          <ul>
+            <li>Effects must access <code>.value</code> during execution to establish dependencies</li>
+            <li>Conditional signal access may not establish dependencies if the condition is false on first run</li>
+            <li>No explicit dependency graph - each signal maintains a Set of registered effects</li>
+          </ul>
+        </div>
+        
+        <h2 id="execution-model">Execution Model</h2>
+        
+        <ul>
+          <li><strong>Synchronous</strong> - All updates happen immediately, no batching</li>
+          <li><strong>Immediate</strong> - Effects run as soon as dependencies change</li>
+          <li><strong>Recursive</strong> - Effects can trigger other effects by accessing other signals</li>
+          <li><strong>Ordered</strong> - Effects run in the order they were registered to a signal</li>
+        </ul>
+        
+        <h2 id="disposal-model">Disposal Model</h2>
+        
+        <ul>
+          <li><strong>Manual</strong> - No automatic disposal based on scope or lifecycle</li>
+          <li><strong>Lazy</strong> - Disposed effects are removed on the next signal update, not immediately</li>
+          <li><strong>Idempotent</strong> - Disposing the same effect multiple times is safe</li>
+        </ul>
+        
+        <h2 id="type-system">Type System</h2>
+        
+        <ul>
+          <li><strong>Runtime Type Discrimination</strong> - All signal objects have a <code>type</code> property</li>
+          <li><strong>Type Checkers</strong> - Utility functions to check signal types at runtime</li>
+          <li><strong>NonSignal Wrappers</strong> - Explicit wrappers for plain values in complex type scenarios</li>
+        </ul>
+        
+        <h2 id="api-layer">API Layer</h2>
+        
+        <p>The library has two main layers:</p>
+        
+        <h3>Core Layer (<code>src/_core/</code>)</h3>
+        <ul>
+          <li>Primitive implementations: signal, derive, effect, dispose</li>
+          <li>Type definitions and utilities</li>
+          <li>Type checkers and value getters</li>
+        </ul>
+        
+        <h3>API Layer (<code>src/api/</code>)</h3>
+        <ul>
+          <li>Higher-level convenience APIs</li>
+          <li>Operations: composable operations on signals</li>
+          <li>Traps: type-specific utility methods</li>
+          <li>Connectors: signal-to-signal connections</li>
+          <li>Templates: string interpolation with signals</li>
+          <li>Promise states: async state management</li>
+          <li>Compute: function-based derived signals</li>
+        </ul>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="semantics-summary.html" class="nav-card">
+            <h3 class="nav-card-title">Semantics Summary</h3>
+            <p class="nav-card-description">Learn about observable and guaranteed behavior.</p>
+          </a>
+          <a href="invariants.html" class="nav-card">
+            <h3 class="nav-card-title">Architectural Invariants</h3>
+            <p class="nav-card-description">Understand critical implementation details.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#library-overview" class="toc-link">Library Overview</a></li>
+            <li class="toc-item"><a href="#key-architectural-characteristics" class="toc-link">Key Architectural Characteristics</a></li>
+            <li class="toc-item"><a href="#dependency" class="toc-link">Dependency</a></li>
+            <li class="toc-item"><a href="#core-primitives-mental-model" class="toc-link">Core Primitives Mental Model</a></li>
+            <li class="toc-item"><a href="#critical-implementation-insight" class="toc-link">Critical Implementation Insight</a></li>
+            <li class="toc-item"><a href="#execution-model" class="toc-link">Execution Model</a></li>
+            <li class="toc-item"><a href="#disposal-model" class="toc-link">Disposal Model</a></li>
+            <li class="toc-item"><a href="#type-system" class="toc-link">Type System</a></li>
+            <li class="toc-item"><a href="#api-layer" class="toc-link">API Layer</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

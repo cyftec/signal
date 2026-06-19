@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dependency Tracking - Signal's global variable-based dependency tracking mechanism.">
+  <meta name="keywords" content="signal dependency tracking, global variable tracking, mechanism">
+  <title>Dependency Tracking - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="index.html" class="active">Architecture</a>
+        <a href="../ai-guide/index.html">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="index.html" class="active">Architecture</a>
+      <a href="../ai-guide/index.html">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">Architecture</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Dependency Tracking</span>
+        </nav>
+        
+        <h1>Dependency Tracking</h1>
+        <p>Signal's global variable-based dependency tracking mechanism.</p>
+        
+        <h2 id="global-variable-based-tracking">Global Variable-Based Tracking</h2>
+        <p>Signal uses a module-level <code>_currentSignalEffect</code> variable instead of an explicit dependency graph.</p>
+        
+        <h3>How It Works</h3>
+        <ol>
+          <li>When <code>effect()</code> is called, it sets <code>_currentSignalEffect</code> before executing the function</li>
+          <li>When a signal's <code>.value</code> getter is called, it checks if <code>_currentSignalEffect</code> exists</li>
+          <li>If it exists, the effect is added to the signal's internal <code>_effects</code> Set</li>
+          <li>After effect execution, <code>_currentSignalEffect</code> is set back to <code>null</code></li>
+        </ol>
+        
+        <h3>Implementation</h3>
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// Module-level variable
+let _currentSignalEffect: SignalsEffect | null = null;
+
+// Effect function
+function effect(fn: () => void): SignalsEffect {
+  const eff = fn as SignalsEffect;
+  eff.canDisposeNow = false;
+  
+  _currentSignalEffect = eff;
+  fn();
+  _currentSignalEffect = null;
+  
+  return eff;
+}</code></pre>
+        </div>
+        
+        <h2 id="signal-value-getter">Signal Value Getter</h2>
+        <p>The signal value getter checks for the current effect and registers dependencies:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// Simplified value getter
+get value(): T {
+  if (_currentSignalEffect) {
+    this._effects.add(_currentSignalEffect);
+  }
+  return newVal(this._value);
+}</code></pre>
+        </div>
+        
+        <h2 id="no-explicit-graph-structure">No Explicit Graph Structure</h2>
+        <p>Signal does not maintain an explicit dependency graph data structure.</p>
+        
+        <ul>
+          <li>No dependency graph data structure</li>
+          <li>Each signal maintains a Set of registered effects</li>
+          <li>Dependencies are tracked implicitly through the global variable during execution</li>
+        </ul>
+        
+        <h3>Implications</h3>
+        <ul>
+          <li>Effects must access <code>.value</code> during execution to establish dependencies</li>
+          <li>Simpler implementation but less flexible for nested scenarios</li>
+          <li>Cannot track dependencies that aren't accessed during execution</li>
+        </ul>
+        
+        <h2 id="dependency-establishment">Dependency Establishment</h2>
+        <p>An effect or derived signal establishes a dependency on a signal only if the signal's <code>.value</code> getter is accessed during execution.</p>
+        
+        <div class="callout warning">
+          <p class="callout-title">Important</p>
+          <p>If a signal's <code>.value</code> is accessed conditionally and the condition is false during initial execution, that signal will not be tracked as a dependency.</p>
+        </div>
+        
+        <h3>Example</h3>
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// WRONG - count won't be tracked if shouldShow is false initially
+const shouldShow = signal(false);
+const count = signal(5);
+const displayed = derive(() => {
+  if (shouldShow.value) {
+    return count.value;
+  }
+  return 0;
+});
+
+// CORRECT - Always access the signal
+const displayed = derive(() => {
+  return shouldShow.value ? count.value : 0;
+});</code></pre>
+        </div>
+        
+        <h2 id="no-automatic-dependency-collection">No Automatic Dependency Collection</h2>
+        <p>Signal does not automatically collect dependencies beyond what is accessed during execution.</p>
+        
+        <h3>Guarantees</h3>
+        <ul>
+          <li>Dependencies are established during the initial execution of an effect or derived signal computation</li>
+          <li>Once a dependency is established, the effect or derived signal will re-run whenever that signal's value changes</li>
+          <li>Dependencies are not automatically re-evaluated on subsequent executions</li>
+        </ul>
+        
+        <h3>Non-Guarantees</h3>
+        <ul>
+          <li>No automatic dependency collection beyond what is accessed during execution</li>
+          <li>No guarantee that conditional dependencies will be tracked if the condition is false during initial execution</li>
+          <li>No guarantee about the internal mechanism of dependency tracking</li>
+        </ul>
+        
+        <h2 id="derived-signal-dependency-tracking">Derived Signal Dependency Tracking</h2>
+        <p>Derived signals use the same mechanism as effects for dependency tracking.</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// Derived signals also use global variable tracking
+function derive&lt;T&gt;(valueGetterFn: (oldValue: T | undefined) => T): DerivedSignal&lt;T&gt; {
+  let oldValue: T | undefined = undefined;
+  const derivedSource = signal(valueGetterFn(oldValue));
+  
+  // This effect uses the same tracking mechanism
+  const derivedSourceUpdator = effect(() => {
+    const newValue = valueGetterFn(oldValue);
+    oldValue = newValue;
+    derivedSource.value = newValue;
+  });
+  
+  return {
+    type: "derived-signal",
+    oldValue,
+    derivedSource,
+    derivedSourceUpdator,
+    get value() { return derivedSource.value; },
+    get prevValue() { return oldValue; },
+    dispose() { derivedSourceUpdator.dispose(); }
+  };
+}</code></pre>
+        </div>
+        
+        <h2 id="comparison-with-other-libraries">Comparison with Other Libraries</h2>
+        <p>Most signal libraries use explicit dependency graphs or stacks:</p>
+        
+        <ul>
+          <li><strong>SolidJS</strong> - Uses explicit dependency graph with cleanup</li>
+          <li><strong>Preact Signals</strong> - Uses explicit dependency tracking</li>
+          <li><strong>Angular Signals</strong> - Uses explicit dependency graph</li>
+          <li><strong>Signal</strong> - Uses global variable-based tracking</li>
+        </ul>
+        
+        <h3>Trade-offs</h3>
+        <ul>
+          <li><strong>Pros</strong>: Simpler implementation, less memory overhead</li>
+          <li><strong>Cons</strong>: Less flexible for nested scenarios, requires explicit access pattern</li>
+        </ul>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="performance.html" class="nav-card">
+            <h3 class="nav-card-title">Performance</h3>
+            <p class="nav-card-description">Understand performance characteristics.</p>
+          </a>
+          <a href="trade-offs.html" class="nav-card">
+            <h3 class="nav-card-title">Design Trade-offs</h3>
+            <p class="nav-card-description">Learn about areas that differ from common libraries.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#global-variable-based-tracking" class="toc-link">Global Variable-Based Tracking</a></li>
+            <li class="toc-item"><a href="#signal-value-getter" class="toc-link">Signal Value Getter</a></li>
+            <li class="toc-item"><a href="#no-explicit-graph-structure" class="toc-link">No Explicit Graph Structure</a></li>
+            <li class="toc-item"><a href="#dependency-establishment" class="toc-link">Dependency Establishment</a></li>
+            <li class="toc-item"><a href="#no-automatic-dependency-collection" class="toc-link">No Automatic Dependency Collection</a></li>
+            <li class="toc-item"><a href="#derived-signal-dependency-tracking" class="toc-link">Derived Signal Dependency Tracking</a></li>
+            <li class="toc-item"><a href="#comparison-with-other-libraries" class="toc-link">Comparison with Other Libraries</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

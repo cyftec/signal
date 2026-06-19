@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Best Practices - Recommended practices for writing clean and maintainable Signal code.">
+  <meta name="keywords" content="signal best practices, recommendations, clean code, maintainability">
+  <title>Best Practices - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="index.html" class="active">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="../ai-guide/index.html">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="index.html" class="active">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="../ai-guide/index.html">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">Guide</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Best Practices</span>
+        </nav>
+        
+        <h1>Best Practices</h1>
+        <p>Recommended practices for writing clean and maintainable signal code.</p>
+        
+        <h2 id="always-access-signals-in-effects">Always Access Signals in Effects</h2>
+        <p>Effects only track dependencies for signals accessed during execution. Always access signals, even if you don't use the value:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// WRONG - count won't be tracked if shouldShow is false initially
+const shouldShow = signal(false);
+const count = signal(5);
+effect(() => {
+  if (shouldShow.value) {
+    console.log(count.value);
+  }
+});
+
+// CORRECT - Always access the signal
+effect(() => {
+  if (shouldShow.value) {
+    console.log(count.value);
+  } else {
+    count.value; // Access to track dependency
+  }
+});</code></pre>
+        </div>
+        
+        <h2 id="use-ternary-for-conditional-dependencies">Use Ternary for Conditional Dependencies</h2>
+        <p>For derived signals, use ternary operators to ensure dependencies are always accessed:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// WRONG
+const displayed = derive(() => {
+  if (shouldShow.value) {
+    return count.value;
+  }
+  return 0;
+});
+
+// CORRECT
+const displayed = derive(() => {
+  return shouldShow.value ? count.value : 0;
+});</code></pre>
+        </div>
+        
+        <h2 id="dispose-when-done">Dispose When Done</h2>
+        <p>Always dispose effects and derived signals when they're no longer needed to prevent memory leaks:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+const doubled = derive(() => count.value * 2);
+const eff = effect(() => console.log(count.value));
+
+// Dispose when cleanup is needed
+dispose(doubled, eff);</code></pre>
+        </div>
+        
+        <h2 id="use-shallow-merge-for-objects">Use Shallow Merge for Objects</h2>
+        <p>Object signals use shallow merge with <code>set()</code>. For deep updates, replace the entire object:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const user = signal({ 
+  name: "John", 
+  address: { city: "NYC" } 
+});
+
+// Shallow merge - only updates top-level properties
+user.set({ address: { city: "LA" } });
+// user.value is { name: "John", address: { city: "LA" } }
+
+// For deep updates, replace entire object
+user.value = { 
+  ...user.value, 
+  address: { ...user.value.address, city: "LA" } 
+};</code></pre>
+        </div>
+        
+        <h2 id="leverage-traps-for-type-safety">Leverage Traps for Type Safety</h2>
+        <p>Use traps to get type-specific methods that maintain type safety:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(5);
+const trapped = trap(count);
+
+// Type-safe number operations
+const doubled = trapped.mul(2).result;
+const clamped = trapped.toConfined(0, 10).result;</code></pre>
+        </div>
+        
+        <h2 id="check-error-first-in-promstates">Check Error First in promstates</h2>
+        <p>Always check the error signal before using the result signal:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const [runPromise, result, error] = promstates(fetchData, null);
+
+effect(() => {
+  if (error.value) {
+    console.error("Error:", error.value);
+  } else {
+    console.log("Result:", result.value);
+  }
+});</code></pre>
+        </div>
+        
+        <h2 id="avoid-type-changes-after-creation">Avoid Type Changes After Creation</h2>
+        <p>Trap and operation types are determined at creation time. Type changes in signals won't be reflected:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// AVOID - Type changes won't be reflected
+const value = signal(5);
+const trapped = trap(value); // NumberSignalTrap
+value.value = "hello"; // Type change not reflected
+
+// PREFERRED - Create new trap if type changes
+const value = signal(5);
+let trapped = trap(value);
+// When type might change, recreate trap
+if (typeof value.value !== "number") {
+  trapped = trap(value);
+}</code></pre>
+        </div>
+        
+        <h2 id="use-compute-for-function-arguments">Use Compute for Function Arguments</h2>
+        <p>Use <code>compute()</code> when you need to pass signals as function arguments:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const a = signal(5);
+const b = signal(3);
+
+// Clean function-based derived signal
+const sum = compute((x: number, y: number) => x + y, a, b);</code></pre>
+        </div>
+        
+        <h2 id="keep-effects-simple">Keep Effects Simple</h2>
+        <p>Effects should focus on side effects. Keep computation in derived signals:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>// PREFERRED - Computation in derived signal
+const doubled = derive(() => count.value * 2);
+effect(() => {
+  updateUI(doubled.value);
+});
+
+// AVOID - Computation in effect
+effect(() => {
+  updateUI(count.value * 2);
+});</code></pre>
+        </div>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="troubleshooting.html" class="nav-card">
+            <h3 class="nav-card-title">Troubleshooting</h3>
+            <p class="nav-card-description">Common issues and how to resolve them.</p>
+          </a>
+          <a href="../concepts/signals.html" class="nav-card">
+            <h3 class="nav-card-title">Core Concepts</h3>
+            <p class="nav-card-description">Deep dive into signals and reactivity.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#always-access-signals-in-effects" class="toc-link">Always Access Signals in Effects</a></li>
+            <li class="toc-item"><a href="#use-ternary-for-conditional-dependencies" class="toc-link">Use Ternary for Conditional Dependencies</a></li>
+            <li class="toc-item"><a href="#dispose-when-done" class="toc-link">Dispose When Done</a></li>
+            <li class="toc-item"><a href="#use-shallow-merge-for-objects" class="toc-link">Use Shallow Merge for Objects</a></li>
+            <li class="toc-item"><a href="#leverage-traps-for-type-safety" class="toc-link">Leverage Traps for Type Safety</a></li>
+            <li class="toc-item"><a href="#check-error-first-in-promstates" class="toc-link">Check Error First in promstates</a></li>
+            <li class="toc-item"><a href="#avoid-type-changes-after-creation" class="toc-link">Avoid Type Changes After Creation</a></li>
+            <li class="toc-item"><a href="#use-compute-for-function-arguments" class="toc-link">Use Compute for Function Arguments</a></li>
+            <li class="toc-item"><a href="#keep-effects-simple" class="toc-link">Keep Effects Simple</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

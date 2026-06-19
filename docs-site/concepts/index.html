@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Concepts - Deep dive into Signal's core concepts: signals, reactivity model, state flow, derived values, effects, and lifecycle.">
+  <meta name="keywords" content="signal concepts, reactivity, state flow, derived values, effects, lifecycle">
+  <title>Concepts - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="index.html" class="active">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="../ai-guide/index.html">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="index.html" class="active">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="../ai-guide/index.html">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Concepts</span>
+        </nav>
+        
+        <h1>Concepts</h1>
+        <p>Understand the core concepts behind Signal's reactive state management system.</p>
+        
+        <div class="nav-cards">
+          <a href="signals.html" class="nav-card">
+            <h3 class="nav-card-title">Signals</h3>
+            <p class="nav-card-description">Core primitives: source signals, derived signals, and effects.</p>
+          </a>
+          <a href="reactivity-model.html" class="nav-card">
+            <h3 class="nav-card-title">Reactivity Model</h3>
+            <p class="nav-card-description">How dependency tracking and automatic updates work.</p>
+          </a>
+          <a href="state-flow.html" class="nav-card">
+            <h3 class="nav-card-title">State Flow</h3>
+            <p class="nav-card-description">How state changes propagate through the system.</p>
+          </a>
+          <a href="derived-values.html" class="nav-card">
+            <h3 class="nav-card-title">Derived Values</h3>
+            <p class="nav-card-description">Computed values that update automatically.</p>
+          </a>
+          <a href="effects.html" class="nav-card">
+            <h3 class="nav-card-title">Effects</h3>
+            <p class="nav-card-description">Side effects that run when signals change.</p>
+          </a>
+          <a href="lifecycle-updates.html" class="nav-card">
+            <h3 class="nav-card-title">Lifecycle and Updates</h3>
+            <p class="nav-card-description">Execution timing and update propagation.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#core-concepts" class="toc-link">Core Concepts</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

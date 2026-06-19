@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Common Patterns - Frequently used patterns and techniques with Signal reactive state management.">
+  <meta name="keywords" content="signal patterns, techniques, traps, operations, connectors, templates">
+  <title>Common Patterns - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="index.html" class="active">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="../ai-guide/index.html">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="index.html" class="active">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="../ai-guide/index.html">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">Guide</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Common Patterns</span>
+        </nav>
+        
+        <h1>Common Patterns</h1>
+        <p>Frequently used patterns and techniques when working with signals.</p>
+        
+        <h2 id="array-mutations">Array Mutations</h2>
+        <p>Array signals provide mutation methods that trigger effects:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const items = signal([1, 2, 3]);
+
+items.push(4);          // Add item
+items.pop();            // Remove last item
+items.splice(1, 2);     // Remove items at index
+items.remove((item) => item % 2 === 0); // Remove by predicate</code></pre>
+        </div>
+        
+        <h2 id="object-partial-updates">Object Partial Updates</h2>
+        <p>Object signals support partial updates with <code>set()</code>:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const user = signal({ name: "John", age: 30 });
+
+user.set({ age: 31 }); // Shallow merge
+// user.value is { name: "John", age: 31 }</code></pre>
+        </div>
+        
+        <h2 id="type-specific-traps">Type-Specific Traps</h2>
+        <p>Use traps to get type-specific methods for common operations:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>import { trap } from "@cyftech/signal";
+
+const count = signal(5);
+const trapped = trap(count);
+
+// Number-specific operations
+const doubled = trapped.mul(2).result;
+const clamped = trapped.toConfined(0, 10).result;</code></pre>
+        </div>
+        
+        <h2 id="string-operations">String Operations</h2>
+        <p>String traps provide convenient string manipulation:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const name = signal("john doe");
+const trapped = trap(name);
+
+const upper = trapped.UPPERCASE.value;     // "JOHN DOE"
+const title = trapped.TitleCase.value;    // "John Doe"
+const lower = trapped.lowercase.value;    // "john doe"</code></pre>
+        </div>
+        
+        <h2 id="array-operations">Array Operations</h2>
+        <p>Array traps provide array manipulation methods:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const items = signal([1, 2, 3, 4, 5]);
+const trapped = trap(items);
+
+const length = trapped.length.value;       // 5
+const last = trapped.lastItem.value;      // 5
+const reversed = trapped.reversed.value;  // [5, 4, 3, 2, 1]
+
+// Partition array
+const [evens, odds] = trapped.partition((item) => item % 2 === 0);
+// evens.value is [2, 4], odds.value is [1, 3, 5]</code></pre>
+        </div>
+        
+        <h2 id="logical-operations">Logical Operations</h2>
+        <p>Use operations for complex logical and mathematical chains:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>import { op } from "@cyftech/signal";
+
+const count = signal(5);
+
+const result = op(count)
+  .add(3)
+  .mul(2)
+  .isBetween(10, 20)
+  .truthy.value;</code></pre>
+        </div>
+        
+        <h2 id="signal-connections">Signal Connections</h2>
+        <p>Connect signals together with connectors:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>import { transmit, receive } from "@cyftech/signal";
+
+// Broadcast to multiple receivers
+const source = signal("hello");
+const receiver1 = signal("");
+const receiver2 = signal("");
+
+const effect = transmit(source, receiver1, receiver2);
+source.value = "hi"; // Both receivers update
+
+// Connect multiple transmitters to one receiver
+const transmitter1 = signal("a");
+const transmitter2 = signal("b");
+const receiver = signal("");
+
+const effects = receive(receiver, transmitter1, transmitter2);</code></pre>
+        </div>
+        
+        <h2 id="template-interpolation">Template Interpolation</h2>
+        <p>Use template literals with signals:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>import { tmpl } from "@cyftech/signal";
+
+const firstName = signal("John");
+const lastName = signal("Doe");
+
+const fullName = tmpl`${firstName} ${lastName}`;
+console.log(fullName.value); // "John Doe"</code></pre>
+        </div>
+        
+        <h2 id="promise-states">Promise States</h2>
+        <p>Manage async operations with promise states:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>import { promstates } from "@cyftech/signal";
+
+const fetchData = async (id: number) => {
+  const response = await fetch(`/api/data/${id}`);
+  return response.json();
+};
+
+const [runPromise, result, error, isRunning] = promstates(fetchData, null);
+
+await runPromise(1);
+console.log(result.value);    // Fetched data
+console.log(error.value);    // undefined
+console.log(isRunning.value); // false</code></pre>
+        </div>
+        
+        <h2 id="function-based-derived-signals">Function-Based Derived Signals</h2>
+        <p>Use <code>compute()</code> for function-based derived signals:</p>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>import { compute } from "@cyftech/signal";
+
+const a = signal(5);
+const b = signal(3);
+
+const sum = compute((x: number, y: number) => x + y, a, b);
+console.log(sum.value); // 8</code></pre>
+        </div>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="best-practices.html" class="nav-card">
+            <h3 class="nav-card-title">Best Practices</h3>
+            <p class="nav-card-description">Learn recommended practices for signal code.</p>
+          </a>
+          <a href="troubleshooting.html" class="nav-card">
+            <h3 class="nav-card-title">Troubleshooting</h3>
+            <p class="nav-card-description">Common issues and how to resolve them.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#array-mutations" class="toc-link">Array Mutations</a></li>
+            <li class="toc-item"><a href="#object-partial-updates" class="toc-link">Object Partial Updates</a></li>
+            <li class="toc-item"><a href="#type-specific-traps" class="toc-link">Type-Specific Traps</a></li>
+            <li class="toc-item"><a href="#string-operations" class="toc-link">String Operations</a></li>
+            <li class="toc-item"><a href="#array-operations" class="toc-link">Array Operations</a></li>
+            <li class="toc-item"><a href="#logical-operations" class="toc-link">Logical Operations</a></li>
+            <li class="toc-item"><a href="#signal-connections" class="toc-link">Signal Connections</a></li>
+            <li class="toc-item"><a href="#template-interpolation" class="toc-link">Template Interpolation</a></li>
+            <li class="toc-item"><a href="#promise-states" class="toc-link">Promise States</a></li>
+            <li class="toc-item"><a href="#function-based-derived-signals" class="toc-link">Function-Based Derived Signals</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

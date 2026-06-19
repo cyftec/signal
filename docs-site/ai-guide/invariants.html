@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Architectural Invariants - Critical implementation details and mechanisms of Signal.">
+  <meta name="keywords" content="signal invariants, implementation details, mechanisms">
+  <title>Architectural Invariants - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="index.html" class="active">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="index.html" class="active">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">AI Guide</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Architectural Invariants</span>
+        </nav>
+        
+        <h1>Architectural Invariants</h1>
+        <p>Critical implementation details and mechanisms.</p>
+        
+        <h2 id="dependency-tracking-mechanism">Dependency Tracking Mechanism</h2>
+        
+        <p>The library uses a <strong>global variable-based dependency tracking system</strong>:</p>
+        
+        <ol>
+          <li>When <code>effect()</code> is called, it sets <code>_currentSignalEffect</code> before executing the function</li>
+          <li>When a signal's <code>.value</code> getter is called, it checks if <code>_currentSignalEffect</code> exists</li>
+          <li>If it exists, the effect is added to the signal's internal <code>_effects</code> Set</li>
+          <li>After effect execution, <code>_currentSignalEffect</code> is set back to <code>null</code></li>
+        </ol>
+        
+        <h3>Critical Implications</h3>
+        <ul>
+          <li>Effects must access <code>.value</code> during execution to establish dependencies</li>
+          <li>No explicit dependency graph - each signal maintains a Set of registered effects</li>
+          <li>Dependencies are tracked implicitly through the global variable during execution</li>
+        </ul>
+        
+        <h2 id="effect-execution-flow">Effect Execution Flow</h2>
+        
+        <ol>
+          <li>Signal value is set via setter</li>
+          <li>Signal checks if new value equals old value (short-circuits if equal)</li>
+          <li>Signal updates internal value using <code>immut()</code></li>
+          <li>Signal iterates through its <code>_effects</code> Set</li>
+          <li>For each effect: if <code>canDisposeNow</code> is true, remove it; otherwise, execute it</li>
+          <li>Effects may access other signals' <code>.value</code>, triggering their effects recursively</li>
+        </ol>
+        
+        <h2 id="disposal-cleanup-timing">Disposal Cleanup Timing</h2>
+        
+        <p><strong>Lazy Cleanup Strategy:</strong></p>
+        <ul>
+          <li>Disposed effects are not removed immediately</li>
+          <li>They are removed on the next signal update</li>
+          <li>This means disposed effects might run one more time after disposal</li>
+        </ul>
+        
+        <h3>Example</h3>
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const count = signal(0);
+let runCount = 0;
+
+const eff = effect(() => {
+  runCount++;
+  count.value;
+});
+
+eff.dispose();
+count.value = 1; // Effect is removed here without running
+// runCount remains 1</code></pre>
+        </div>
+        
+        <h2 id="derived-signal-implementation">Derived Signal Implementation</h2>
+        
+        <p>Derived signals are implemented as a source signal + effect pattern:</p>
+        <ul>
+          <li>Internal source signal holds the computed value</li>
+          <li>Internal effect runs the value getter function</li>
+          <li>The effect updates the internal source signal with the computed value</li>
+          <li>When dependencies change, the effect re-runs and updates the value</li>
+        </ul>
+        
+        <h2 id="array-signal-implementation">Array Signal Implementation</h2>
+        
+        <p>Array mutation methods create new arrays internally:</p>
+        <ul>
+          <li>Methods like <code>push()</code>, <code>pop()</code>, etc. create new immutable arrays internally</li>
+          <li>The API feels like standard array mutation</li>
+          <li>Uses <code>mutator</code> pattern to wrap array methods</li>
+        </ul>
+        
+        <h2 id="object-signal-implementation">Object Signal Implementation</h2>
+        
+        <p>Object signals have a <code>set(partial)</code> method for partial updates:</p>
+        <ul>
+          <li>Performs shallow merge with existing value</li>
+          <li>Different from full replacement</li>
+          <li>Triggers effects on update</li>
+        </ul>
+        
+        <h2 id="trap-type-determination">Trap Type Determination</h2>
+        
+        <p>The trap type is determined by the runtime type of the unwrapped value at creation time:</p>
+        <ul>
+          <li>Type-specific traps provide methods appropriate to their type (number, string, array, object)</li>
+          <li>All trap methods return derived signals that update when the input changes</li>
+        </ul>
+        
+        <h3>Critical Gotcha</h3>
+        <div class="callout warning">
+          <p class="callout-title">Important</p>
+          <p>The trap type is determined at creation time and doesn't change if the signal's value type changes:</p>
+        </div>
+        
+        <div class="code-block">
+          <button class="code-block-copy">Copy</button>
+          <pre><code>const value = signal(5);
+const trapped = trap(value); // NumberSignalTrap
+value.value = "hello"; // Type change not reflected
+// trapped still has number methods, not string methods</code></pre>
+        </div>
+        
+        <h2 id="operation-type-determination">Operation Type Determination</h2>
+        
+        <p>The operation type is determined by the runtime type of the evaluated value:</p>
+        <ul>
+          <li>Type-specific operations provide methods appropriate to their type (number, string/array, generic)</li>
+          <li>All operation methods return new operation objects (chaining)</li>
+          <li>Final results are obtained via getters (truthy, falsy, result, etc.)</li>
+        </ul>
+        
+        <h3>Critical Gotcha</h3>
+        <p>Type changes in the input signal are not reflected in the operation type.</p>
+        
+        <h2 id="promise-states-behavior">Promise States Behavior</h2>
+        
+        <p><strong>Critical Behavior:</strong></p>
+        <ul>
+          <li><strong>Result is preserved on error</strong>: If promise fails, the last successful result is kept</li>
+          <li><strong>Error is reset on success</strong>: On successful completion, error is set to undefined</li>
+          <li><strong>Promise can be run multiple times</strong></li>
+        </ul>
+        
+        <h2 id="template-interpolation-behavior">Template Interpolation Behavior</h2>
+        
+        <ul>
+          <li>The derived signal's value is the interpolated string</li>
+          <li>Recomputes whenever any signal in the expressions changes</li>
+          <li>Null/undefined values are converted to empty strings</li>
+          <li>All values are converted to strings via <code>.toString()</code></li>
+        </ul>
+        
+        <h2 id="connector-behavior">Connector Behavior</h2>
+        
+        <h3>receive()</h3>
+        <ul>
+          <li>When any transmitter's value changes, the receiver's value is updated to match</li>
+          <li>If multiple transmitters change simultaneously, the receiver gets the last one's value</li>
+          <li>The receiver can still be updated independently</li>
+          <li>Each transmitter has its own effect that updates the receiver</li>
+        </ul>
+        
+        <h3>transmit()</h3>
+        <ul>
+          <li>When the transmitter's value changes, all receivers are updated to match</li>
+          <li>All receivers are updated synchronously</li>
+          <li>Each receiver can still be updated independently</li>
+          <li>A single effect manages all receiver updates</li>
+        </ul>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="common-mistakes.html" class="nav-card">
+            <h3 class="nav-card-title">Common Mistakes</h3>
+            <p class="nav-card-description">Learn about critical gotchas and pitfalls.</p>
+          </a>
+          <a href="code-generation.html" class="nav-card">
+            <h3 class="nav-card-title">Code Generation Guidance</h3>
+            <p class="nav-card-description">Explore API documentation for code generation.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#dependency-tracking-mechanism" class="toc-link">Dependency Tracking Mechanism</a></li>
+            <li class="toc-item"><a href="#effect-execution-flow" class="toc-link">Effect Execution Flow</a></li>
+            <li class="toc-item"><a href="#disposal-cleanup-timing" class="toc-link">Disposal Cleanup Timing</a></li>
+            <li class="toc-item"><a href="#derived-signal-implementation" class="toc-link">Derived Signal Implementation</a></li>
+            <li class="toc-item"><a href="#array-signal-implementation" class="toc-link">Array Signal Implementation</a></li>
+            <li class="toc-item"><a href="#object-signal-implementation" class="toc-link">Object Signal Implementation</a></li>
+            <li class="toc-item"><a href="#trap-type-determination" class="toc-link">Trap Type Determination</a></li>
+            <li class="toc-item"><a href="#operation-type-determination" class="toc-link">Operation Type Determination</a></li>
+            <li class="toc-item"><a href="#promise-states-behavior" class="toc-link">Promise States Behavior</a></li>
+            <li class="toc-item"><a href="#template-interpolation-behavior" class="toc-link">Template Interpolation Behavior</a></li>
+            <li class="toc-item"><a href="#connector-behavior" class="toc-link">Connector Behavior</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

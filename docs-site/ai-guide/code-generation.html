@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Code Generation Guidance - API documentation for AI code generation with Signal.">
+  <meta name="keywords" content="signal code generation, API documentation, reference">
+  <title>Code Generation Guidance - Signal Documentation</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">signal</a>
+      <nav class="header-nav">
+        <a href="../guide/index.html">Guide</a>
+        <a href="../concepts/index.html">Concepts</a>
+        <a href="../architecture/index.html">Architecture</a>
+        <a href="index.html" class="active">AI Guide</a>
+      </nav>
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <nav class="mobile-nav">
+    <button class="mobile-nav-close" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="../guide/index.html">Guide</a>
+      <a href="../concepts/index.html">Concepts</a>
+      <a href="../architecture/index.html">Architecture</a>
+      <a href="index.html" class="active">AI Guide</a>
+    </div>
+  </nav>
+  
+  <main id="main-content" class="main">
+    <div class="content-layout">
+      <div class="content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="index.html">AI Guide</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Code Generation Guidance</span>
+        </nav>
+        
+        <h1>Code Generation Guidance</h1>
+        <p>API documentation for AI code generation with Signal.</p>
+        
+        <p>This section provides comprehensive API documentation for generating correct Signal code. For detailed behavioral information, refer to the <a href="../docs/behavior.md">Behavioral Inventory</a>.</p>
+        
+        <h2 id="core-primitives">Core Primitives</h2>
+        
+        <h3>signal&lt;T&gt;(input: T): SourceSignal&lt;T&gt;</h3>
+        <p>Creates a mutable source signal from any JavaScript value.</p>
+        
+        <div class="api-signature">signal&lt;T&gt;(input: T): SourceSignal&lt;T&gt;</div>
+        
+        <h4>Returns</h4>
+        <ul>
+          <li><code>type: "source-signal"</code> - Runtime type discriminator</li>
+          <li><code>value: T</code> - Getter/setter for the signal's value</li>
+          <li>For arrays: mutation methods (push, pop, splice, etc.)</li>
+          <li>For objects: <code>set(partial)</code> method for partial updates</li>
+        </ul>
+        
+        <h3>derive&lt;T&gt;(valueGetterFn: (oldValue: T | undefined) => T): DerivedSignal&lt;T&gt;</h3>
+        <p>Creates a read-only derived signal computed from other signals.</p>
+        
+        <div class="api-signature">derive&lt;T&gt;(valueGetterFn: (oldValue: T | undefined) => T): DerivedSignal&lt;T&gt;</div>
+        
+        <h4>Returns</h4>
+        <ul>
+          <li><code>type: "derived-signal"</code> - Runtime type discriminator</li>
+          <li><code>value: T</code> - Getter for current computed value</li>
+          <li><code>prevValue: T | undefined</code> - Getter for previous computed value</li>
+          <li><code>dispose(): void</code> - Stops tracking dependencies</li>
+        </ul>
+        
+        <h3>effect(fn: () => void): SignalsEffect</h3>
+        <p>Registers a function to run whenever its accessed signals change.</p>
+        
+        <div class="api-signature">effect(fn: () => void): SignalsEffect</div>
+        
+        <h4>Returns</h4>
+        <ul>
+          <li><code>canDisposeNow: boolean</code> - Flag indicating disposal status</li>
+          <li><code>dispose(): void</code> - Marks the effect for disposal</li>
+        </ul>
+        
+        <h3>dispose(...derivedSignalsOrEffects): void</h3>
+        <p>Disposes multiple derived signals and/or effects at once.</p>
+        
+        <div class="api-signature">dispose(...derivedSignalsOrEffects: (DerivedSignal&lt;any&gt; | SignalsEffect)[]): void</div>
+        
+        <h2 id="api-layer">API Layer</h2>
+        
+        <h3>compute&lt;F, Args&gt;(computerFn: F, ...restArgs): DerivedSignal&lt;ReturnType&lt;F&gt;&gt;</h3>
+        <p>Creates a derived signal from a function with signalified arguments.</p>
+        
+        <div class="api-signature">compute&lt;F extends (...args: any[]) =&gt; any&gt;(computerFn: F, ...restArgs: MaybeSignalValues&lt;Parameters&lt;F&gt;&gt;): DerivedSignal&lt;ReturnType&lt;F&gt;&gt;</div>
+        
+        <h3>receive&lt;T&gt;(receiver: SourceSignal&lt;T&gt;, ...transmittors): SignalsEffect[]</h3>
+        <p>Connects multiple transmitter signals to a receiver signal.</p>
+        
+        <div class="api-signature">receive&lt;T&gt;(receiver: SourceSignal&lt;T&gt;, ...transmittors: Signal&lt;T&gt;[]): SignalsEffect[]</div>
+        
+        <h3>transmit&lt;T&gt;(transmittor: Signal&lt;T&gt;, ...receivers): SignalsEffect</h3>
+        <p>Broadcasts changes from one transmitter signal to multiple receiver signals.</p>
+        
+        <div class="api-signature">transmit&lt;T&gt;(transmittor: Signal&lt;T&gt;, ...receivers: SourceSignal&lt;T&gt;[]): SignalsEffect</div>
+        
+        <h3>promstates&lt;R, Args, I&gt;(promiseFn, initialValue?, ultimately?): readonly [runPromise, result, error, isRunning]</h3>
+        <p>Creates promise state signals for async operations.</p>
+        
+        <div class="api-signature">promstates&lt;R, Args extends Array&lt;any&gt;, I&gt;(promiseFn: (...args: Args) =&gt; Promise&lt;R&gt;, initialValue?: I, ultimately?: () =&gt; void): readonly [(...args: Args) =&gt; Promise&lt;void&gt;, DerivedSignal&lt;R | I | undefined&gt;, DerivedSignal&lt;Error | undefined&gt;, DerivedSignal&lt;boolean&gt;]</div>
+        
+        <h3>tmpl(strings, ...tlExpressions): DerivedSignal&lt;string&gt;</h3>
+        <p>Tagged template function for string interpolation with signals.</p>
+        
+        <div class="api-signature">tmpl(strings: TemplateStringsArray, ...tlExpressions: StringSignalDeriverTemplateExpressions): DerivedSignal&lt;string&gt;</div>
+        
+        <h3>trap&lt;T&gt;(input: MaybeSignalValue&lt;T&gt;): SignalTrap&lt;T&gt;</h3>
+        <p>Creates a type-specific trap object with convenient derived signal methods.</p>
+        
+        <div class="api-signature">trap&lt;T&gt;(input: MaybeSignalValue&lt;T&gt;): SignalTrap&lt;T&gt;</div>
+        
+        <h3>op&lt;T&gt;(input: MaybeSignalValue&lt;T&gt; | (() =&gt; T)): Operation&lt;T&gt;</h3>
+        <p>Creates an operation object for composing logical and mathematical operations on signals.</p>
+        
+        <div class="api-signature">op&lt;T&gt;(input: MaybeSignalValue&lt;T&gt; | (() =&gt; T)): Operation&lt;T&gt;</div>
+        
+        <h2 id="type-checkers">Type Checkers</h2>
+        
+        <h3>valueIsSourceSignal(input): boolean</h3>
+        <p>Checks if a value is a source signal.</p>
+        
+        <div class="api-signature">valueIsSourceSignal(input: MaybeSignal&lt;any&gt;): boolean</div>
+        
+        <h3>valueIsDerivedSignal(input): boolean</h3>
+        <p>Checks if a value is a derived signal.</p>
+        
+        <div class="api-signature">valueIsDerivedSignal(input: MaybeSignal&lt;any&gt;): boolean</div>
+        
+        <h3>valueIsSignal(input): boolean</h3>
+        <p>Checks if a value is any signal (source or derived).</p>
+        
+        <div class="api-signature">valueIsSignal(input: MaybeSignal&lt;any&gt;): boolean</div>
+        
+        <h3>value&lt;T&gt;(input: MaybeSignalValue&lt;T&gt;): T</h3>
+        <p>Extracts the plain value from a signal, non-signal, or plain value.</p>
+        
+        <div class="api-signature">value&lt;T&gt;(input: MaybeSignalValue&lt;T&gt;): T</div>
+        
+        <h2 id="code-generation-best-practices">Code Generation Best Practices</h2>
+        
+        <ul>
+          <li><strong>Always access signals</strong> - Ensure effects and derived signals always access <code>.value</code> even in conditional branches</li>
+          <li><strong>Use ternary operators</strong> - Prefer ternary over if-else for derived signals to ensure dependency tracking</li>
+          <li><strong>Dispose when done</strong> - Always dispose effects and derived signals when no longer needed</li>
+          <li><strong>Check error first</strong> - For promstates, always check error before using result</li>
+          <li><strong>Avoid type changes</strong> - Don't change signal value types after creating traps or operations</li>
+          <li><strong>Handle errors</strong> - Wrap effect code in try-catch blocks</li>
+        </ul>
+        
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="nav-cards">
+          <a href="repository-nav.html" class="nav-card">
+            <h3 class="nav-card-title">Repository Navigation Guide</h3>
+            <p class="nav-card-description">Learn to navigate the repository structure.</p>
+          </a>
+          <a href="../docs/behavior.md" class="nav-card">
+            <h3 class="nav-card-title">Behavioral Inventory</h3>
+            <p class="nav-card-description">Complete API behavioral documentation.</p>
+          </a>
+        </div>
+      </div>
+      
+      <aside class="sidebar">
+        <nav class="toc">
+          <div class="toc-title">On this page</div>
+          <ul class="toc-list">
+            <li class="toc-item"><a href="#core-primitives" class="toc-link">Core Primitives</a></li>
+            <li class="toc-item"><a href="#api-layer" class="toc-link">API Layer</a></li>
+            <li class="toc-item"><a href="#type-checkers" class="toc-link">Type Checkers</a></li>
+            <li class="toc-item"><a href="#code-generation-best-practices" class="toc-link">Code Generation Best Practices</a></li>
+            <li class="toc-item"><a href="#next-steps" class="toc-link">Next Steps</a></li>
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2024 Signal. MIT License.</p>
+    </div>
+  </footer>
+  
+  <button class="back-to-top" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>
