@@ -1,9 +1,6 @@
-import { isPlainObject } from "@cyftech/immutjs";
 import { type MaybeSignalValue, value } from "../../_core";
-import { arrayTrap } from "./array-trap";
 import { genericTrap } from "./generic-trap";
 import { numberTrap } from "./number-trap";
-import { objectTrap } from "./object-trap";
 import { stringTrap } from "./string-trap";
 import type { SignalTrap } from "./types";
 
@@ -14,9 +11,10 @@ import type { SignalTrap } from "./types";
  * type-specific trap implementation. The dispatch order is:
  * 1. Number values → numberTrap (provides math operations, formatting)
  * 2. String values → stringTrap (provides string manipulation methods)
- * 3. Array values → arrayTrap (provides array transformation methods)
- * 4. Plain objects → objectTrap (provides property access methods)
- * 5. Other types → genericTrap (provides basic string and fallback methods)
+ * 3. Other types → genericTrap (provides basic string and fallback methods)
+ *
+ * Note: Array and object signals now have their methods directly on the signal,
+ * so they are not handled by the trap function anymore.
  *
  * @template T - The type of value to trap
  * @param input - A signal or plain value to inspect
@@ -31,17 +29,13 @@ import type { SignalTrap } from "./types";
  * const name = signal("hello");
  * const nameTrap = trap(name); // StringSignalTrap
  * const upper = nameTrap.UPPERCASE;
- *
- * const items = signal([1, 2, 3]);
- * const itemsTrap = trap(items); // ArraySignalTrap
- * const filtered = itemsTrap.filter(x => x > 1);
  * ```
  *
  * @remarks
  * - The trap type is determined by the runtime type of the unwrapped value at creation time
  * - Type changes in the input signal are not reflected in the trap type
  * - Methods return derived signals that update when the input changes
- * - The object trap throws if the value is not a plain object
+ * - Array and object signals have intrinsic methods and don't need traps
  *
  * @see {@link SignalTrap} - For the trap type union
  * @see {@link MaybeSignalValue} - For the input type
@@ -52,10 +46,6 @@ export const trap = <T>(input: MaybeSignalValue<T>) => {
       ? numberTrap(input as MaybeSignalValue<number>)
       : typeof value(input) === "string"
       ? stringTrap(input as MaybeSignalValue<string>)
-      : Array.isArray(value(input))
-      ? arrayTrap(input as MaybeSignalValue<unknown[]>)
-      : isPlainObject(value(input))
-      ? objectTrap(input as MaybeSignalValue<Record<string, unknown>>)
       : genericTrap(input)
   ) as SignalTrap<T>;
 };

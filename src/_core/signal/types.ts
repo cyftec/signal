@@ -12,6 +12,19 @@ export type BaseSourceSignal<T> = {
   value: T;
 };
 
+/**
+ * Base derived signal type with read-only value access.
+ *
+ * Derived signals are computed from other signals and automatically update
+ * when their dependencies change.
+ *
+ * @template T - The type of value the signal holds
+ *
+ * @remarks
+ * - Value is read-only (computed from dependencies)
+ * - The `prevValue` getter provides access to the previous computed value
+ * - Calling `dispose()` stops the signal from tracking its dependencies
+ */
 export type BaseDerivedSignal<T> = {
   /** Runtime type discriminator for derived signals */
   type: "derived-signal";
@@ -28,6 +41,15 @@ export type BaseDerivedSignal<T> = {
   dispose: () => void;
 };
 
+/**
+ * Base signal type union for both source and derived signals.
+ *
+ * @template T - The type of value the signal holds
+ *
+ * @remarks
+ * - Source signals have mutable values via the setter
+ * - Derived signals have read-only values computed from dependencies
+ */
 export type BaseSignal<T> = BaseSourceSignal<T> | BaseDerivedSignal<T>;
 
 /**
@@ -54,12 +76,24 @@ export type SignalsEffect = {
 };
 
 
+/**
+ * Intrinsic mutating methods for array signals.
+ *
+ * These methods mirror JavaScript Array mutating methods but internally create
+ * new immutable arrays and trigger effects.
+ *
+ * @template T - The array type
+ *
+ * @remarks
+ * - All methods create new arrays internally
+ * - Effects are triggered synchronously
+ * - Methods expose a mutable-style API while maintaining immutability
+ */
 export type ArraySignalIntrinsicMutatingMethodsObject<T extends any[]> = {
-  // Mutating methods
   copyWithin: (...args: Parameters<Array<T[number]>["copyWithin"]>) => void;
-  fill: (...args: Parameters<Array<T[number]>["fill"]>) => void; 
+  fill: (...args: Parameters<Array<T[number]>["fill"]>) => void;
   pop: (...args: Parameters<Array<T[number]>["pop"]>) => void;
-  push: (...args: Parameters<Array<T[number]>["push"]>) => void; 
+  push: (...args: Parameters<Array<T[number]>["push"]>) => void;
   reverse: (...args: Parameters<Array<T[number]>["reverse"]>) => void;
   shift: (...args: Parameters<Array<T[number]>["shift"]>) => void;
   sort: (...args: Parameters<Array<T[number]>["sort"]>) => void;
@@ -67,28 +101,47 @@ export type ArraySignalIntrinsicMutatingMethodsObject<T extends any[]> = {
   unshift: (...args: Parameters<Array<T[number]>["unshift"]>) => void;
 };
 
-export type ArraySignalCustomMutatingMethodsObject<T extends any[]> = { 
+/**
+ * Custom mutating methods for array signals.
+ *
+ * These are library-specific methods that provide additional functionality
+ * beyond JavaScript's intrinsic array methods.
+ *
+ * @template T - The array type
+ *
+ * @remarks
+ * - `keep()` is the inverse of `filter()` - keeps items matching the predicate
+ * - `remove()` deletes items matching the predicate
+ */
+export type ArraySignalCustomMutatingMethodsObject<T extends any[]> = {
   /** Keeps items where the predicate returns true */
   keep: (...args: Parameters<Array<T[number]>["filter"]>) => void;
-  /** Removes items where the predicate returns true*/
+  /** Removes items where the predicate returns true */
   remove: (...args: Parameters<Array<T[number]>["filter"]>) => void;
 };
 
-
+/**
+ * Combined mutating methods for array signals.
+ *
+ * Combines intrinsic and custom mutating methods into a single type.
+ *
+ * @template T - The array type
+ */
 export type ArraySignalMutatingMethodsObject<T extends any[]> = ArraySignalIntrinsicMutatingMethodsObject<T> & ArraySignalCustomMutatingMethodsObject<T>;
 
 
 /**
- * Non-mutating methods for derived array signals.
+ * Intrinsic non-mutating methods for array signals.
  *
- * Derived signals are read-only, so they only get non-mutating methods
- * that return new derived signals.
+ * These methods mirror JavaScript Array non-mutating methods but return
+ * derived signals instead of plain values.
  *
  * @template T - The array type
  *
  * @remarks
  * - All methods return derived signals
- * - No mutating methods (derived signals are read-only)
+ * - Methods are reactive and update when the source array changes
+ * - Works with both source and derived signals
  */
 export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
   at: (...args: Parameters<Array<T[number]>["at"]>) => DerivedSignal<ReturnType<Array<T[number]>["at"]>>;
@@ -109,6 +162,18 @@ export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
   toSpliced: (...args: Parameters<Array<T[number]>["toSpliced"]>) => DerivedSignal<ReturnType<Array<T[number]>["toSpliced"]>>;
 };
 
+/**
+ * Custom non-mutating methods for array signals.
+ *
+ * These are library-specific methods that provide additional functionality
+ * beyond JavaScript's intrinsic array methods.
+ *
+ * @template T - The array type
+ *
+ * @remarks
+ * - `lastItem` returns a derived signal for the last array element
+ * - `partition` splits an array into two derived signals based on a predicate
+ */
 export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
   /** Last item of the array. */
   get lastItem(): DerivedSignal<T[number] | undefined>;
@@ -116,20 +181,24 @@ export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
   partition: (...args: Parameters<Array<T[number]>["filter"]>) => readonly [DerivedSignal<T>, DerivedSignal<T>];
 };
 
+/**
+ * Combined non-mutating methods for array signals.
+ *
+ * Combines intrinsic and custom non-mutating methods into a single type.
+ *
+ * @template T - The array type
+ */
 export type ArraySignalNonMutatingMethodsObject<T extends any[]> =  ArraySignalIntrinsicNonMutatingMethodsObject<T> & ArraySignalCustomNonMutatingMethodsObject<T>;
 
 
 /**
- * Array mutation and non-mutating methods for array signals.
+ * Combined methods for array source signals.
  *
- * These methods provide both mutating-style APIs that internally create new
- * immutable arrays and trigger effects, and non-mutating methods that return
- * derived signals.
+ * Combines mutating and non-mutating methods for array source signals.
  *
  * @template T - The array type
  *
  * @remarks
- * - The `remove()` method is a custom method (inverse of filter)
  * - Mutating methods trigger effects synchronously
  * - Non-mutating methods return derived signals
  * - Methods create new arrays internally but feel mutable
@@ -137,31 +206,43 @@ export type ArraySignalNonMutatingMethodsObject<T extends any[]> =  ArraySignalI
 export type ArraySourceSignalMethodsObject<T extends any[]> = ArraySignalMutatingMethodsObject<T> & ArraySignalNonMutatingMethodsObject<T>;
 
 /**
- * Source signal for arrays with mutation methods.
+ * Source signal for arrays with mutation and non-mutating methods.
+ *
+ * Array source signals include both mutating methods (push, pop, splice, etc.)
+ * and non-mutating methods (map, filter, etc.) that return derived signals.
  *
  * @template T - The array type
  *
- * @see {@link ArraySourceSignalMethodsObject} - For array mutation methods
+ * @see {@link ArraySourceSignalMethodsObject} - For array methods
  */
 export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &
   ArraySourceSignalMethodsObject<T>;
 
+/**
+ * Mutating methods for object signals.
+ *
+ * @template T - The object type
+ *
+ * @remarks
+ * - `set()` performs a shallow merge with the current value
+ * - Triggers effects synchronously
+ */
 export type ObjectSignalMutatingMethodsObject<T extends object> = {
   /** Performs a shallow merge with the current value */
   set: (partiallyNewObjectValue: Partial<T>) => void;
 };
 
 /**
- * Non-mutating methods for derived object signals.
+ * Non-mutating methods for object signals.
  *
- * Derived signals are read-only, so they only get non-mutating methods
- * that return new derived signals.
+ * These methods return derived signals for accessing object properties.
  *
  * @template T - The object type
  *
  * @remarks
  * - All methods return derived signals
- * - No mutating methods (derived signals are read-only)
+ * - Methods are reactive and update when the source object changes
+ * - Works with both source and derived signals
  */
 export type ObjectSignalNonMutatingMethodsObject<T extends object> = {
   /** Returns a derived signal for a specific property. */
@@ -173,12 +254,14 @@ export type ObjectSignalNonMutatingMethodsObject<T extends object> = {
 };
 
 /**
- * Object mutation and non-mutating methods for object signals.
+ * Combined methods for object source signals.
+ *
+ * Combines mutating and non-mutating methods for object source signals.
  *
  * @template T - The object type
  *
  * @remarks
- * - The `set()` method performs a shallow merge with the current value
+ * - `set()` performs a shallow merge with the current value
  * - Non-mutating methods return derived signals
  */
 export type ObjectSourceSignalMethodsObject<T extends object> = ObjectSignalMutatingMethodsObject<T> & ObjectSignalNonMutatingMethodsObject<T>;
@@ -186,9 +269,12 @@ export type ObjectSourceSignalMethodsObject<T extends object> = ObjectSignalMuta
 /**
  * Source signal for plain objects with partial update method.
  *
+ * Object source signals include the `set()` method for partial updates and
+ * non-mutating methods for accessing properties as derived signals.
+ *
  * @template T - The object type
  *
- * @see {@link ObjectSourceSignalMethodsObject} - For object mutation methods
+ * @see {@link ObjectSourceSignalMethodsObject} - For object methods
  */
 export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &
   ObjectSourceSignalMethodsObject<T>;

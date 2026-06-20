@@ -3,10 +3,12 @@ import { signal } from "./signal";
 import {
   getArraySignalNonMutatingMethodsObject,
   getObjectSignalNonMutatingMethodsObject,
+} from "./signal/signal-methods-objects";
+import {
   ArraySignalNonMutatingMethodsObject,
   BaseDerivedSignal,
   ObjectSignalNonMutatingMethodsObject,
-} from "./signal";
+} from "./signal/types";
 
 /**
  * A read-only derived signal computed from other signals.

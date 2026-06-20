@@ -7,16 +7,18 @@ import {
 } from "../types";
 
 /**
- * Creates non-mutating object methods that work with any signal (source or derived).
+ * Creates non-mutating methods for object signals.
+ *
+ * These methods return derived signals for accessing object properties.
  *
  * @template T - The object type
- * @param signal - Any signal with a .value property (source or derived)
- * @returns Non-mutating object methods that return derived signals
+ * @param baseObjectSignal - The base object signal to access values from
+ * @returns Non-mutating methods for object signals
  *
  * @remarks
- * - All methods return new derived signals
+ * - All methods return derived signals
+ * - Methods are reactive and update when the source object changes
  * - Works with both source and derived signals
- * - No mutating methods
  */
 export const getObjectSignalNonMutatingMethodsObject = <T extends object>(
   baseObjectSignal: BaseSignal<T>,
@@ -41,16 +43,16 @@ export const getObjectSignalNonMutatingMethodsObject = <T extends object>(
 };
 
 /**
- * Creates object mutation methods for object signals.
+ * Creates mutating methods for object signals.
  *
  * @template T - The object type
  * @param valueSetter - Updates the signal value and triggers effects
- * @returns Object signal with methods for mutating the signal
+ * @returns Mutating methods for object signals
  *
  * @remarks
- * - Performs a shallow merge with the current object value
+ * - `set()` performs a shallow merge with the current value
+ * - Triggers effects synchronously
  * - The current object is not mutated directly
- * - No non-mutating methods (use getObjectSignalNonMutatingMethodsObject for that)
  */
 export const getObjectSignalMutatingMethodsObject = <T extends object>(
   valueSetter: (method: (oldValue: T) => T) => void,
@@ -65,17 +67,19 @@ export const getObjectSignalMutatingMethodsObject = <T extends object>(
 };
 
 /**
- * Creates object mutation methods for object signals.
+ * Creates combined methods for object source signals.
+ *
+ * Combines mutating and non-mutating methods for object source signals.
  *
  * @template T - The object type
  * @param valueSetter - Updates the signal value and triggers effects
- * @param baseObjectSignal - The original base object signal object for accessing .value in derived methods
- * @returns Object signal with methods for either mutating the signal or getting derived signals
+ * @param baseObjectSignal - The base object signal to access values from
+ * @returns Combined methods for object source signals
  *
  * @remarks
- * - Performs a shallow merge with the current object value
- * - The current object is not mutated directly
+ * - `set()` performs a shallow merge with the current value
  * - Non-mutating methods return derived signals
+ * - Methods are reactive and update when the source object changes
  */
 export const getObjectSourceSignalMethodsObject = <T extends object>(
   valueSetter: (method: (oldValue: T) => T) => void,

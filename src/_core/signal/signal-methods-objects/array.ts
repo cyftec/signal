@@ -11,6 +11,21 @@ import {
   BaseSignal,
 } from "../types";
 
+/**
+ * Creates intrinsic mutating methods for array signals.
+ *
+ * These methods mirror JavaScript Array mutating methods but internally create
+ * new immutable arrays and trigger effects.
+ *
+ * @template T - The array type
+ * @param valueSetter - Updates the signal value and triggers effects
+ * @returns Intrinsic mutating methods for array signals
+ *
+ * @remarks
+ * - All methods create new arrays internally using `Array.from()`
+ * - Effects are triggered synchronously
+ * - Methods expose a mutable-style API while maintaining immutability
+ */
 export const getArraySignalIntrinsicMutatingMethodsObject = <T extends any[]>(
   valueSetter: (method: (oldValue: T) => T) => void,
 ): ArraySignalIntrinsicMutatingMethodsObject<T> => {
@@ -43,6 +58,20 @@ export const getArraySignalIntrinsicMutatingMethodsObject = <T extends any[]>(
   };
 };
 
+/**
+ * Creates custom mutating methods for array signals.
+ *
+ * These are library-specific methods that provide additional functionality
+ * beyond JavaScript's intrinsic array methods.
+ *
+ * @template T - The array type
+ * @param valueSetter - Updates the signal value and triggers effects
+ * @returns Custom mutating methods for array signals
+ *
+ * @remarks
+ * - `keep()` is the inverse of `filter()` - keeps items matching the predicate
+ * - `remove()` deletes items matching the predicate
+ */
 export const getArraySignalCustomMutatingMethodsObject = <T extends any[]>(
   valueSetter: (method: (oldValue: T) => T) => void,
 ): ArraySignalCustomMutatingMethodsObject<T> => ({
@@ -64,6 +93,15 @@ export const getArraySignalCustomMutatingMethodsObject = <T extends any[]>(
   },
 });
 
+/**
+ * Creates combined mutating methods for array signals.
+ *
+ * Combines intrinsic and custom mutating methods into a single object.
+ *
+ * @template T - The array type
+ * @param valueSetter - Updates the signal value and triggers effects
+ * @returns Combined mutating methods for array signals
+ */
 export const getArraySignalMutatingMethodsObject = <T extends any[]>(
   valueSetter: (method: (oldValue: T) => T) => void,
 ): ArraySignalMutatingMethodsObject<T> => ({
@@ -71,6 +109,21 @@ export const getArraySignalMutatingMethodsObject = <T extends any[]>(
   ...getArraySignalCustomMutatingMethodsObject(valueSetter),
 });
 
+/**
+ * Creates intrinsic non-mutating methods for array signals.
+ *
+ * These methods mirror JavaScript Array non-mutating methods but return
+ * derived signals instead of plain values.
+ *
+ * @template T - The array type
+ * @param baseArraySignal - The base array signal to access values from
+ * @returns Intrinsic non-mutating methods for array signals
+ *
+ * @remarks
+ * - All methods return derived signals
+ * - Methods are reactive and update when the source array changes
+ * - Works with both source and derived signals
+ */
 export const getArraySignalIntrinsicNonMutatingMethodsObject = <
   T extends any[],
 >(
@@ -137,6 +190,20 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
   };
 };
 
+/**
+ * Creates custom non-mutating methods for array signals.
+ *
+ * These are library-specific methods that provide additional functionality
+ * beyond JavaScript's intrinsic array methods.
+ *
+ * @template T - The array type
+ * @param baseArraySignal - The base array signal to access values from
+ * @returns Custom non-mutating methods for array signals
+ *
+ * @remarks
+ * - `lastItem` returns a derived signal for the last array element
+ * - `partition` splits an array into two derived signals based on a predicate
+ */
 export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
   baseArraySignal: BaseSignal<T>,
 ): ArraySignalCustomNonMutatingMethodsObject<T> => {
@@ -164,16 +231,18 @@ export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
 };
 
 /**
- * Creates non-mutating array methods that work with any signal (source or derived).
+ * Creates combined non-mutating methods for array signals.
+ *
+ * Combines intrinsic and custom non-mutating methods into a single object.
  *
  * @template T - The array type
- * @param signal - Any signal with a .value property (source or derived)
- * @returns Non-mutating array methods that return derived signals
+ * @param baseArraySignal - The base array signal to access values from
+ * @returns Combined non-mutating methods for array signals
  *
  * @remarks
- * - All methods return new derived signals
+ * - All methods return derived signals
  * - Works with both source and derived signals
- * - No mutating methods
+ * - Methods are reactive and update when the source array changes
  */
 export const getArraySignalNonMutatingMethodsObject = <T extends any[]>(
   baseArraySignal: BaseSignal<T>,
@@ -183,21 +252,18 @@ export const getArraySignalNonMutatingMethodsObject = <T extends any[]>(
 });
 
 /**
- * Creates array mutation methods for array signals.
+ * Creates combined methods for array source signals.
  *
- * Each mutation method copies the current array, applies the mutation, and
- * forwards the result to the caller-provided setter.
+ * Combines mutating and non-mutating methods for array source signals.
  *
  * @template T - The array type
  * @param valueSetter - Updates the signal value and triggers effects
- * @param baseArraySignal - The original base array signal object for accessing .value in derived methods
- * @returns Array signal with methods for either mutating the signal or getting derived signals
+ * @param baseArraySignal - The base array signal to access values from
+ * @returns Combined methods for array source signals
  *
  * @remarks
- * - Mutating methods create new arrays internally but expose a mutable-style API
- * - The `remove()` method deletes matching items rather than keeping them
  * - Non-mutating methods return derived signals
- * - `Array.from()` is used to create a shallow copy before mutation
+ * - Mutating methods create new arrays internally but feel mutable
  */
 export const getArraySourceSignalMethodsObject = <T extends any[]>(
   valueSetter: (method: (oldValue: T) => T) => void,
