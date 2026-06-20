@@ -132,110 +132,7 @@ export type StringSignalTrap = GenericTrap<string> & {
   toLocaleUpperCase: (
     locales?: MaybeSignalValue<string | string[] | undefined>
   ) => DerivedSignal<string>;
-};
-
-/**
- * Array trap with array transformation methods.
- *
- * Includes standard array methods as derived signal methods plus custom
- * getters and partition methods.
- *
- * @template T - The array element type
- *
- * @remarks
- * - Mutating array methods are not included because derived signals are immutable
- * - The `partition()` method splits the array into two signals based on a predicate
- */
-export type ArraySignalTrap<T> = GenericTrap<T> & {
-  at: SignalifiedFunction<Array<T>["at"]>;
-  concat: (items: MaybeSignalValue<T[]>) => DerivedSignal<T[]>;
-  copyWithin: SignalifiedFunction<Array<T>["copyWithin"]>;
-  fill: SignalifiedFunction<Array<T>["fill"]>;
-  includes: SignalifiedFunction<Array<T>["includes"]>;
-  indexOf: SignalifiedFunction<Array<T>["indexOf"]>;
-  join: SignalifiedFunction<Array<T>["join"]>;
-  lastIndexOf: SignalifiedFunction<Array<T>["lastIndexOf"]>;
-  slice: SignalifiedFunction<Array<T>["slice"]>;
-  with: SignalifiedFunction<Array<T>["with"]>;
-  every: (
-    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean
-  ) => DerivedSignal<boolean>;
-  filter: (
-    where: (item: T, index: number, array: T[]) => boolean
-  ) => DerivedSignal<T[]>;
-  find: (
-    where: (item: T, index: number, array: T[]) => boolean
-  ) => DerivedSignal<T | undefined>;
-  findIndex: (
-    where: (item: T, index: number, array: T[]) => boolean
-  ) => DerivedSignal<number>;
-  findLast: (
-    where: (item: T, index: number, array: T[]) => boolean
-  ) => DerivedSignal<T | undefined>;
-  findLastIndex: (
-    where: (item: T, index: number, array: T[]) => boolean
-  ) => DerivedSignal<number>;
-  /** Last item of the array. */
-  get lastItem(): DerivedSignal<T | undefined>;
-  /** Array length. */
-  get length(): DerivedSignal<number>;
-  map: <U>(
-    mapFn: (item: T, index: number, array: T[]) => U
-  ) => DerivedSignal<U[]>;
-  /** Splits the array into `[passing, failing]` based on a predicate. */
-  partition: (
-    where: (item: T, index: number, array: T[]) => boolean
-  ) => readonly [DerivedSignal<T[]>, DerivedSignal<T[]>];
-  reduce: <U>(
-    reducerFn: (
-      previousValue: U,
-      currentValue: T,
-      currentIndex: number,
-      array: T[]
-    ) => U,
-    initialValue: U
-  ) => DerivedSignal<U>;
-  reduceRight: <U>(
-    reducerFn: (
-      previousValue: U,
-      currentValue: T,
-      currentIndex: number,
-      array: T[]
-    ) => U,
-    initialValue: U
-  ) => DerivedSignal<U>;
-  /** Reversed copy of the array. */
-  get reversed(): DerivedSignal<T[]>;
-  some: (
-    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean
-  ) => DerivedSignal<boolean>;
-  toSorted: (
-    compareFn?: ((a: T, b: T) => number) | undefined
-  ) => DerivedSignal<T[]>;
-  toSpliced: (
-    start: MaybeSignalValue<number>,
-    deleteCount: MaybeSignalValue<number>,
-    ...items: T[]
-  ) => DerivedSignal<T[]>;
-};
-
-/**
- * Record trap for plain objects with property access methods.
- *
- * @template T - The object type
- *
- * @remarks
- * - Throws if the value is not a plain object
- */
-export type RecordSignalTrap<T extends Record<string, unknown>> =
-  GenericTrap<T> & {
-    /** Returns a derived signal for a specific property. */
-    get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
-    /** Returns an object with all properties as derived signals. */
-    get withLiveProps(): { [key in keyof T]: DerivedSignal<T[key]> };
-    /** Returns the object's keys as a derived signal. */
-    get keys(): DerivedSignal<string[]>;
-  };
+};  
 
 /**
  * Union type for all trap types, determined by the value type.
@@ -253,8 +150,4 @@ export type SignalTrap<T> = T extends number
   ? NumberSignalTrap
   : T extends string
   ? StringSignalTrap
-  : T extends (infer I)[]
-  ? ArraySignalTrap<I>
-  : T extends Record<string, unknown>
-  ? RecordSignalTrap<T>
   : GenericTrap<T>;
