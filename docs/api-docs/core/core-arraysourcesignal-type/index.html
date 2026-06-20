@@ -211,10 +211,10 @@
               ><span>ArraySourceSignal</span
               ><small>Source signal for arrays with mutation methods.</small></a
             ><a class="nav-link" href="../core-basearraysignal-type/"
-              ><span>BaseArraySignal</span
+              ><span>ArraySourceSignalMethodsObject</span
               ><small>Array mutation methods for array signals.</small></a
             ><a class="nav-link" href="../core-baseobjectsignal-type/"
-              ><span>BaseObjectSignal</span
+              ><span>ObjectSourceSignalMethodsObject</span
               ><small>Object mutation methods for object signals.</small></a
             ><a class="nav-link" href="../core-basesourcesignal-type/"
               ><span>BaseSourceSignal</span
@@ -252,7 +252,7 @@
                 change.</small
               ></a
             ><a class="nav-link" href="../core-getarraysignalbaseobject-const/"
-              ><span>getArraySignalBaseObject</span
+              ><span>getArraySourceSignalMethodsObject</span
               ><small
                 >Creates array mutation methods for array signals.</small
               ></a
@@ -263,7 +263,7 @@
                 discrimination.</small
               ></a
             ><a class="nav-link" href="../core-getobjectsignalbaseobject-const/"
-              ><span>getObjectSignalBaseObject</span
+              ><span>getObjectSourceSignalMethodsObject</span
               ><small
                 >Creates object mutation methods for object signals.</small
               ></a
@@ -427,7 +427,7 @@
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
             ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">type</span> ArraySourceSignal&lt;T extends any[]&gt; = BaseSourceSignal&lt;T&gt; &amp;
-  BaseArraySignal&lt;T&gt;;</code></pre>
+  ArraySourceSignalMethodsObject&lt;T&gt;;</code></pre>
           </div>
           <h2 id="type-parameters">Type Parameters</h2>
           <ul
@@ -436,7 +436,7 @@
           <h2 id="see-also">See Also</h2>
           <ul
             ><li
-              ><a href="./core/basearraysignal/">BaseArraySignal</a> - For array
+              ><a href="./core/basearraysignal/">ArraySourceSignalMethodsObject</a> - For array
               mutation methods</li
             ></ul
           >

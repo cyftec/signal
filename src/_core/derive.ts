@@ -1,8 +1,12 @@
 import { effect } from "./effect";
 import { signal } from "./signal";
-import { getDerivedArraySignalBaseObject } from "./signal/array-signal";
-import { getDerivedObjectSignalBaseObject } from "./signal/object-signal";
-import { BaseDerivedArraySignal, BaseDerivedObjectSignal } from "./signal/types";
+import {
+  getArraySignalNonMutatingMethodsObject,
+  getObjectSignalNonMutatingMethodsObject,
+  ArraySignalNonMutatingMethodsObject,
+  BaseDerivedSignal,
+  ObjectSignalNonMutatingMethodsObject,
+} from "./signal";
 
 /**
  * A read-only derived signal computed from other signals.
@@ -25,21 +29,12 @@ import { BaseDerivedArraySignal, BaseDerivedObjectSignal } from "./signal/types"
  * @see {@link signal} - For creating mutable source signals
  * @see {@link effect} - For registering functions to run when signal values change
  */
-export type DerivedSignal<T> = {
-  /** Runtime type discriminator for derived signals */
-  type: "derived-signal";
-  /** The previous computed value (undefined on first computation) */
-  get prevValue(): T | undefined;
-  /** The current computed value */
-  get value(): T;
-  /**
-   * Stops the derived signal from tracking its dependencies.
-   *
-   * After calling dispose(), the derived signal's value remains accessible
-   * but will no longer update when its dependencies change.
-   */
-  dispose: () => void;
-} & (T extends any[] ? BaseDerivedArraySignal<T> : T extends object ? BaseDerivedObjectSignal<T> : {});
+export type DerivedSignal<T> = BaseDerivedSignal<T> &
+  (T extends any[]
+    ? ArraySignalNonMutatingMethodsObject<T>
+    : T extends object
+      ? ObjectSignalNonMutatingMethodsObject<T>
+      : {});
 
 /**
  * A function that computes a derived signal's value.
@@ -115,7 +110,7 @@ export const derive = <T>(
     derivedSource.value = currValue;
   });
 
-  const baseDerivedSignal = {
+  const baseDerivedSignal: BaseDerivedSignal<T> = {
     type: "derived-signal" as const,
     get prevValue() {
       return oldValue;
@@ -132,14 +127,14 @@ export const derive = <T>(
   if (Array.isArray(derivedSource.value)) {
     return Object.assign(
       baseDerivedSignal,
-      getDerivedArraySignalBaseObject(baseDerivedSignal as any),
+      getArraySignalNonMutatingMethodsObject(baseDerivedSignal as BaseDerivedSignal<any[]>),
     ) as any;
   }
 
   if (typeof derivedSource.value === "object" && derivedSource.value !== null) {
     return Object.assign(
       baseDerivedSignal,
-      getDerivedObjectSignalBaseObject(baseDerivedSignal as any),
+      getObjectSignalNonMutatingMethodsObject(baseDerivedSignal as BaseDerivedSignal<object>),
     ) as any;
   }
 

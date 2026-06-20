@@ -1,6 +1,8 @@
 import { immut, newVal } from "@cyftech/immutjs";
-import { getArraySignalBaseObject } from "./array-signal";
-import { getObjectSignalBaseObject } from "./object-signal";
+import {
+  getArraySourceSignalMethodsObject,
+  getObjectSourceSignalMethodsObject,
+} from "./signal-methods-objects";
 import { BaseSourceSignal, SignalsEffect, SourceSignal } from "./types";
 
 /**
@@ -104,7 +106,7 @@ export const signal = <T>(input: T): SourceSignal<T> => {
     runEffects();
   };
 
-  const baseSignalObject: BaseSourceSignal<T> = {
+  const baseSourceSignal: BaseSourceSignal<T> = {
     type: "source-signal",
     get value() {
       // Automatic dependency tracking: if an effect is currently executing,
@@ -134,20 +136,20 @@ export const signal = <T>(input: T): SourceSignal<T> => {
   return (
     Array.isArray(input)
       ? Object.assign(
-          baseSignalObject,
-          getArraySignalBaseObject(
+          baseSourceSignal,
+          getArraySourceSignalMethodsObject(
             (method) => setValueAndRunEffects(method(_value as unknown[]) as T),
-            baseSignalObject as BaseSourceSignal<any[]>,
+            baseSourceSignal as BaseSourceSignal<any[]>,
           ),
         )
       : typeof input === "object" && input !== null
         ? Object.assign(
-            baseSignalObject,
-            getObjectSignalBaseObject(
+            baseSourceSignal,
+            getObjectSourceSignalMethodsObject(
               (method) => setValueAndRunEffects(method(_value as object) as T),
-              baseSignalObject as BaseSourceSignal<object>,
+              baseSourceSignal as BaseSourceSignal<object>,
             ),
           )
-        : baseSignalObject
+        : baseSourceSignal
   ) as SourceSignal<typeof input>;
 };

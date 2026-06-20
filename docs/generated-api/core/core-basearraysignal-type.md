@@ -4,7 +4,7 @@
 > Source: `src/_core/signal/types.ts`
 > Last updated: 2026-06-19T14:36:52.704Z
 
-# BaseArraySignal
+# ArraySourceSignalMethodsObject
 
 Array mutation methods for array signals.
 
@@ -14,7 +14,7 @@ immutable arrays and trigger effects.
 ## Signature
 
 ```typescript
-export type BaseArraySignal<T extends any[]> = {
+export type ArraySourceSignalMethodsObject<T extends any[]> = {
   copyWithin: (...args: Parameters<Array<T[number]>["copyWithin"]>) => void;
   fill: (...args: Parameters<Array<T[number]>["fill"]>) => void;
   pop: (...args: Parameters<Array<T[number]>["pop"]>) => void;

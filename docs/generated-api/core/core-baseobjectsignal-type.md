@@ -4,14 +4,14 @@
 > Source: `src/_core/signal/types.ts`
 > Last updated: 2026-06-19T14:36:52.705Z
 
-# BaseObjectSignal
+# ObjectSourceSignalMethodsObject
 
 Object mutation methods for object signals.
 
 ## Signature
 
 ```typescript
-export type BaseObjectSignal<T extends object> = {
+export type ObjectSourceSignalMethodsObject<T extends object> = {
   /** Performs a shallow merge with the current value */
   set: (partiallyNewObjectValue: Partial<T>) => void;
 };

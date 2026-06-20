@@ -23,20 +23,20 @@ export type BaseSourceSignal<T> = {
  *
  * @template T - The array type
  *
- * @see BaseArraySignal - For array mutation methods
+ * @see ArraySourceSignalMethodsObject - For array mutation methods
  */
 export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &
-  BaseArraySignal<T>;
+  ArraySourceSignalMethodsObject<T>;
 
 /**
  * Source signal for plain objects with partial update method.
  *
  * @template T - The object type
  *
- * @see BaseObjectSignal - For object mutation methods
+ * @see ObjectSourceSignalMethodsObject - For object mutation methods
  */
 export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &
-  BaseObjectSignal<T>;
+  ObjectSourceSignalMethodsObject<T>;
 
 /**
  * A mutable source signal created from plain JavaScript data.

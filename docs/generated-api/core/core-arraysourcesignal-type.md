@@ -12,11 +12,11 @@ Source signal for arrays with mutation methods.
 
 ```typescript
 export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &
-  BaseArraySignal<T>;
+  ArraySourceSignalMethodsObject<T>;
 ```
 
 ## Type Parameters
 - The array type
 
 ## See Also
-- [BaseArraySignal](./core/basearraysignal.md) - For array mutation methods
+- [ArraySourceSignalMethodsObject](./core/basearraysignal.md) - For array mutation methods

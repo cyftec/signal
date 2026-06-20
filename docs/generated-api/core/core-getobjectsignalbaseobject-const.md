@@ -4,16 +4,16 @@
 > Source: `src/_core/signal/object-signal.ts`
 > Last updated: 2026-06-19T14:36:52.709Z
 
-# getObjectSignalBaseObject
+# getObjectSourceSignalMethodsObject
 
 Creates object mutation methods for object signals.
 
 ## Signature
 
 ```typescript
-export const getObjectSignalBaseObject = <T extends object>(
+export const getObjectSourceSignalMethodsObject = <T extends object>(
   valueSetter: (method: (oldValue: T) => T) => void
-): BaseObjectSignal<T> => {
+): ObjectSourceSignalMethodsObject<T> => {
   return {
     set: (partiallyNewObjectValue: Partial<T>) =>
       valueSetter((oldValue: T) => ({

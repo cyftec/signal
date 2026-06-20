@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BaseObjectSignal | API Docs</title>
+    <title>ObjectSourceSignalMethodsObject | API Docs</title>
     <link rel="stylesheet" href="../../../assets/docs.css" />
   </head>
   <body>
@@ -211,10 +211,10 @@
               ><span>ArraySourceSignal</span
               ><small>Source signal for arrays with mutation methods.</small></a
             ><a class="nav-link" href="../core-basearraysignal-type/"
-              ><span>BaseArraySignal</span
+              ><span>ArraySourceSignalMethodsObject</span
               ><small>Array mutation methods for array signals.</small></a
             ><a class="nav-link active" href="./"
-              ><span>BaseObjectSignal</span
+              ><span>ObjectSourceSignalMethodsObject</span
               ><small>Object mutation methods for object signals.</small></a
             ><a class="nav-link" href="../core-basesourcesignal-type/"
               ><span>BaseSourceSignal</span
@@ -252,7 +252,7 @@
                 change.</small
               ></a
             ><a class="nav-link" href="../core-getarraysignalbaseobject-const/"
-              ><span>getArraySignalBaseObject</span
+              ><span>getArraySourceSignalMethodsObject</span
               ><small
                 >Creates array mutation methods for array signals.</small
               ></a
@@ -263,7 +263,7 @@
                 discrimination.</small
               ></a
             ><a class="nav-link" href="../core-getobjectsignalbaseobject-const/"
-              ><span>getObjectSignalBaseObject</span
+              ><span>getObjectSourceSignalMethodsObject</span
               ><small
                 >Creates object mutation methods for object signals.</small
               ></a
@@ -417,7 +417,7 @@
       <main class="main">
         <article class="doc">
           <header class="hero"
-            ><div class="eyebrow">core / type</div><h1>BaseObjectSignal</h1
+            ><div class="eyebrow">core / type</div><h1>ObjectSourceSignalMethodsObject</h1
             ><p>Object mutation methods for object signals.</p
             ><div class="meta"
               >Source: <code>src/_core/signal/types.ts</code></div
@@ -426,7 +426,7 @@
           <h2 id="signature">Signature</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">type</span> BaseObjectSignal&lt;T extends object&gt; = {
+            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">type</span> ObjectSourceSignalMethodsObject&lt;T extends object&gt; = {
   <span class="tok cm">/** Performs a shallow merge with the current value */</span>
   set: (partiallyNewObjectValue: Partial&lt;T&gt;) =&gt; void;
 };</code></pre>

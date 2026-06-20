@@ -4,7 +4,7 @@
 > Source: `src/_core/signal/array-signal.ts`
 > Last updated: 2026-06-19T14:36:52.703Z
 
-# getArraySignalBaseObject
+# getArraySourceSignalMethodsObject
 
 Creates array mutation methods for array signals.
 
@@ -14,9 +14,9 @@ forwards the result to the caller-provided setter.
 ## Signature
 
 ```typescript
-export const getArraySignalBaseObject = <T extends any[]>(
+export const getArraySourceSignalMethodsObject = <T extends any[]>(
   valueSetter: (method: (oldValue: T) => T) => void
-): BaseArraySignal<T> => {
+): ArraySourceSignalMethodsObject<T> => {
   const mutator = (mutate: (newVal: T) => void): void =>
     valueSetter((oldValue: T) => {
       const newValue = Array.from(oldValue) as T;

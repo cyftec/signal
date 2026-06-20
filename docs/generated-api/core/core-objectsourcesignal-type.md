@@ -12,11 +12,11 @@ Source signal for plain objects with partial update method.
 
 ```typescript
 export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &
-  BaseObjectSignal<T>;
+  ObjectSourceSignalMethodsObject<T>;
 ```
 
 ## Type Parameters
 - The object type
 
 ## See Also
-- [BaseObjectSignal](./core/baseobjectsignal.md) - For object mutation methods
+- [ObjectSourceSignalMethodsObject](./core/baseobjectsignal.md) - For object mutation methods

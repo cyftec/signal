@@ -969,14 +969,14 @@
       },
       "sourcePath": "src/_core/signal/source-signal.ts"
     },
-    "core:getArraySignalBaseObject": {
-      "name": "getArraySignalBaseObject",
+    "core:getArraySourceSignalMethodsObject": {
+      "name": "getArraySourceSignalMethodsObject",
       "kind": "const",
       "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/array-signal.ts",
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export const getArraySignalBaseObject = <T extends any[]>(\n  valueSetter: (method: (oldValue: T) => T) => void\n): BaseArraySignal<T> => {\n  const mutator = (mutate: (newVal: T) => void): void =>\n    valueSetter((oldValue: T) => {\n      const newValue = Array.from(oldValue) as T;\n      mutate(newValue);\n      return newValue;\n    });\n\n  return {\n    copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) =>\n      mutator((newValue) => newValue.copyWithin(...args)),\n    fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) =>\n      mutator((newValue) => newValue.fill(...args)),\n    pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) =>\n      mutator((newValue) => newValue.pop(...args)),\n    push: (...args: Parameters<Array<T[number]>[\"push\"]>) =>\n      mutator((newValue) => newValue.push(...args)),\n    /** Removes items where the predicate returns true. */\n    remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => {\n      const predicate = args[0];\n      const negativeLogicPredicate = (\n        ...predicateArgs: Parameters<typeof predicate>\n      ) => !predicate(...predicateArgs);\n      args[0] = negativeLogicPredicate;\n      valueSetter((oldValue: T) => {\n        return oldValue.filter(...args) as T;\n      });\n    },\n    reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) =>\n      mutator((newValue) => newValue.reverse(...args)),\n    shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) =>\n      mutator((newValue) => newValue.shift(...args)),\n    sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) =>\n      mutator((newValue) => newValue.sort(...args)),\n    splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) =>\n      mutator((newValue) => newValue.splice(...args)),\n    unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) =>\n      mutator((newValue) => newValue.unshift(...args)),\n  };\n};",
+      "signature": "export const getArraySourceSignalMethodsObject = <T extends any[]>(\n  valueSetter: (method: (oldValue: T) => T) => void\n): ArraySourceSignalMethodsObject<T> => {\n  const mutator = (mutate: (newVal: T) => void): void =>\n    valueSetter((oldValue: T) => {\n      const newValue = Array.from(oldValue) as T;\n      mutate(newValue);\n      return newValue;\n    });\n\n  return {\n    copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) =>\n      mutator((newValue) => newValue.copyWithin(...args)),\n    fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) =>\n      mutator((newValue) => newValue.fill(...args)),\n    pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) =>\n      mutator((newValue) => newValue.pop(...args)),\n    push: (...args: Parameters<Array<T[number]>[\"push\"]>) =>\n      mutator((newValue) => newValue.push(...args)),\n    /** Removes items where the predicate returns true. */\n    remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => {\n      const predicate = args[0];\n      const negativeLogicPredicate = (\n        ...predicateArgs: Parameters<typeof predicate>\n      ) => !predicate(...predicateArgs);\n      args[0] = negativeLogicPredicate;\n      valueSetter((oldValue: T) => {\n        return oldValue.filter(...args) as T;\n      });\n    },\n    reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) =>\n      mutator((newValue) => newValue.reverse(...args)),\n    shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) =>\n      mutator((newValue) => newValue.shift(...args)),\n    sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) =>\n      mutator((newValue) => newValue.sort(...args)),\n    splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) =>\n      mutator((newValue) => newValue.splice(...args)),\n    unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) =>\n      mutator((newValue) => newValue.unshift(...args)),\n  };\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1031,14 +1031,14 @@
       },
       "sourcePath": "src/_core/signal/types.ts"
     },
-    "core:BaseArraySignal": {
-      "name": "BaseArraySignal",
+    "core:ArraySourceSignalMethodsObject": {
+      "name": "ArraySourceSignalMethodsObject",
       "kind": "type",
       "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export type BaseArraySignal<T extends any[]> = {\n  copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) => void;\n  fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) => void;\n  pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) => void;\n  push: (...args: Parameters<Array<T[number]>[\"push\"]>) => void;\n  /** Removes items where the predicate returns true (inverse of filter) */\n  remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => void;\n  reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) => void;\n  shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) => void;\n  sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) => void;\n  splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) => void;\n  unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) => void;\n};",
+      "signature": "export type ArraySourceSignalMethodsObject<T extends any[]> = {\n  copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) => void;\n  fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) => void;\n  pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) => void;\n  push: (...args: Parameters<Array<T[number]>[\"push\"]>) => void;\n  /** Removes items where the predicate returns true (inverse of filter) */\n  remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => void;\n  reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) => void;\n  shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) => void;\n  sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) => void;\n  splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) => void;\n  unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) => void;\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1060,14 +1060,14 @@
       },
       "sourcePath": "src/_core/signal/types.ts"
     },
-    "core:BaseObjectSignal": {
-      "name": "BaseObjectSignal",
+    "core:ObjectSourceSignalMethodsObject": {
+      "name": "ObjectSourceSignalMethodsObject",
       "kind": "type",
       "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export type BaseObjectSignal<T extends object> = {\n  /** Performs a shallow merge with the current value */\n  set: (partiallyNewObjectValue: Partial<T>) => void;\n};",
+      "signature": "export type ObjectSourceSignalMethodsObject<T extends object> = {\n  /** Performs a shallow merge with the current value */\n  set: (partiallyNewObjectValue: Partial<T>) => void;\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1096,7 +1096,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export type BaseSourceSignal<T> = {\n  /** Runtime type discriminator for source signals */\n  type: \"source-signal\";\n  /** Getter/setter for the signal's value */\n  value: T;\n};\n\n/**\n * Source signal for arrays with mutation methods.\n *\n * @template T - The array type\n *\n * @see {@link BaseArraySignal} - For array mutation methods\n */\nexport type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  BaseArraySignal<T>;\n\n/**\n * Source signal for plain objects with partial update method.\n *\n * @template T - The object type\n *\n * @see {@link BaseObjectSignal} - For object mutation methods\n */\nexport type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &\n  BaseObjectSignal<T>;\n\n/**\n * A mutable source signal created from plain JavaScript data.\n *\n * Source signals can notify dependent computations when their value changes.\n * The specific type (array, object, or primitive) determines which additional\n * methods are available.\n *\n * @template T - The type of value the signal holds\n *\n * @remarks\n * - For arrays: includes array mutation methods (push, pop, splice, etc.)\n * - For plain objects: includes `set()` method for partial updates\n * - For primitives: only the base signal interface\n *\n * @see {@link signal} - For creating source signals\n * @see {@link DerivedSignal} - For read-only derived signals\n */\nexport type SourceSignal<T> = T extends any[]\n  ? ArraySourceSignal<T>\n  : T extends object\n  ? ObjectSourceSignal<T>\n  : BaseSourceSignal<T>;",
+      "signature": "export type BaseSourceSignal<T> = {\n  /** Runtime type discriminator for source signals */\n  type: \"source-signal\";\n  /** Getter/setter for the signal's value */\n  value: T;\n};\n\n/**\n * Source signal for arrays with mutation methods.\n *\n * @template T - The array type\n *\n * @see {@link ArraySourceSignalMethodsObject} - For array mutation methods\n */\nexport type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  ArraySourceSignalMethodsObject<T>;\n\n/**\n * Source signal for plain objects with partial update method.\n *\n * @template T - The object type\n *\n * @see {@link ObjectSourceSignalMethodsObject} - For object mutation methods\n */\nexport type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &\n  ObjectSourceSignalMethodsObject<T>;\n\n/**\n * A mutable source signal created from plain JavaScript data.\n *\n * Source signals can notify dependent computations when their value changes.\n * The specific type (array, object, or primitive) determines which additional\n * methods are available.\n *\n * @template T - The type of value the signal holds\n *\n * @remarks\n * - For arrays: includes array mutation methods (push, pop, splice, etc.)\n * - For plain objects: includes `set()` method for partial updates\n * - For primitives: only the base signal interface\n *\n * @see {@link signal} - For creating source signals\n * @see {@link DerivedSignal} - For read-only derived signals\n */\nexport type SourceSignal<T> = T extends any[]\n  ? ArraySourceSignal<T>\n  : T extends object\n  ? ObjectSourceSignal<T>\n  : BaseSourceSignal<T>;",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1123,7 +1123,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  BaseArraySignal<T>;",
+      "signature": "export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  ArraySourceSignalMethodsObject<T>;",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1133,7 +1133,7 @@
         "params": [],
         "returns": [],
         "see": [
-          "[BaseArraySignal](./core/basearraysignal.md) - For array mutation methods"
+          "[ArraySourceSignalMethodsObject](./core/basearraysignal.md) - For array mutation methods"
         ],
         "template": [
           {
@@ -1152,7 +1152,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &\n  BaseObjectSignal<T>;",
+      "signature": "export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &\n  ObjectSourceSignalMethodsObject<T>;",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1162,7 +1162,7 @@
         "params": [],
         "returns": [],
         "see": [
-          "[BaseObjectSignal](./core/baseobjectsignal.md) - For object mutation methods"
+          "[ObjectSourceSignalMethodsObject](./core/baseobjectsignal.md) - For object mutation methods"
         ],
         "template": [
           {
@@ -1206,14 +1206,14 @@
       },
       "sourcePath": "src/_core/signal/types.ts"
     },
-    "core:getObjectSignalBaseObject": {
-      "name": "getObjectSignalBaseObject",
+    "core:getObjectSourceSignalMethodsObject": {
+      "name": "getObjectSourceSignalMethodsObject",
       "kind": "const",
       "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/object-signal.ts",
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export const getObjectSignalBaseObject = <T extends object>(\n  valueSetter: (method: (oldValue: T) => T) => void\n): BaseObjectSignal<T> => {\n  return {\n    set: (partiallyNewObjectValue: Partial<T>) =>\n      valueSetter((oldValue: T) => ({\n        ...oldValue,\n        ...partiallyNewObjectValue,\n      })),\n  };\n};",
+      "signature": "export const getObjectSourceSignalMethodsObject = <T extends object>(\n  valueSetter: (method: (oldValue: T) => T) => void\n): ObjectSourceSignalMethodsObject<T> => {\n  return {\n    set: (partiallyNewObjectValue: Partial<T>) =>\n      valueSetter((oldValue: T) => ({\n        ...oldValue,\n        ...partiallyNewObjectValue,\n      })),\n  };\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -2238,15 +2238,15 @@
         "getNonSignalObject",
         "setCurrentEffect",
         "signal",
-        "getArraySignalBaseObject",
+        "getArraySourceSignalMethodsObject",
         "SignalsEffect",
-        "BaseArraySignal",
-        "BaseObjectSignal",
+        "ArraySourceSignalMethodsObject",
+        "ObjectSourceSignalMethodsObject",
         "BaseSourceSignal",
         "ArraySourceSignal",
         "ObjectSourceSignal",
         "SourceSignal",
-        "getObjectSignalBaseObject"
+        "getObjectSourceSignalMethodsObject"
       ]
     },
     "api": {
