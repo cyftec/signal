@@ -1,3 +1,5 @@
+import type { DerivedSignal } from "../derive";
+
 /**
  * A function that can be registered to run when signal values change.
  *
@@ -22,43 +24,79 @@ export type SignalsEffect = {
 };
 
 /**
- * Array mutation methods for array signals.
+ * Array mutation and non-mutating methods for array signals.
  *
- * These methods provide mutating-style APIs that internally create new
- * immutable arrays and trigger effects.
+ * These methods provide both mutating-style APIs that internally create new
+ * immutable arrays and trigger effects, and non-mutating methods that return
+ * derived signals.
  *
  * @template T - The array type
  *
  * @remarks
  * - The `remove()` method is a custom method (inverse of filter)
- * - All methods trigger effects synchronously
+ * - Mutating methods trigger effects synchronously
+ * - Non-mutating methods return derived signals
  * - Methods create new arrays internally but feel mutable
  */
 export type BaseArraySignal<T extends any[]> = {
+  // Mutating methods
   copyWithin: (...args: Parameters<Array<T[number]>["copyWithin"]>) => void;
   fill: (...args: Parameters<Array<T[number]>["fill"]>) => void;
+  /** Keeps items where the predicate returns true */
+  keep: (...args: Parameters<Array<T[number]>["filter"]>) => void;
   pop: (...args: Parameters<Array<T[number]>["pop"]>) => void;
   push: (...args: Parameters<Array<T[number]>["push"]>) => void;
-  /** Removes items where the predicate returns true (inverse of filter) */
+  /** Removes items where the predicate returns true*/
   remove: (...args: Parameters<Array<T[number]>["filter"]>) => void;
   reverse: (...args: Parameters<Array<T[number]>["reverse"]>) => void;
   shift: (...args: Parameters<Array<T[number]>["shift"]>) => void;
   sort: (...args: Parameters<Array<T[number]>["sort"]>) => void;
   splice: (...args: Parameters<Array<T[number]>["splice"]>) => void;
   unshift: (...args: Parameters<Array<T[number]>["unshift"]>) => void;
+
+  // Non-mutating methods returning derived signals
+  at: (...args: Parameters<Array<T[number]>["at"]>) => DerivedSignal<ReturnType<Array<T[number]>["at"]>>;
+  concat: (...args: Parameters<Array<T[number]>["concat"]>) => DerivedSignal<ReturnType<Array<T[number]>["concat"]>>;
+  every: (...args: Parameters<Array<T[number]>["every"]>) => DerivedSignal<ReturnType<Array<T[number]>["every"]>>;
+  filter: (...args: Parameters<Array<T[number]>["filter"]>) => DerivedSignal<ReturnType<Array<T[number]>["filter"]>>;
+  find: (...args: Parameters<Array<T[number]>["find"]>) => DerivedSignal<ReturnType<Array<T[number]>["find"]>>;
+  findIndex: (...args: Parameters<Array<T[number]>["findIndex"]>) => DerivedSignal<ReturnType<Array<T[number]>["findIndex"]>>;
+  findLast: (...args: Parameters<Array<T[number]>["findLast"]>) => DerivedSignal<ReturnType<Array<T[number]>["findLast"]>>;
+  findLastIndex: (...args: Parameters<Array<T[number]>["findLastIndex"]>) => DerivedSignal<ReturnType<Array<T[number]>["findLastIndex"]>>;
+  /** Last item of the array. */
+  get lastItem(): DerivedSignal<T[number] | undefined>;
+  /** Array length. */
+  get length(): DerivedSignal<number>;
+  map:  (...args: Parameters<Array<T[number]>["map"]>) => DerivedSignal<ReturnType<Array<T[number]>["map"]>>;
+  /** Custom method that splits the array into `[passing, failing]` based on a predicate. */
+  partition: (...args: Parameters<Array<T[number]>["filter"]>) => readonly [DerivedSignal<T>, DerivedSignal<T>];
+  reduce:  (...args: Parameters<Array<T[number]>["reduce"]>) => DerivedSignal<ReturnType<Array<T[number]>["reduce"]>>; 
+  reduceRight:  (...args: Parameters<Array<T[number]>["reduceRight"]>) => DerivedSignal<ReturnType<Array<T[number]>["reduceRight"]>>; 
+  some:  (...args: Parameters<Array<T[number]>["some"]>) => DerivedSignal<ReturnType<Array<T[number]>["some"]>>;
+  toReversed: (...args: Parameters<Array<T[number]>["toReversed"]>) => DerivedSignal<ReturnType<Array<T[number]>["toReversed"]>>;
+  toSorted: (...args: Parameters<Array<T[number]>["toSorted"]>) => DerivedSignal<ReturnType<Array<T[number]>["toSorted"]>>;
+  toSpliced: (...args: Parameters<Array<T[number]>["toSpliced"]>) => DerivedSignal<ReturnType<Array<T[number]>["toSpliced"]>>;
 };
 
 /**
- * Object mutation methods for object signals.
+ * Object mutation and non-mutating methods for object signals.
  *
  * @template T - The object type
  *
  * @remarks
  * - The `set()` method performs a shallow merge with the current value
+ * - Non-mutating methods return derived signals
  */
 export type BaseObjectSignal<T extends object> = {
   /** Performs a shallow merge with the current value */
   set: (partiallyNewObjectValue: Partial<T>) => void;
+
+  /** Returns a derived signal for a specific property. */
+  get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
+  /** Returns an object with all properties as derived signals. */
+  get props(): { [key in keyof T]: DerivedSignal<T[key]> };
+  /** Returns the object's keys as a derived signal. */
+  get keys(): DerivedSignal<string[]>;
 };
 
 /**

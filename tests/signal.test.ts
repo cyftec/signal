@@ -72,7 +72,7 @@ describe("signal - object values", () => {
     expect(obj.value).toEqual({ name: "test", count: 0 });
   });
 
-  it("should have set method for partial updates", () => {
+  it("should have 'set' method for partial updates", () => {
     const obj = signal({ name: "test", count: 0 });
     obj.set({ count: 5 });
     expect(obj.value).toEqual({ name: "test", count: 5 });
@@ -95,6 +95,37 @@ describe("signal - object values", () => {
     const obj = signal({});
     expect(obj.value).toEqual({});
   });
+
+  // Non-mutating methods returning derived signals
+  it("should have 'get' method returning derived signal for the accessed property", () => {
+    const obj = signal({ name: "test", count: 0 });
+    const name = obj.get("name");
+    expect(name.value).toBe("test");
+    obj.set({ name: "updated" });
+    expect(name.value).toBe("updated");
+  });
+
+  it("should have 'props' getter returning all properties as derived signals", () => {
+    const obj = signal({ name: "test", count: 0 });
+    const props = obj.props;
+    expect(props.name.value).toBe("test");
+    expect(props.count.value).toBe(0);
+    obj.set({ name: "updated", count: 5 });
+    expect(props.name.value).toBe("updated");
+    expect(props.count.value).toBe(5);
+  });
+
+  it("should have 'keys' getter returning derived signal", () => {
+    const obj = signal({ name: "test", count: 0 } as {
+      name: string;
+      count: number;
+      active?: boolean;
+    });
+    const keys = obj.keys;
+    expect(keys.value).toEqual(["name", "count"]);
+    obj.set({ name: "test", count: 0, active: true });
+    expect(keys.value).toEqual(["name", "count", "active"]);
+  });
 });
 
 describe("signal - array values", () => {
@@ -103,61 +134,67 @@ describe("signal - array values", () => {
     expect(arr.value).toEqual([1, 2, 3]);
   });
 
-  it("should have push method", () => {
+  it("should have 'push' method", () => {
     const arr = signal([1, 2, 3]);
     arr.push(4);
     expect(arr.value).toEqual([1, 2, 3, 4]);
   });
 
-  it("should have pop method", () => {
+  it("should have 'pop' method", () => {
     const arr = signal([1, 2, 3]);
     arr.pop();
     expect(arr.value).toEqual([1, 2]);
   });
 
-  it("should have shift method", () => {
+  it("should have 'shift' method", () => {
     const arr = signal([1, 2, 3]);
     arr.shift();
     expect(arr.value).toEqual([2, 3]);
   });
 
-  it("should have unshift method", () => {
+  it("should have 'unshift' method", () => {
     const arr = signal([1, 2, 3]);
     arr.unshift(0);
     expect(arr.value).toEqual([0, 1, 2, 3]);
   });
 
-  it("should have splice method", () => {
+  it("should have 'splice' method", () => {
     const arr = signal([1, 2, 3, 4]);
     arr.splice(1, 2);
     expect(arr.value).toEqual([1, 4]);
   });
 
-  it("should have reverse method", () => {
+  it("should have 'reverse' method", () => {
     const arr = signal([1, 2, 3]);
     arr.reverse();
     expect(arr.value).toEqual([3, 2, 1]);
   });
 
-  it("should have sort method", () => {
+  it("should have 'sort' method", () => {
     const arr = signal([3, 1, 2]);
     arr.sort();
     expect(arr.value).toEqual([1, 2, 3]);
   });
 
-  it("should have fill method", () => {
+  it("should have 'fill' method", () => {
     const arr = signal([1, 2, 3]);
     arr.fill(0);
     expect(arr.value).toEqual([0, 0, 0]);
   });
 
-  it("should have copyWithin method", () => {
+  it("should have 'copyWithin' method", () => {
     const arr = signal([1, 2, 3, 4]);
     arr.copyWithin(0, 2);
     expect(arr.value).toEqual([3, 4, 3, 4]);
   });
 
-  it("should have remove method (inverse of filter)", () => {
+  it("should have 'keep' method to keep items matching a condition", () => {
+    const arr = signal([1, 2, 3, 4, 5]);
+    arr.keep((item) => item % 2 === 0);
+    expect(arr.value).toEqual([2, 4]);
+  });
+
+  it("should have 'remove' method to remove items matching a condition", () => {
     const arr = signal([1, 2, 3, 4, 5]);
     arr.remove((item) => item % 2 === 0);
     expect(arr.value).toEqual([1, 3, 5]);
@@ -179,6 +216,156 @@ describe("signal - array values", () => {
   it("should handle empty array", () => {
     const arr = signal([]);
     expect(arr.value).toEqual([]);
+  });
+
+  // Non-mutating methods returning derived signals
+  it("should have 'at' method returning derived signal", () => {
+    const arr = signal([1, 2, 3]);
+    const item = arr.at(1);
+    expect(item.value).toBe(2);
+    arr.push(4);
+    expect(item.value).toBe(2); // Derived signal doesn't change
+  });
+
+  it("should have 'concat' method returning derived signal", () => {
+    const arr = signal([1, 2, 3]);
+    const concatenated = arr.concat([4, 5]);
+    expect(concatenated.value).toEqual([1, 2, 3, 4, 5]);
+    arr.push(4);
+    expect(concatenated.value).toEqual([1, 2, 3, 4, 4, 5]); // Derived signal updates
+  });
+
+  it("should have 'every' method returning derived signal", () => {
+    const arr = signal([2, 4, 6]);
+    const allEven = arr.every((item) => item % 2 === 0);
+    expect(allEven.value).toBe(true);
+    arr.push(7);
+    expect(allEven.value).toBe(false);
+  });
+
+  it("should have 'filter' method returning derived signal", () => {
+    const arr = signal([1, 2, 3, 4, 5]);
+    const evens = arr.filter((item) => item % 2 === 0);
+    expect(evens.value).toEqual([2, 4]);
+    arr.push(6);
+    expect(evens.value).toEqual([2, 4, 6]);
+  });
+
+  it("should have 'find' method returning derived signal", () => {
+    const arr = signal([1, 2, 3, 4, 5]);
+    const found = arr.find((item) => item > 5);
+    expect(found.value).toBeUndefined();
+    arr.push(6);
+    expect(found.value).toBe(6);
+  });
+
+  it("should have 'findIndex' method returning derived signal", () => {
+    const arr = signal([1, 2, 3, 4, 5]);
+    const index = arr.findIndex((item) => item % 2 === 0 && item < 1);
+    expect(index.value).toBe(-1);
+    arr.unshift(0);
+    expect(index.value).toBe(0);
+  });
+
+  it("should have 'findLast' method returning derived signal", () => {
+    const arr = signal([1, 2, 3, 4, 5]);
+    const found = arr.findLast((item) => item % 2 === 0);
+    expect(found.value).toBe(4);
+    arr.push(6);
+    expect(found.value).toBe(6);
+  });
+
+  it("should have 'findLastIndex' method returning derived signal", () => {
+    const arr = signal([1, 2, 3, 4, 5]);
+    const index = arr.findLastIndex((item) => item % 2 === 0);
+    expect(index.value).toBe(3);
+    arr.push(6);
+    expect(index.value).toBe(5);
+  });
+
+  it("should have 'lastItem' getter returning derived signal", () => {
+    const arr = signal([1, 2, 3]);
+    const last = arr.lastItem;
+    expect(last.value).toBe(3);
+    arr.push(4);
+    expect(last.value).toBe(4);
+  });
+
+  it("should have 'length' getter returning derived signal", () => {
+    const arr = signal([1, 2, 3]);
+    const len = arr.length;
+    expect(len.value).toBe(3);
+    arr.push(4);
+    expect(len.value).toBe(4);
+  });
+
+  it("should have 'map' method returning derived signal", () => {
+    const arr = signal([1, 2, 3]);
+    const doubled = arr.map((item) => item * 2);
+    expect(doubled.value).toEqual([2, 4, 6]);
+    arr.push(4);
+    expect(doubled.value).toEqual([2, 4, 6, 8]);
+  });
+
+  it("should have 'partition' method returning derived signals", () => {
+    const arr = signal([1, 2, 3, 4, 5]);
+    const [evens, odds] = arr.partition((item) => item % 2 === 0);
+    expect(evens.value).toEqual([2, 4]);
+    expect(odds.value).toEqual([1, 3, 5]);
+    arr.push(6);
+    expect(evens.value).toEqual([2, 4, 6]);
+    expect(odds.value).toEqual([1, 3, 5]);
+    arr.push(7);
+    expect(evens.value).toEqual([2, 4, 6]);
+    expect(odds.value).toEqual([1, 3, 5, 7]);
+  });
+
+  it("should have 'reduce' method returning derived signal", () => {
+    const arr = signal([1, 2, 3, 4]);
+    const sum = arr.reduce((acc, item) => acc as number + item, 0);
+    expect(sum.value).toBe(10);
+    arr.push(5);
+    expect(sum.value).toBe(15);
+    arr.pop();
+    expect(sum.value).toBe(10);
+    arr.shift();
+    expect(sum.value).toBe(9);
+  });
+
+  it("should have 'reduceRight' method returning derived signal", () => {
+    const arr = signal([1, 2, 3]);
+    const result = arr.reduceRight((acc, item) => acc as string + item, "");
+    expect(result.value).toBe("321");
+  });
+
+  it("should have 'some' method returning derived signal", () => {
+    const arr = signal([1, 2, 3]);
+    const haveNumGreaterThan3 = arr.some((item) => item > 3);
+    expect(haveNumGreaterThan3.value).toBe(false);
+    arr.push(4);
+    expect(haveNumGreaterThan3.value).toBe(true);
+  });
+
+  it("should have 'toReversed' method returning derived signal", () => {
+    const array = signal([1, 2, 3]);
+    const yarra = array.toReversed();
+    expect(yarra.value).toEqual([3, 2, 1]);
+    array.push(4);
+    expect(yarra.value).toEqual([4, 3, 2, 1]);
+  });
+
+  it("should have 'toSorted' method returning derived signal", () => {
+    const arr = signal([3, 1, 2]);
+    const sorted = arr.toSorted();
+    expect(sorted.value).toEqual([1, 2, 3]);
+    expect(arr.value).toEqual([3, 1, 2]); // Original unchanged
+  });
+
+  it("should have 'toSpliced' method returning derived signal", () => {
+    const arr = signal([1, 2, 3, 4]);
+    const spliced = arr.toSpliced(1, 2);
+    expect(spliced.value).toEqual([1, 4]);
+    expect(arr.value).toEqual([1, 2, 3, 4]); // Original unchanged
   });
 });
 

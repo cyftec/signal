@@ -1,4 +1,6 @@
-import { BaseArraySignal } from "./types";
+import { derive } from "../derive";
+import { newVal } from "@cyftech/immutjs";
+import { BaseArraySignal, BaseSourceSignal } from "./types";
 
 /**
  * Creates array mutation methods for array signals.
@@ -8,15 +10,18 @@ import { BaseArraySignal } from "./types";
  *
  * @template T - The array type
  * @param valueSetter - Updates the signal value and triggers effects
- * @returns Array mutation methods for the signal value
+ * @param baseArraySignal - The original base array signal object for accessing .value in derived methods
+ * @returns Array signal with methods for either mutating the signal or getting derived signals
  *
  * @remarks
- * - Methods create new arrays internally but expose a mutable-style API
+ * - Mutating methods create new arrays internally but expose a mutable-style API
  * - The `remove()` method deletes matching items rather than keeping them
+ * - Non-mutating methods return derived signals
  * - `Array.from()` is used to create a shallow copy before mutation
  */
 export const getArraySignalBaseObject = <T extends any[]>(
-  valueSetter: (method: (oldValue: T) => T) => void
+  valueSetter: (method: (oldValue: T) => T) => void,
+  baseArraySignal: BaseSourceSignal<T>,
 ): BaseArraySignal<T> => {
   const mutator = (mutate: (newVal: T) => void): void =>
     valueSetter((oldValue: T) => {
@@ -26,10 +31,15 @@ export const getArraySignalBaseObject = <T extends any[]>(
     });
 
   return {
+    // Mutating methods
     copyWithin: (...args: Parameters<Array<T[number]>["copyWithin"]>) =>
       mutator((newValue) => newValue.copyWithin(...args)),
     fill: (...args: Parameters<Array<T[number]>["fill"]>) =>
       mutator((newValue) => newValue.fill(...args)),
+    keep: (...args: Parameters<Array<T[number]>["filter"]>) =>
+      valueSetter((oldValue: T) => {
+        return oldValue.filter(...args) as T;
+      }),
     pop: (...args: Parameters<Array<T[number]>["pop"]>) =>
       mutator((newValue) => newValue.pop(...args)),
     push: (...args: Parameters<Array<T[number]>["push"]>) =>
@@ -55,5 +65,59 @@ export const getArraySignalBaseObject = <T extends any[]>(
       mutator((newValue) => newValue.splice(...args)),
     unshift: (...args: Parameters<Array<T[number]>["unshift"]>) =>
       mutator((newValue) => newValue.unshift(...args)),
+
+    // Non-mutating methods returning derived signals
+    at: (...args: Parameters<Array<T[number]>["at"]>) =>
+      derive(() => baseArraySignal.value.at(...args)),
+    concat: (...args: Parameters<Array<T[number]>["concat"]>) =>
+      derive(() => baseArraySignal.value.concat(...args)),
+    every: (...args: Parameters<Array<T[number]>["every"]>) =>
+      derive(() => baseArraySignal.value.every(...args)),
+    filter: (...args: Parameters<Array<T[number]>["filter"]>) =>
+      derive(() => baseArraySignal.value.filter(...args)),
+    find: (...args: Parameters<Array<T[number]>["find"]>) =>
+      derive(() => baseArraySignal.value.find(...args)),
+    findIndex: (...args: Parameters<Array<T[number]>["findIndex"]>) =>
+      derive(() => baseArraySignal.value.findIndex(...args)),
+    findLast: (...args: Parameters<Array<T[number]>["findLast"]>) =>
+      derive(() => baseArraySignal.value.findLast(...args)),
+    findLastIndex: (...args: Parameters<Array<T[number]>["findLastIndex"]>) =>
+      derive(() => baseArraySignal.value.findLastIndex(...args)),
+    get lastItem() {
+      return derive(() => {
+        const updatedArr = newVal(baseArraySignal.value);
+        const returnVal = updatedArr.pop();
+        return returnVal;
+      });
+    },
+    get length() {
+      return derive(() => baseArraySignal.value.length);
+    },
+    map: (...args: Parameters<Array<T[number]>["map"]>) =>
+      derive(() => baseArraySignal.value.map(...args)),
+    partition: (...args: Parameters<Array<T[number]>["filter"]>) => {
+      const conditionPassArray = derive(
+        () => baseArraySignal.value.filter(...args) as T,
+      );
+      const conditionFailArray = derive(
+        () =>
+          baseArraySignal.value.filter(
+            (item, index, array) => !args[0](item, index, array),
+          ) as T,
+      );
+      return [conditionPassArray, conditionFailArray];
+    },
+    reduce: (...args: Parameters<Array<T[number]>["reduce"]>) =>
+      derive(() => baseArraySignal.value.reduce(...args)),
+    reduceRight: (...args: Parameters<Array<T[number]>["reduceRight"]>) =>
+      derive(() => baseArraySignal.value.reduceRight(...args)),
+    some: (...args: Parameters<Array<T[number]>["some"]>) =>
+      derive(() => baseArraySignal.value.some(...args)),
+    toReversed: (...args: Parameters<Array<T[number]>["toReversed"]>) =>
+      derive(() => baseArraySignal.value.toReversed(...args)),
+    toSorted: (...args: Parameters<Array<T[number]>["toSorted"]>) =>
+      derive(() => baseArraySignal.value.toSorted(...args)),
+    toSpliced: (...args: Parameters<Array<T[number]>["toSpliced"]>) =>
+      derive(() => baseArraySignal.value.toSpliced(...args)),
   };
 };

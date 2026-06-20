@@ -104,7 +104,7 @@ export const signal = <T>(input: T): SourceSignal<T> => {
     runEffects();
   };
 
-  const baseObject: BaseSourceSignal<T> = {
+  const baseSignalObject: BaseSourceSignal<T> = {
     type: "source-signal",
     get value() {
       // Automatic dependency tracking: if an effect is currently executing,
@@ -124,8 +124,8 @@ export const signal = <T>(input: T): SourceSignal<T> => {
 
   /**
    * Type-specific signal creation:
-   * - Arrays get array mutation methods
-   * - Plain objects get the `set()` method for partial updates
+   * - Arrays get array mutation methods and non-mutating derived signal methods
+   * - Plain objects get the `set()` method for partial updates and non-mutating derived signal methods
    * - Primitives get only the base signal interface
    *
    * The type-specific methods use setValueAndRunEffects to ensure
@@ -134,18 +134,20 @@ export const signal = <T>(input: T): SourceSignal<T> => {
   return (
     Array.isArray(input)
       ? Object.assign(
-          baseObject,
-          getArraySignalBaseObject((method) =>
-            setValueAndRunEffects(method(_value as unknown[]) as T),
+          baseSignalObject,
+          getArraySignalBaseObject(
+            (method) => setValueAndRunEffects(method(_value as unknown[]) as T),
+            baseSignalObject as BaseSourceSignal<any[]>,
           ),
         )
       : typeof input === "object" && input !== null
         ? Object.assign(
-            baseObject,
-            getObjectSignalBaseObject((method) =>
-              setValueAndRunEffects(method(_value as unknown[]) as T),
+            baseSignalObject,
+            getObjectSignalBaseObject(
+              (method) => setValueAndRunEffects(method(_value as object) as T),
+              baseSignalObject as BaseSourceSignal<object>,
             ),
           )
-        : baseObject
+        : baseSignalObject
   ) as SourceSignal<typeof input>;
 };
