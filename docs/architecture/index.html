@@ -1,49 +1,189 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Architecture | API Docs</title>
-  <link rel="stylesheet" href="../assets/docs.css" />
-</head>
-<body>
-  <div class="app-shell content-layout">
-    <aside class="sidebar content-shell">
-      <div class="brand">
-        <div class="brand-kicker">Cyftech Signal</div>
-        <div class="brand-title">API Docs</div>
-      </div>
-      <div class="content-nav"><a href="../">Home</a><a href="../api-docs/">API Docs</a><a href="../tutorial/">Tutorial</a><a href="../architecture/">Architecture</a></div>
-    </aside>
-    <main class="main">
-      <nav class="content-top-nav"><a href="../">Home</a><a href="../api-docs/">API Docs</a><a href="../tutorial/">Tutorial</a><a href="../architecture/">Architecture</a></nav>
-      <article class="doc">
-        <header class="hero"><div class="eyebrow">Architecture</div><h1>Architecture</h1><p>Understand the internal architecture visually.</p></header><h2 id="1-core-runtime">1. Core Runtime</h2>
-<div class="diagram-block"><div class="diagram-title">Core Runtime</div><div class="diagram-svg"><div class="diagram-node"><span>signal(input)</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>immutable value storage</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>value getter</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>register current effect</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>value setter / mutation</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>run dependent effects synchronously</span></div></div></div>
-<p>The core runtime is small on purpose:</p>
-<ul><li><code>signal()</code> creates mutable source state</li><li>reading <code>.value</code> adds the current effect to the signal</li><li>writing <code>.value</code> or mutating arrays/objects triggers dependent effects immediately</li></ul>
-<h2 id="2-dependency-tracking">2. Dependency Tracking</h2>
-<div class="diagram-block"><div class="diagram-title">Dependency Tracking</div><div class="diagram-svg"><div class="diagram-node"><span>effect(fn)</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>_currentSignalEffect</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>signal.value getter</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>signal._effects</span></div></div></div>
-<p>Tracking is global and temporary:</p>
-<ul><li><code>effect()</code> sets a module-level current effect before executing the callback</li><li>each signal getter registers that effect in the signal&#39;s local <code>_effects</code> set</li><li>when execution ends, the current effect is cleared</li></ul>
-<h2 id="3-derived-signal-model">3. Derived Signal Model</h2>
-<div class="diagram-block"><div class="diagram-title">Derived Signal Model</div><div class="diagram-svg"><div class="diagram-node"><span>derive(fn)</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>internal derived source signal</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>internal updater effect</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>computed value</span></div></div></div>
-<p>Derived signals are not a separate storage engine:</p>
-<ul><li>they are implemented using an internal source signal</li><li>an internal effect recomputes the value</li><li>the public derived signal exposes read-only <code>.value</code>, <code>prevValue</code>, and <code>dispose()</code></li></ul>
-<h2 id="4-disposal">4. Disposal</h2>
-<div class="diagram-block"><div class="diagram-title">Disposal</div><div class="diagram-svg"><div class="diagram-node"><span>dispose() called</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>canDisposeNow = true</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>cleanup on next signal update</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>removed from signal._effects</span></div></div></div>
-<p>Disposal is intentionally lazy:</p>
-<ul><li>calling <code>dispose()</code> marks the effect</li><li>the effect is removed on the next update cycle</li><li>this keeps disposal simple and synchronous with the rest of the runtime</li></ul>
-<h2 id="5-data-flow">5. Data Flow</h2>
-<div class="diagram-block"><div class="diagram-title">Data Flow</div><div class="diagram-svg"><div class="diagram-node"><span>source signal</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>derived signal</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>effect</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>side effects</span></div></div></div>
-<p>The actual data flow is: 1. a source signal stores state 2. derived signals read source signals and recompute immediately 3. effects observe signals by reading <code>.value</code> 4. updates propagate synchronously through the dependency set</p>
-<h2 id="6-internal-state">6. Internal State</h2>
-<ul><li>Source signals store <code>_value</code> and <code>_effects</code></li><li>Effects store <code>canDisposeNow</code> and <code>dispose()</code></li><li>Derived signals store an internal source signal plus an updater effect</li><li>Array and object signals add shape-specific helpers on top of the same source signal core</li></ul>
-<h2 id="7-why-this-design">7. Why This Design</h2>
-<ul><li>It keeps the runtime small and explicit</li><li>It avoids hidden batching or deferred execution</li><li>It matches the repository&#39;s semantics and behavioral tests exactly</li><li>It makes the signal graph easy to reason about because every dependency comes from an actual getter read</li></ul>
-      </article>
-    </main>
-  </div>
-  
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture | API Docs</title>
+    <link rel="stylesheet" href="../assets/docs.css" />
+  </head>
+  <body>
+    <div class="app-shell content-layout">
+      <aside class="sidebar content-shell">
+        <div class="brand">
+          <div class="brand-kicker">Cyftech Signal</div>
+          <div class="brand-title">API Docs</div>
+        </div>
+        <div class="content-nav"
+          ><a href="../">Home</a><a href="../api-docs/">API Docs</a
+          ><a href="../tutorial/">Tutorial</a
+          ><a href="../architecture/">Architecture</a></div
+        >
+      </aside>
+      <main class="main">
+        <nav class="content-top-nav">
+          <a href="/">Home</a>
+          <a href="/api-docs/">API Docs</a>
+          <a href="/tutorial/">Tutorial</a>
+          <a href="/architecture/">Architecture</a>
+        </nav>
+        <article class="doc">
+          <header class="hero"
+            ><div class="eyebrow">Architecture</div><h1>Architecture</h1
+            ><p>Understand the internal architecture visually.</p></header
+          ><h2 id="1-core-runtime">1. Core Runtime</h2>
+          <div class="diagram-block"
+            ><div class="diagram-title">Core Runtime</div
+            ><div class="diagram-svg"
+              ><div class="diagram-node"><span>signal(input)</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"
+                ><span>immutable value storage</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"><span>value getter</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"
+                ><span>register current effect</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"
+                ><span>value setter / mutation</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"
+                ><span>run dependent effects synchronously</span></div
+              ></div
+            ></div
+          >
+          <p>The core runtime is small on purpose:</p>
+          <ul
+            ><li><code>signal()</code> creates mutable source state</li
+            ><li
+              >reading <code>.value</code> adds the current effect to the
+              signal</li
+            ><li
+              >writing <code>.value</code> or mutating arrays/objects triggers
+              dependent effects immediately</li
+            ></ul
+          >
+          <h2 id="2-dependency-tracking">2. Dependency Tracking</h2>
+          <div class="diagram-block"
+            ><div class="diagram-title">Dependency Tracking</div
+            ><div class="diagram-svg"
+              ><div class="diagram-node"><span>effect(fn)</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"><span>_currentSignalEffect</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"><span>signal.value getter</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"><span>signal._effects</span></div></div
+            ></div
+          >
+          <p>Tracking is global and temporary:</p>
+          <ul
+            ><li
+              ><code>effect()</code> sets a module-level current effect before
+              executing the callback</li
+            ><li
+              >each signal getter registers that effect in the signal&#39;s
+              local <code>_effects</code> set</li
+            ><li>when execution ends, the current effect is cleared</li></ul
+          >
+          <h2 id="3-derived-signal-model">3. Derived Signal Model</h2>
+          <div class="diagram-block"
+            ><div class="diagram-title">Derived Signal Model</div
+            ><div class="diagram-svg"
+              ><div class="diagram-node"><span>derive(fn)</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"
+                ><span>internal derived source signal</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"
+                ><span>internal updater effect</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"><span>computed value</span></div></div
+            ></div
+          >
+          <p>Derived signals are not a separate storage engine:</p>
+          <ul
+            ><li>they are implemented using an internal source signal</li
+            ><li>an internal effect recomputes the value</li
+            ><li
+              >the public derived signal exposes read-only <code>.value</code>,
+              <code>prevValue</code>, and <code>dispose()</code></li
+            ></ul
+          >
+          <h2 id="4-disposal">4. Disposal</h2>
+          <div class="diagram-block"
+            ><div class="diagram-title">Disposal</div
+            ><div class="diagram-svg"
+              ><div class="diagram-node"><span>dispose() called</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"><span>canDisposeNow = true</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"
+                ><span>cleanup on next signal update</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"
+                ><span>removed from signal._effects</span></div
+              ></div
+            ></div
+          >
+          <p>Disposal is intentionally lazy:</p>
+          <ul
+            ><li>calling <code>dispose()</code> marks the effect</li
+            ><li>the effect is removed on the next update cycle</li
+            ><li
+              >this keeps disposal simple and synchronous with the rest of the
+              runtime</li
+            ></ul
+          >
+          <h2 id="5-data-flow">5. Data Flow</h2>
+          <div class="diagram-block"
+            ><div class="diagram-title">Data Flow</div
+            ><div class="diagram-svg"
+              ><div class="diagram-node"><span>source signal</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"><span>derived signal</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"><span>effect</span></div
+              ><div class="diagram-arrow">→</div
+              ><div class="diagram-node"><span>side effects</span></div></div
+            ></div
+          >
+          <p
+            >The actual data flow is: 1. a source signal stores state 2. derived
+            signals read source signals and recompute immediately 3. effects
+            observe signals by reading <code>.value</code> 4. updates propagate
+            synchronously through the dependency set</p
+          >
+          <h2 id="6-internal-state">6. Internal State</h2>
+          <ul
+            ><li
+              >Source signals store <code>_value</code> and
+              <code>_effects</code></li
+            ><li
+              >Effects store <code>canDisposeNow</code> and
+              <code>dispose()</code></li
+            ><li
+              >Derived signals store an internal source signal plus an updater
+              effect</li
+            ><li
+              >Array and object signals add shape-specific helpers on top of the
+              same source signal core</li
+            ></ul
+          >
+          <h2 id="7-why-this-design">7. Why This Design</h2>
+          <ul
+            ><li>It keeps the runtime small and explicit</li
+            ><li>It avoids hidden batching or deferred execution</li
+            ><li
+              >It matches the repository&#39;s semantics and behavioral tests
+              exactly</li
+            ><li
+              >It makes the signal graph easy to reason about because every
+              dependency comes from an actual getter read</li
+            ></ul
+          >
+        </article>
+      </main>
+    </div>
+  </body>
 </html>
