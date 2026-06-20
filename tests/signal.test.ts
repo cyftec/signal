@@ -105,14 +105,14 @@ describe("signal - object values", () => {
     expect(name.value).toBe("updated");
   });
 
-  it("should have 'props' getter returning all properties as derived signals", () => {
+  it("should have 'withLiveProps' getter returning all properties as derived signals", () => {
     const obj = signal({ name: "test", count: 0 });
-    const props = obj.props;
-    expect(props.name.value).toBe("test");
-    expect(props.count.value).toBe(0);
+    const withLiveProps = obj.withLiveProps;
+    expect(withLiveProps.name.value).toBe("test");
+    expect(withLiveProps.count.value).toBe(0);
     obj.set({ name: "updated", count: 5 });
-    expect(props.name.value).toBe("updated");
-    expect(props.count.value).toBe(5);
+    expect(withLiveProps.name.value).toBe("updated");
+    expect(withLiveProps.count.value).toBe(5);
   });
 
   it("should have 'keys' getter returning derived signal", () => {
@@ -604,6 +604,81 @@ describe("derive", () => {
     count.value = 10;
 
     expect(derivedValuesHistory).toEqual([undefined, 0, 10]);
+  });
+});
+
+describe("derive - array signals", () => {
+  it("should have 'map' method on derived array signal", () => {
+    const arr = signal([1, 2, 3]);
+    const doubled = arr.map((item) => item * 2);
+    expect(doubled.value).toEqual([2, 4, 6]);
+    const quadrupled = doubled.map((item) => item * 2);
+    expect(quadrupled.value).toEqual([4, 8, 12]);
+    arr.push(4);
+    expect(doubled.value).toEqual([2, 4, 6, 8]);
+    expect(quadrupled.value).toEqual([4, 8, 12, 16]);
+  });
+
+  it("should have 'filter' method on derived array signal", () => {
+    const arr = signal([1, 2, 3, 4, 5]);
+    const derived = arr.map((item) => item + 1);
+    const odds = derived.filter((item) => item % 2 !== 0);
+    expect(odds.value).toEqual([3, 5]);
+    arr.push(6);
+    expect(odds.value).toEqual([3, 5, 7]);
+  });
+
+  it("should have 'length' getter on derived array signal", () => {
+    const arr = signal([1, 2, 3]);
+    const derived = derive(() => arr.value);
+    const len = derived.length;
+    expect(len.value).toBe(3);
+    arr.push(4);
+    expect(len.value).toBe(4);
+  });
+
+  it("should have 'find' method on derived array signal", () => {
+    const arr = signal([1, 2, 3, 4, 5]);
+    const derived = derive(() => arr.value);
+    const found = derived.find((item) => item > 5);
+    expect(found.value).toBeUndefined();
+    arr.push(6);
+    expect(found.value).toBe(6);
+  });
+});
+
+describe("derive - object signals", () => {
+  it("should have 'get' method on derived object signal", () => {
+    const obj = signal({ name: "test", count: 0 });
+    const derived = derive(() => obj.value);
+    const name = derived.get("name");
+    expect(name.value).toBe("test");
+    obj.set({ name: "updated" });
+    expect(name.value).toBe("updated");
+  });
+
+  it("should have 'withLiveProps' getter on derived object signal", () => {
+    const obj = signal({ name: "test", count: 0 });
+    const derived = derive(() => obj.value);
+    const withLiveProps = derived.withLiveProps;
+    expect(withLiveProps.name.value).toBe("test");
+    expect(withLiveProps.count.value).toBe(0);
+    obj.set({ name: "updated", count: 5 });
+    expect(withLiveProps.name.value).toBe("updated");
+    expect(withLiveProps.count.value).toBe(5);
+  });
+
+  it("should have 'keys' getter on derived object signal", () => {
+    const obj = signal({ name: "test", count: 0 } as {
+      name: string;
+      count: number;
+      active?: boolean;
+    });
+    const derived = derive(() => obj.value);
+    const keys = derived.keys;
+    expect(keys.value).toEqual(["name", "count"]);
+    obj.set({ name: "test", count: 0, active: true });
+    expect(keys.value).toEqual(["name", "count", "active"]);
   });
 });
 

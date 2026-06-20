@@ -884,7 +884,7 @@ Splits the array into two derived signals based on a predicate.
 
 ### RecordSignalTrap Methods
 
-#### prop<K extends keyof T>(key: K): DerivedSignal<T[K]>
+#### get<K extends keyof T>(key: K): DerivedSignal<T[K]>
 
 **What it does**
 Returns a derived signal for a specific property.
@@ -896,7 +896,7 @@ Returns a derived signal for a specific property.
 
 ---
 
-#### get props(): { [key in keyof T]: DerivedSignal<T[key]> }
+#### get withLiveProps(): { [key in keyof T]: DerivedSignal<T[key]> }
 
 **What it does**
 Returns an object with all properties as derived signals.

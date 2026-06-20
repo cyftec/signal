@@ -230,9 +230,9 @@ export type ArraySignalTrap<T> = GenericTrap<T> & {
 export type RecordSignalTrap<T extends Record<string, unknown>> =
   GenericTrap<T> & {
     /** Returns a derived signal for a specific property. */
-    prop: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
+    get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
     /** Returns an object with all properties as derived signals. */
-    get props(): { [key in keyof T]: DerivedSignal<T[key]> };
+    get withLiveProps(): { [key in keyof T]: DerivedSignal<T[key]> };
     /** Returns the object's keys as a derived signal. */
     get keys(): DerivedSignal<string[]>;
   };

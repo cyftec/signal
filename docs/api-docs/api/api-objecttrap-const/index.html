@@ -451,12 +451,12 @@
 
   <span class="tok kw">return</span> {
     ...<span class="tok fn">genericTrap</span>(input),
-    prop: &lt;K extends keyof T&gt;(key: K) =&gt; <span class="tok fn">derive</span>(() =&gt; <span class="tok fn">value</span>(input)[key]),
-    get <span class="tok fn">props</span>() {
+    get: &lt;K extends keyof T&gt;(key: K) =&gt; <span class="tok fn">derive</span>(() =&gt; <span class="tok fn">value</span>(input)[key]),
+    get <span class="tok fn">withLiveProps</span>() {
       <span class="tok kw">const</span> signalledPropsObj = Object.<span class="tok fn">keys</span>(<span class="tok fn">value</span>(input)).<span class="tok fn">reduce</span>(
         (map, k) =&gt; {
           <span class="tok kw">const</span> key = k as keyof T;
-          map[key] = this.<span class="tok fn">prop</span>(key);
+          map[key] = this.<span class="tok fn">get</span>(key);
           <span class="tok kw">return</span> map;
         },
         {} as { [key in keyof T]: DerivedSignal&lt;T[key]&gt; },

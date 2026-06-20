@@ -509,7 +509,7 @@
       })
       .<span class="tok fn">finally</span>(ultimately);
 
-  <span class="tok kw">const</span> { isRunning, result, error } = <span class="tok fn">trap</span>(state).props;
+  <span class="tok kw">const</span> { isRunning, result, error } = <span class="tok fn">trap</span>(state).withLiveProps;
   <span class="tok kw">return</span> [runPromise, result, error, isRunning] as <span class="tok kw">const</span>;
 };</code></pre>
           </div>

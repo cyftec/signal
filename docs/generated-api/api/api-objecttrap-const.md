@@ -22,12 +22,12 @@ export const objectTrap = <T extends Record<string, unknown>>(
 
   return {
     ...genericTrap(input),
-    prop: <K extends keyof T>(key: K) => derive(() => value(input)[key]),
-    get props() {
+    get: <K extends keyof T>(key: K) => derive(() => value(input)[key]),
+    get withLiveProps() {
       const signalledPropsObj = Object.keys(value(input)).reduce(
         (map, k) => {
           const key = k as keyof T;
-          map[key] = this.prop(key);
+          map[key] = this.get(key);
           return map;
         },
         {} as { [key in keyof T]: DerivedSignal<T[key]> },

@@ -24,6 +24,64 @@ export type SignalsEffect = {
 };
 
 /**
+ * Non-mutating methods for derived array signals.
+ *
+ * Derived signals are read-only, so they only get non-mutating methods
+ * that return new derived signals.
+ *
+ * @template T - The array type
+ *
+ * @remarks
+ * - All methods return derived signals
+ * - No mutating methods (derived signals are read-only)
+ */
+export type BaseDerivedArraySignal<T extends any[]> = {
+  // Non-mutating methods returning derived signals
+  at: (...args: Parameters<Array<T[number]>["at"]>) => DerivedSignal<ReturnType<Array<T[number]>["at"]>>;
+  concat: (...args: Parameters<Array<T[number]>["concat"]>) => DerivedSignal<ReturnType<Array<T[number]>["concat"]>>;
+  every: (...args: Parameters<Array<T[number]>["every"]>) => DerivedSignal<ReturnType<Array<T[number]>["every"]>>;
+  filter: (...args: Parameters<Array<T[number]>["filter"]>) => DerivedSignal<ReturnType<Array<T[number]>["filter"]>>;
+  find: (...args: Parameters<Array<T[number]>["find"]>) => DerivedSignal<ReturnType<Array<T[number]>["find"]>>;
+  findIndex: (...args: Parameters<Array<T[number]>["findIndex"]>) => DerivedSignal<ReturnType<Array<T[number]>["findIndex"]>>;
+  findLast: (...args: Parameters<Array<T[number]>["findLast"]>) => DerivedSignal<ReturnType<Array<T[number]>["findLast"]>>;
+  findLastIndex: (...args: Parameters<Array<T[number]>["findLastIndex"]>) => DerivedSignal<ReturnType<Array<T[number]>["findLastIndex"]>>;
+  /** Last item of the array. */
+  get lastItem(): DerivedSignal<T[number] | undefined>;
+  /** Array length. */
+  get length(): DerivedSignal<number>;
+  map:  <U>(mapFn: (item: T[number], index: number, array: T) => U) => DerivedSignal<U[]>;
+  /** Custom method that splits the array into `[passing, failing]` based on a predicate. */
+  partition: (...args: Parameters<Array<T[number]>["filter"]>) => readonly [DerivedSignal<T>, DerivedSignal<T>];
+  reduce: <U>(reducerFn: ( previousValue: U, currentValue: T[number], currentIndex: number, array: T) => U, initialValue: U) => DerivedSignal<U>;
+  reduceRight: <U>(reducerFn: ( previousValue: U, currentValue: T[number], currentIndex: number, array: T) => U, initialValue: U) => DerivedSignal<U>;
+  some:  (...args: Parameters<Array<T[number]>["some"]>) => DerivedSignal<ReturnType<Array<T[number]>["some"]>>;
+  toReversed: (...args: Parameters<Array<T[number]>["toReversed"]>) => DerivedSignal<ReturnType<Array<T[number]>["toReversed"]>>;
+  toSorted: (...args: Parameters<Array<T[number]>["toSorted"]>) => DerivedSignal<ReturnType<Array<T[number]>["toSorted"]>>;
+  toSpliced: (...args: Parameters<Array<T[number]>["toSpliced"]>) => DerivedSignal<ReturnType<Array<T[number]>["toSpliced"]>>;
+};
+
+/**
+ * Non-mutating methods for derived object signals.
+ *
+ * Derived signals are read-only, so they only get non-mutating methods
+ * that return new derived signals.
+ *
+ * @template T - The object type
+ *
+ * @remarks
+ * - All methods return derived signals
+ * - No mutating methods (derived signals are read-only)
+ */
+export type BaseDerivedObjectSignal<T extends object> = {
+  /** Returns a derived signal for a specific property. */
+  get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
+  /** Returns an object with all properties as derived signals. */
+  get withLiveProps(): { [key in keyof T]: DerivedSignal<T[key]> };
+  /** Returns the object's keys as a derived signal. */
+  get keys(): DerivedSignal<string[]>;
+};
+
+/**
  * Array mutation and non-mutating methods for array signals.
  *
  * These methods provide both mutating-style APIs that internally create new
@@ -67,11 +125,11 @@ export type BaseArraySignal<T extends any[]> = {
   get lastItem(): DerivedSignal<T[number] | undefined>;
   /** Array length. */
   get length(): DerivedSignal<number>;
-  map:  (...args: Parameters<Array<T[number]>["map"]>) => DerivedSignal<ReturnType<Array<T[number]>["map"]>>;
+  map: <U>(mapFn: (item: T[number], index: number, array: T) => U) => DerivedSignal<U[]>;
   /** Custom method that splits the array into `[passing, failing]` based on a predicate. */
   partition: (...args: Parameters<Array<T[number]>["filter"]>) => readonly [DerivedSignal<T>, DerivedSignal<T>];
-  reduce:  (...args: Parameters<Array<T[number]>["reduce"]>) => DerivedSignal<ReturnType<Array<T[number]>["reduce"]>>; 
-  reduceRight:  (...args: Parameters<Array<T[number]>["reduceRight"]>) => DerivedSignal<ReturnType<Array<T[number]>["reduceRight"]>>; 
+  reduce: <U>(reducerFn: ( previousValue: U, currentValue: T[number], currentIndex: number, array: T) => U, initialValue: U) => DerivedSignal<U>;
+  reduceRight: <U>(reducerFn: ( previousValue: U, currentValue: T[number], currentIndex: number, array: T) => U, initialValue: U) => DerivedSignal<U>;
   some:  (...args: Parameters<Array<T[number]>["some"]>) => DerivedSignal<ReturnType<Array<T[number]>["some"]>>;
   toReversed: (...args: Parameters<Array<T[number]>["toReversed"]>) => DerivedSignal<ReturnType<Array<T[number]>["toReversed"]>>;
   toSorted: (...args: Parameters<Array<T[number]>["toSorted"]>) => DerivedSignal<ReturnType<Array<T[number]>["toSorted"]>>;
@@ -94,7 +152,7 @@ export type BaseObjectSignal<T extends object> = {
   /** Returns a derived signal for a specific property. */
   get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
   /** Returns an object with all properties as derived signals. */
-  get props(): { [key in keyof T]: DerivedSignal<T[key]> };
+  get withLiveProps(): { [key in keyof T]: DerivedSignal<T[key]> };
   /** Returns the object's keys as a derived signal. */
   get keys(): DerivedSignal<string[]>;
 };

@@ -1,5 +1,8 @@
 import { effect } from "./effect";
 import { signal } from "./signal";
+import { getDerivedArraySignalBaseObject } from "./signal/array-signal";
+import { getDerivedObjectSignalBaseObject } from "./signal/object-signal";
+import { BaseDerivedArraySignal, BaseDerivedObjectSignal } from "./signal/types";
 
 /**
  * A read-only derived signal computed from other signals.
@@ -16,6 +19,8 @@ import { signal } from "./signal";
  * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
  * - Calling `dispose()` stops the derived signal from tracking dependencies
  * - After disposal, the value remains accessible but won't update
+ * - Array derived signals get non-mutating array methods (map, filter, etc.)
+ * - Object derived signals get non-mutating object methods (get, withLiveProps, keys)
  *
  * @see {@link signal} - For creating mutable source signals
  * @see {@link effect} - For registering functions to run when signal values change
@@ -34,7 +39,7 @@ export type DerivedSignal<T> = {
    * but will no longer update when its dependencies change.
    */
   dispose: () => void;
-};
+} & (T extends any[] ? BaseDerivedArraySignal<T> : T extends object ? BaseDerivedObjectSignal<T> : {});
 
 /**
  * A function that computes a derived signal's value.
@@ -110,8 +115,8 @@ export const derive = <T>(
     derivedSource.value = currValue;
   });
 
-  const derivedSignal: DerivedSignal<T> = {
-    type: "derived-signal",
+  const baseDerivedSignal = {
+    type: "derived-signal" as const,
     get prevValue() {
       return oldValue;
     },
@@ -123,5 +128,20 @@ export const derive = <T>(
     },
   };
 
-  return derivedSignal;
+  // Add non-mutating methods for array and object derived signals
+  if (Array.isArray(derivedSource.value)) {
+    return Object.assign(
+      baseDerivedSignal,
+      getDerivedArraySignalBaseObject(baseDerivedSignal as any),
+    ) as any;
+  }
+
+  if (typeof derivedSource.value === "object" && derivedSource.value !== null) {
+    return Object.assign(
+      baseDerivedSignal,
+      getDerivedObjectSignalBaseObject(baseDerivedSignal as any),
+    ) as any;
+  }
+
+  return baseDerivedSignal as any;
 };

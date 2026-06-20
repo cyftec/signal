@@ -1,6 +1,77 @@
-import { derive } from "../derive";
+import { derive, type DerivedSignal } from "../derive";
 import { newVal } from "@cyftech/immutjs";
-import { BaseArraySignal, BaseSourceSignal } from "./types";
+import { BaseArraySignal, BaseSourceSignal, BaseDerivedArraySignal } from "./types";
+
+/**
+ * Creates non-mutating methods for derived array signals.
+ *
+ * @template T - The array type
+ * @param derivedSignal - The derived signal to extend with array methods
+ * @returns Derived signal with array methods
+ *
+ * @remarks
+ * - All methods return new derived signals
+ * - No mutating methods (derived signals are read-only)
+ */
+export const getDerivedArraySignalBaseObject = <T extends any[]>(
+  derivedSignal: DerivedSignal<T>
+): BaseDerivedArraySignal<T> => {
+  return {
+    // Non-mutating methods returning derived signals
+    at: (...args: Parameters<Array<T[number]>["at"]>) =>
+      derive(() => derivedSignal.value.at(...args)),
+    concat: (...args: Parameters<Array<T[number]>["concat"]>) =>
+      derive(() => derivedSignal.value.concat(...args)),
+    every: (...args: Parameters<Array<T[number]>["every"]>) =>
+      derive(() => derivedSignal.value.every(...args)),
+    filter: (...args: Parameters<Array<T[number]>["filter"]>) =>
+      derive(() => derivedSignal.value.filter(...args)),
+    find: (...args: Parameters<Array<T[number]>["find"]>) =>
+      derive(() => derivedSignal.value.find(...args)),
+    findIndex: (...args: Parameters<Array<T[number]>["findIndex"]>) =>
+      derive(() => derivedSignal.value.findIndex(...args)),
+    findLast: (...args: Parameters<Array<T[number]>["findLast"]>) =>
+      derive(() => derivedSignal.value.findLast(...args)),
+    findLastIndex: (...args: Parameters<Array<T[number]>["findLastIndex"]>) =>
+      derive(() => derivedSignal.value.findLastIndex(...args)),
+    get lastItem() {
+      return derive(() => {
+        const updatedArr = newVal(derivedSignal.value);
+        const returnVal = updatedArr.pop();
+        return returnVal;
+      });
+    },
+    get length() {
+      return derive(() => derivedSignal.value.length);
+    },
+    map: (...args: Parameters<Array<T[number]>["map"]>) =>
+      derive(() => derivedSignal.value.map(...args)),
+    partition: (...args: Parameters<Array<T[number]>["filter"]>) => {
+      const conditionPassArray = derive(
+        () => derivedSignal.value.filter(...args) as T,
+      );
+      const conditionFailArray = derive(
+        () =>
+          derivedSignal.value.filter(
+            (item, index, array) => !args[0](item, index, array),
+          ) as T,
+      );
+      return [conditionPassArray, conditionFailArray];
+    },
+    reduce: (...args: Parameters<Array<T[number]>["reduce"]>) =>
+      derive(() => derivedSignal.value.reduce(...args)),
+    reduceRight: (...args: Parameters<Array<T[number]>["reduceRight"]>) =>
+      derive(() => derivedSignal.value.reduceRight(...args)),
+    some: (...args: Parameters<Array<T[number]>["some"]>) =>
+      derive(() => derivedSignal.value.some(...args)),
+    toReversed: (...args: Parameters<Array<T[number]>["toReversed"]>) =>
+      derive(() => derivedSignal.value.toReversed(...args)),
+    toSorted: (...args: Parameters<Array<T[number]>["toSorted"]>) =>
+      derive(() => derivedSignal.value.toSorted(...args)),
+    toSpliced: (...args: Parameters<Array<T[number]>["toSpliced"]>) =>
+      derive(() => derivedSignal.value.toSpliced(...args)),
+  };
+};
 
 /**
  * Creates array mutation methods for array signals.

@@ -114,6 +114,6 @@ export const promstates = <R, Args extends Array<any>, I>(
       })
       .finally(ultimately);
 
-  const { isRunning, result, error } = trap(state).props;
+  const { isRunning, result, error } = trap(state).withLiveProps;
   return [runPromise, result, error, isRunning] as const;
 };

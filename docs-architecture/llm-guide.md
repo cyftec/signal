@@ -835,11 +835,11 @@ All standard array methods (at, concat, slice, etc.) are available as derived si
 
 #### RecordSignalTrap Methods
 
-**prop<K extends keyof T>(key: K): DerivedSignal<T[K]>**
+**get<K extends keyof T>(key: K): DerivedSignal<T[K]>**
 - Returns a derived signal for a specific property
 - Recomputes when the object or the property changes
 
-**get props(): { [key in keyof T]: DerivedSignal<T[key]> }**
+**get withLiveProps(): { [key in keyof T]: DerivedSignal<T[key]> }**
 - Returns an object with all properties as derived signals
 - Each property signal recomputes when the object changes
 
@@ -850,7 +850,7 @@ All standard array methods (at, concat, slice, etc.) are available as derived si
 Throws error if the value is not a plain object:
 ```typescript
 const date = signal(new Date());
-trap(date).prop("getTime"); // Throws error
+trap(date).get("getTime"); // Throws error
 // Use generic trap instead
 trap(date).string.value; // Works
 ```

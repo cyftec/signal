@@ -364,18 +364,18 @@ describe("trap - array", () => {
 describe("trap - object", () => {
   it("should create object trap for plain objects", () => {
     const value = signal({ name: "John", age: 30 });
-    expect(trap(value).prop("name").value).toBe("John");
+    expect(trap(value).get("name").value).toBe("John");
   });
 
-  it("should provide prop method", () => {
+  it("should provide get method", () => {
     const value = signal({ name: "John", age: 30 });
-    expect(trap(value).prop("name").value).toBe("John");
-    expect(trap(value).prop("age").value).toBe(30);
+    expect(trap(value).get("name").value).toBe("John");
+    expect(trap(value).get("age").value).toBe(30);
   });
 
-  it("should provide props getter", () => {
+  it("should provide withLiveProps getter", () => {
     const value = signal({ name: "John", age: 30 });
-    const { name, age } = trap(value).props;
+    const { name, age } = trap(value).withLiveProps;
     expect(name.value).toBe("John");
     expect(age.value).toBe(30);
   });
@@ -385,17 +385,17 @@ describe("trap - object", () => {
     expect(trap(value).keys.value).toEqual(["name", "age"]);
   });
 
-  it("should update prop when value changes", () => {
+  it("should update get when value changes", () => {
     const value = signal({ name: "John", age: 30 });
-    const nameProp = trap(value).prop("name");
+    const nameProp = trap(value).get("name");
 
     value.value = { name: "Jane", age: 25 };
     expect(nameProp.value).toBe("Jane");
   });
 
-  it("should update props when value changes", () => {
+  it("should update withLiveProps when value changes", () => {
     const value = signal({ name: "John", age: 30 });
-    const { name, age } = trap(value).props;
+    const { name, age } = trap(value).withLiveProps;
 
     value.value = { name: "Jane", age: 25 };
     expect(name.value).toBe("Jane");
@@ -450,7 +450,7 @@ describe("trap - dispatch logic", () => {
     const value = signal({ name: "John" });
     const trapped = trap(value);
 
-    expect(trapped.prop("name").value).toBe("John");
+    expect(trapped.get("name").value).toBe("John");
   });
 
   it("should dispatch to generic trap for other types", () => {

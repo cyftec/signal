@@ -606,9 +606,9 @@
 <span class="tok kw">export</span> <span class="tok kw">type</span> RecordSignalTrap&lt;T extends Record&lt;string, unknown&gt;&gt; =
   GenericTrap&lt;T&gt; &amp; {
     <span class="tok cm">/** Returns a derived signal for a specific property. */</span>
-    prop: &lt;K extends keyof T&gt;(key: K) =&gt; DerivedSignal&lt;T[K]&gt;;
+    get: &lt;K extends keyof T&gt;(key: K) =&gt; DerivedSignal&lt;T[K]&gt;;
     <span class="tok cm">/** Returns an object with all properties as derived signals. */</span>
-    get <span class="tok fn">props</span>(): { [key in keyof T]: DerivedSignal&lt;T[key]&gt; };
+    get <span class="tok fn">withLiveProps</span>(): { [key in keyof T]: DerivedSignal&lt;T[key]&gt; };
     <span class="tok cm">/** Returns the object&#39;s keys as a derived signal. */</span>
     get <span class="tok fn">keys</span>(): DerivedSignal&lt;string[]&gt;;
   };</code></pre>
