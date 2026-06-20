@@ -21,7 +21,9 @@ type NavEntry = {
 };
 
 const docsRoot = path.join(process.cwd(), "docs");
-const meta = JSON.parse(readText(path.join(generatedDir, "_meta.json"))) as ApiMeta;
+const meta = JSON.parse(
+  readText(path.join(generatedDir, "_meta.json")),
+) as ApiMeta;
 
 function relPath(from: string, to: string) {
   const fromDir = path.posix.dirname(from);
@@ -29,15 +31,27 @@ function relPath(from: string, to: string) {
 }
 
 function cleanOutput() {
-  for (const name of ["api-docs", "assets", "index.html", "tutorial", "architecture"]) {
+  for (const name of [
+    "api-docs",
+    "assets",
+    "index.html",
+    "tutorial",
+    "architecture",
+  ]) {
     fs.rmSync(path.join(docsRoot, name), { recursive: true, force: true });
   }
 }
 
 function parseMarkdown(md: string) {
   const lines = md.replace(/\r\n/g, "\n").split("\n");
-  const title = lines.find((line) => /^#\s+/.test(line))?.replace(/^#\s+/, "").trim() ?? "API";
-  const bodyLines = lines.slice(lines.findIndex((line) => /^#\s+/.test(line)) + 1);
+  const title =
+    lines
+      .find((line) => /^#\s+/.test(line))
+      ?.replace(/^#\s+/, "")
+      .trim() ?? "API";
+  const bodyLines = lines.slice(
+    lines.findIndex((line) => /^#\s+/.test(line)) + 1,
+  );
   return { title, bodyLines };
 }
 
@@ -45,7 +59,9 @@ function normalizeLinkTarget(target: string) {
   const clean = target.trim();
   const bare = clean.split(/\s+-\s+/)[0].split(/[.#\s]/)[0];
   if (!bare) return "#";
-  const key = Object.entries(meta.symbols).find(([, symbol]) => symbol.name === bare);
+  const key = Object.entries(meta.symbols).find(
+    ([, symbol]) => symbol.name === bare,
+  );
   if (!key) return `#${toSlug(bare)}`;
   const [, symbol] = key;
   return `/api-docs/${symbol.category}/${symbolSlug(symbol.category, symbol.name, symbol.kind)}/`;
@@ -55,12 +71,16 @@ function renderInline(text: string) {
   const escaped = escapeHtml(text);
   return escaped
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, href) => {
-      const url = String(href).startsWith("./") ? String(href).replace(/\.md$/, "/") : String(href);
+      const url = String(href).startsWith("./")
+        ? String(href).replace(/\.md$/, "/")
+        : String(href);
       return `<a href="${escapeHtml(url)}">${label}</a>`;
     })
     .replace(/\{@link\s+([^}]+)\}/g, (_m, target) => {
       const href = normalizeLinkTarget(String(target));
-      const label = String(target).trim().replace(/\s+-\s+.*/, "");
+      const label = String(target)
+        .trim()
+        .replace(/\s+-\s+.*/, "");
       return `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`;
     })
     .replace(/`([^`]+)`/g, "<code>$1</code>")
@@ -70,7 +90,8 @@ function renderInline(text: string) {
 
 function tokenizeCode(code: string, lang: string) {
   const source = code;
-  if (!lang || !["typescript", "ts", "javascript", "js"].includes(lang)) return escapeHtml(source);
+  if (!lang || !["typescript", "ts", "javascript", "js"].includes(lang))
+    return escapeHtml(source);
   const pattern =
     /\/\/.*?$|\/\*[\s\S]*?\*\/|`(?:\\.|[^`])*`|"(?:\\.|[^"])*"|'(?:\\.|[^'])*'|\b(?:export|const|let|var|type|interface|function|return|new|if|else|for|while|await|async|true|false|null|undefined)\b|\b\d+(?:\.\d+)?\b|\b[A-Za-z_$][A-Za-z0-9_$]*(?=\()/gm;
   let last = 0;
@@ -85,7 +106,11 @@ function tokenizeCode(code: string, lang: string) {
       out += `<span class="tok str">${escapeHtml(token)}</span>`;
     } else if (/^\d/.test(token)) {
       out += `<span class="tok num">${escapeHtml(token)}</span>`;
-    } else if (/^(export|const|let|var|type|interface|function|return|new|if|else|for|while|await|async|true|false|null|undefined)$/.test(token)) {
+    } else if (
+      /^(export|const|let|var|type|interface|function|return|new|if|else|for|while|await|async|true|false|null|undefined)$/.test(
+        token,
+      )
+    ) {
       out += `<span class="tok kw">${escapeHtml(token)}</span>`;
     } else {
       out += `<span class="tok fn">${escapeHtml(token)}</span>`;
@@ -114,19 +139,25 @@ function renderMarkdown(md: string) {
   };
   const flushList = () => {
     if (!list.length) return;
-    out.push(`<ul>${list.map((item) => `<li>${renderInline(item)}</li>`).join("")}</ul>`);
+    out.push(
+      `<ul>${list.map((item) => `<li>${renderInline(item)}</li>`).join("")}</ul>`,
+    );
     list = [];
   };
   const flushQuote = () => {
     if (!blockquote.length) return;
-    out.push(`<blockquote>${blockquote.map((x) => renderInline(x)).join("<br/>")}</blockquote>`);
+    out.push(
+      `<blockquote>${blockquote.map((x) => renderInline(x)).join("<br/>")}</blockquote>`,
+    );
     blockquote = [];
   };
   const flushCode = () => {
     if (codeLang === "mermaid") {
       out.push(renderMermaidDiagram(code.join("\n")));
     } else {
-      out.push(`<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="${escapeHtml(codeLang)}">${tokenizeCode(code.join("\n"), codeLang)}</code></pre></div>`);
+      out.push(
+        `<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="${escapeHtml(codeLang)}">${tokenizeCode(code.join("\n"), codeLang)}</code></pre></div>`,
+      );
     }
     code = [];
   };
@@ -140,7 +171,9 @@ function renderMarkdown(md: string) {
       flushQuote();
       const level = heading[1].length;
       const text = heading[2].trim();
-      out.push(`<h${level} id="${toSlug(text)}">${renderInline(text)}</h${level}>`);
+      out.push(
+        `<h${level} id="${toSlug(text)}">${renderInline(text)}</h${level}>`,
+      );
       i++;
       continue;
     }
@@ -197,19 +230,52 @@ function renderMermaidDiagram(source: string) {
   const block = (title: string, items: string[]) =>
     `<div class="diagram-block"><div class="diagram-title">${escapeHtml(title)}</div><div class="diagram-svg">${items.map((item, index) => `${index ? '<div class="diagram-arrow">→</div>' : ""}<div class="diagram-node"><span>${escapeHtml(item)}</span></div>`).join("")}</div></div>`;
   if (source.includes("signal(input)")) {
-    return block("Core Runtime", ["signal(input)", "immutable value storage", "value getter", "register current effect", "value setter / mutation", "run dependent effects synchronously"]);
+    return block("Core Runtime", [
+      "signal(input)",
+      "immutable value storage",
+      "value getter",
+      "register current effect",
+      "value setter / mutation",
+      "run dependent effects synchronously",
+    ]);
   }
-  if (source.includes("effect(fn)") || source.includes("_currentSignalEffect")) {
-    return block("Dependency Tracking", ["effect(fn)", "_currentSignalEffect", "signal.value getter", "signal._effects"]);
+  if (
+    source.includes("effect(fn)") ||
+    source.includes("_currentSignalEffect")
+  ) {
+    return block("Dependency Tracking", [
+      "effect(fn)",
+      "_currentSignalEffect",
+      "signal.value getter",
+      "signal._effects",
+    ]);
   }
-  if (source.includes("derive(fn)") || source.includes("internal derived source signal")) {
-    return block("Derived Signal Model", ["derive(fn)", "internal derived source signal", "internal updater effect", "computed value"]);
+  if (
+    source.includes("derive(fn)") ||
+    source.includes("internal derived source signal")
+  ) {
+    return block("Derived Signal Model", [
+      "derive(fn)",
+      "internal derived source signal",
+      "internal updater effect",
+      "computed value",
+    ]);
   }
   if (source.includes("dispose() called")) {
-    return block("Disposal", ["dispose() called", "canDisposeNow = true", "cleanup on next signal update", "removed from signal._effects"]);
+    return block("Disposal", [
+      "dispose() called",
+      "canDisposeNow = true",
+      "cleanup on next signal update",
+      "removed from signal._effects",
+    ]);
   }
   if (source.includes("set value") || source.includes("source signal")) {
-    return block("Data Flow", ["source signal", "derived signal", "effect", "side effects"]);
+    return block("Data Flow", [
+      "source signal",
+      "derived signal",
+      "effect",
+      "side effects",
+    ]);
   }
   return `<div class="diagram-block"><pre><code>${escapeHtml(source)}</code></pre></div>`;
 }
@@ -227,25 +293,33 @@ function navEntries(): NavEntry[] {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function pageShell(opts: { title: string; body: string; activeHref: string; nav: NavEntry[]; pagePath: string; shell?: "api" | "content" }) {
+function pageShell(opts: {
+  title: string;
+  body: string;
+  activeHref: string;
+  nav: NavEntry[];
+  pagePath: string;
+  shell?: "api" | "content";
+}) {
   const counts = opts.nav.reduce<Record<string, number>>((acc, item) => {
     const k = `${item.category}:${item.name}`;
     acc[k] = (acc[k] ?? 0) + 1;
     return acc;
   }, {});
   const grouped = Object.groupBy(opts.nav, (item) => item.category);
-  const navHtml = opts.shell === "api"
-    ? Object.entries(grouped)
-        .map(([category, items]) => {
-          return `<section class="nav-group"><h2>${category}</h2>${items
-            .map(
-              (item) =>
-                `<a class="nav-link${item.href === opts.activeHref ? " active" : ""}" href="${escapeHtml(relPath(opts.pagePath, item.href).replace(/([^/])$/, "$1/"))}"><span>${escapeHtml(counts[`${item.category}:${item.name}`] > 1 ? `${item.label} (${item.category})` : item.label)}</span><small>${escapeHtml(item.summary)}</small></a>`,
-            )
-            .join("")}</section>`;
-        })
-        .join("")
-    : "";
+  const navHtml =
+    opts.shell === "api"
+      ? Object.entries(grouped)
+          .map(([category, items]) => {
+            return `<section class="nav-group"><h2>${category}</h2>${items
+              .map(
+                (item) =>
+                  `<a class="nav-link${item.href === opts.activeHref ? " active" : ""}" href="${escapeHtml(relPath(opts.pagePath, item.href).replace(/([^/])$/, "$1/"))}"><span>${escapeHtml(counts[`${item.category}:${item.name}`] > 1 ? `${item.label} (${item.category})` : item.label)}</span><small>${escapeHtml(item.summary)}</small></a>`,
+              )
+              .join("")}</section>`;
+          })
+          .join("")
+      : "";
 
   return `<!doctype html>
 <html lang="en">
@@ -262,16 +336,34 @@ function pageShell(opts: { title: string; body: string; activeHref: string; nav:
         <div class="brand-kicker">Cyftech Signal</div>
         <div class="brand-title">API Docs</div>
       </div>
-      ${opts.shell === "api" ? `<button type="button" class="nav-toggle" aria-expanded="false" aria-controls="nav">Browse symbols</button>
+      ${
+        opts.shell === "api"
+          ? `<button type="button" class="nav-toggle" aria-expanded="false" aria-controls="nav">Browse symbols</button>
       <label class="search">
         <span>Search</span>
         <input id="search" type="search" placeholder="Filter symbols, headings, text" />
       </label>
       <div id="searchStatus" class="search-status" aria-live="polite"></div>
-      <nav id="nav">${navHtml}</nav>` : `<div class="content-nav"><a href="../">Home</a><a href="../api-docs/">API Docs</a><a href="../tutorial/">Tutorial</a><a href="../architecture/">Architecture</a></div>`}
+      <nav id="nav">${navHtml}</nav>`
+          : `<div class="content-nav"><a href="../">Home</a><a href="../api-docs/">API Docs</a><a href="../tutorial/">Tutorial</a><a href="../architecture/">Architecture</a></div>`
+      }
     </aside>
     <main class="main">
-      ${opts.shell === "content" ? `<nav class="content-top-nav"><a href="../">Home</a><a href="../api-docs/">API Docs</a><a href="../tutorial/">Tutorial</a><a href="../architecture/">Architecture</a></nav>` : ""}
+      ${
+        opts.shell === "content"
+          ? `<nav class="content-top-nav">
+        <a class="content-top-nav-brand" href="/">
+          <img src="/assets/images/signal-logo.svg" alt="Cyftec Signal Logo" />
+          <span>Signal</span>
+        </a>
+        <div class="content-top-nav-links">
+          <a href="/api-docs/">Docs</a>
+          <a href="/tutorial/">Tutorial</a>
+          <a href="/architecture/">Architecture</a>
+        </div>
+      </nav>`
+          : ""
+      }
       <article class="doc">
         ${opts.body}
       </article>
@@ -283,13 +375,26 @@ function pageShell(opts: { title: string; body: string; activeHref: string; nav:
 }
 
 function renderApiPage(symbol: ApiMeta["symbols"][string]) {
-  const md = readText(path.join(generatedDir, symbol.category, `${symbolSlug(symbol.category, symbol.name, symbol.kind)}.md`));
+  const md = readText(
+    path.join(
+      generatedDir,
+      symbol.category,
+      `${symbolSlug(symbol.category, symbol.name, symbol.kind)}.md`,
+    ),
+  );
   const { title, bodyLines } = parseMarkdown(md);
   const body = renderMarkdown(bodyLines.join("\n"));
   const summary = symbol.tsdoc.summary.split("\n")[0] ?? "";
   const header = `<header class="hero"><div class="eyebrow">${escapeHtml(symbol.category)} / ${escapeHtml(symbol.kind)}</div><h1>${escapeHtml(title)}</h1><p>${escapeHtml(summary)}</p><div class="meta">Source: <code>${escapeHtml(symbol.sourcePath)}</code></div></header>`;
   const pagePath = `/api-docs/${symbol.category}/${symbolSlug(symbol.category, symbol.name, symbol.kind)}/index.html`;
-  return pageShell({ title, body: `${header}${body}`, activeHref: `/api-docs/${symbol.category}/${symbolSlug(symbol.category, symbol.name, symbol.kind)}/`, nav: navEntries(), pagePath, shell: "api" });
+  return pageShell({
+    title,
+    body: `${header}${body}`,
+    activeHref: `/api-docs/${symbol.category}/${symbolSlug(symbol.category, symbol.name, symbol.kind)}/`,
+    nav: navEntries(),
+    pagePath,
+    shell: "api",
+  });
 }
 
 function renderApiIndex() {
@@ -318,9 +423,21 @@ function renderApiIndex() {
 
 function renderLanding() {
   const cards = [
-    { href: "./api-docs/", title: "api-docs", desc: "Generated API reference driven by TSDoc and validated markdown." },
-    { href: "./tutorial/", title: "tutorial", desc: "Learning-first guide with examples, outcomes, and progressive steps." },
-    { href: "./architecture/", title: "architecture", desc: "Contributor-focused diagrams and implementation notes." },
+    {
+      href: "./api-docs/",
+      title: "api-docs",
+      desc: "Generated API reference driven by TSDoc and validated markdown.",
+    },
+    {
+      href: "./tutorial/",
+      title: "tutorial",
+      desc: "Learning-first guide with examples, outcomes, and progressive steps.",
+    },
+    {
+      href: "./architecture/",
+      title: "architecture",
+      desc: "Contributor-focused diagrams and implementation notes.",
+    },
   ];
   const code = `import { signal, effect } from "@cyftech/signal";
 
@@ -617,10 +734,28 @@ function main() {
   writeStaticFiles();
   writeText(path.join(docsRoot, "index.html"), renderLanding());
   writeText(path.join(docsRoot, "api-docs/index.html"), renderApiIndex());
-  writeText(path.join(docsRoot, "tutorial/index.html"), renderMarkdownPage("Tutorial", readText(path.join(docsRoot, "content/tutorial.md"))));
-  writeText(path.join(docsRoot, "architecture/index.html"), renderMarkdownPage("Architecture", readText(path.join(docsRoot, "content/architecture.md"))));
+  writeText(
+    path.join(docsRoot, "tutorial/index.html"),
+    renderMarkdownPage(
+      "Tutorial",
+      readText(path.join(docsRoot, "content/tutorial.md")),
+    ),
+  );
+  writeText(
+    path.join(docsRoot, "architecture/index.html"),
+    renderMarkdownPage(
+      "Architecture",
+      readText(path.join(docsRoot, "content/architecture.md")),
+    ),
+  );
   for (const symbol of Object.values(meta.symbols)) {
-    const out = path.join(docsRoot, "api-docs", symbol.category, symbolSlug(symbol.category, symbol.name, symbol.kind), "index.html");
+    const out = path.join(
+      docsRoot,
+      "api-docs",
+      symbol.category,
+      symbolSlug(symbol.category, symbol.name, symbol.kind),
+      "index.html",
+    );
     writeText(out, renderApiPage(symbol));
   }
   console.log("Built documentation site.");

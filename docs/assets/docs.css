@@ -735,19 +735,37 @@ pre {
   font-weight: 700
 }
 
+.api-docs-top-nav-container {
+  margin: 1.5rem 0rem -3rem;
+}
+
 .content-top-nav {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 14px;
-  flex-wrap: wrap;
-  max-width: 880px;
-  margin: 0 auto 18px;
-  padding: 0 4px
+  margin: 0 1rem 3rem;
+}
+
+.content-top-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none
+}
+
+.content-top-nav-brand img {
+  height: 2rem;
 }
 
 .content-top-nav a {
   color: var(--fg);
   text-decoration: none;
-  font-weight: 700
+  font-weight: 700;
+}
+
+.content-top-nav-links a {
+  margin-left: 1rem;
 }
 
 .diagram-block {
@@ -989,9 +1007,17 @@ pre {
     padding: 12px
   }
 
+  .api-docs-top-nav-container {
+    margin: 0.8rem 0.8rem 0rem;
+  }
+
   .content-top-nav {
     padding: 0;
-    margin-bottom: 12px
+    margin: 0 auto 1rem;
+  }
+
+  .content-top-nav-links a {
+    margin-left: 0.5rem;
   }
 
   .sidebar {
