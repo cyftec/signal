@@ -1,42 +1,472 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SignalifiedFunction | API Docs</title>
-  <link rel="stylesheet" href="../../../assets/docs.css" />
-</head>
-<body>
-  <div class="app-shell">
-    <aside class="sidebar" data-collapsed="true">
-      <div class="brand">
-        <div class="brand-kicker">Cyftech Signal</div>
-        <div class="brand-title">API Docs</div>
-      </div>
-      <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="nav">Browse symbols</button>
-      <label class="search">
-        <span>Search</span>
-        <input id="search" type="search" placeholder="Filter symbols, headings, text" />
-      </label>
-      <div id="searchStatus" class="search-status" aria-live="polite"></div>
-      <nav id="nav"><section class="nav-group"><h2>api</h2><a class="nav-link" href="../api-arraysignaltrap-type/"><span>ArraySignalTrap</span><small>Array trap with array transformation methods.</small></a><a class="nav-link" href="../api-arraytrap-const/"><span>arrayTrap</span><small>Creates the array trap for signalified arrays.</small></a><a class="nav-link" href="../api-compute-const/"><span>compute</span><small>Creates a derived signal from a function with signalified arguments.</small></a><a class="nav-link" href="../api-genericop-const/"><span>genericOp</span><small>Creates the generic operation chain for a value.</small></a><a class="nav-link" href="../api-genericoperation-type/"><span>GenericOperation</span><small>Generic operation with logical operations available for all types.</small></a><a class="nav-link" href="../api-generictrap-const/"><span>genericTrap</span><small>Creates the fallback trap for values that do not match a specialized trap.</small></a><a class="nav-link" href="../api-generictrap-type/"><span>GenericTrap</span><small>Generic trap with basic operations available for all types.</small></a><a class="nav-link" href="../api-getdesignalifiedmethodparams-const/"><span>getDesignalifiedMethodParams</span><small>Converts signalified method parameters to plain values.</small></a><a class="nav-link" href="../api-numberop-const/"><span>numberOp</span><small>Creates the number-specific operation chain for a value.</small></a><a class="nav-link" href="../api-numberoperation-type/"><span>NumberOperation</span><small>Number operation with math operations and comparisons.</small></a><a class="nav-link" href="../api-numbersignaltrap-type/"><span>NumberSignalTrap</span><small>Number trap with numeric operations and formatting methods.</small></a><a class="nav-link" href="../api-numbertrap-const/"><span>numberTrap</span><small>Creates the number trap for signalified numbers.</small></a><a class="nav-link" href="../api-objecttrap-const/"><span>objectTrap</span><small>Creates the object trap for signalified plain objects.</small></a><a class="nav-link" href="../api-op-const/"><span>op</span><small>Creates an operation object for composing logical and mathematical operations.</small></a><a class="nav-link" href="../api-operation-type/"><span>Operation</span><small>Union type for all operation types, determined by the value type.</small></a><a class="nav-link" href="../api-operationresult-type/"><span>OperationResult</span><small>Base operation result getters.</small></a><a class="nav-link" href="../api-promstates-const/"><span>promstates</span><small>Creates promise state signals for async operations.</small></a><a class="nav-link" href="../api-receive-const/"><span>receive</span><small>Connects multiple transmitter signals to a single receiver signal.</small></a><a class="nav-link" href="../api-recordsignaltrap-type/"><span>RecordSignalTrap</span><small>Record trap for plain objects with property access methods.</small></a><a class="nav-link active" href="./"><span>SignalifiedFunction</span><small>A function type that accepts signalified arguments and returns a derived signal.</small></a><a class="nav-link" href="../api-signaltrap-type/"><span>SignalTrap</span><small>Union type for all trap types, determined by the value type.</small></a><a class="nav-link" href="../api-stringandarrayop-const/"><span>stringAndArrayOp</span><small>Creates the string/array-specific operation chain for a value.</small></a><a class="nav-link" href="../api-stringandarrayoperation-type/"><span>StringAndArrayOperation</span><small>String and array operation with length-based operations.</small></a><a class="nav-link" href="../api-stringsignalderivertemplateexpressions-type/"><span>StringSignalDeriverTemplateExpressions</span><small>The expressions allowed inside the template placeholders.</small></a><a class="nav-link" href="../api-stringsignaltrap-type/"><span>StringSignalTrap</span><small>String trap with string manipulation methods.</small></a><a class="nav-link" href="../api-stringtrap-const/"><span>stringTrap</span><small>Creates the string trap for signalified strings.</small></a><a class="nav-link" href="../api-tmpl-const/"><span>tmpl</span><small>Tagged template function for string interpolation with signals.</small></a><a class="nav-link" href="../api-transmit-const/"><span>transmit</span><small>Broadcasts changes from one transmitter signal to multiple receiver signals.</small></a><a class="nav-link" href="../api-trap-const/"><span>trap</span><small>Creates a type-specific trap object with derived signal methods.</small></a></section><section class="nav-group"><h2>core</h2><a class="nav-link" href="../../core/core-arraysourcesignal-type/"><span>ArraySourceSignal</span><small>Source signal for arrays with mutation methods.</small></a><a class="nav-link" href="../../core/core-basearraysignal-type/"><span>BaseArraySignal</span><small>Array mutation methods for array signals.</small></a><a class="nav-link" href="../../core/core-baseobjectsignal-type/"><span>BaseObjectSignal</span><small>Object mutation methods for object signals.</small></a><a class="nav-link" href="../../core/core-basesourcesignal-type/"><span>BaseSourceSignal</span><small>Base source signal type with value getter/setter.</small></a><a class="nav-link" href="../../core/core-derive-const/"><span>derive</span><small>Creates a read-only derived signal computed from other signals.</small></a><a class="nav-link" href="../../core/core-derivedsignal-type/"><span>DerivedSignal</span><small>A read-only derived signal computed from other signals.</small></a><a class="nav-link" href="../../core/core-derivedvaluegetterwithsignals-type/"><span>DerivedValueGetterWithSignals</span><small>A function that computes a derived signal&#39;s value.</small></a><a class="nav-link" href="../../core/core-dispose-const/"><span>dispose</span><small>Disposes multiple derived signals and/or effects at once.</small></a><a class="nav-link" href="../../core/core-effect-const/"><span>effect</span><small>Registers a function to run whenever its accessed signals change.</small></a><a class="nav-link" href="../../core/core-getarraysignalbaseobject-const/"><span>getArraySignalBaseObject</span><small>Creates array mutation methods for array signals.</small></a><a class="nav-link" href="../../core/core-getnonsignalobject-const/"><span>getNonSignalObject</span><small>Wraps a plain value in a NonSignal object for runtime type discrimination.</small></a><a class="nav-link" href="../../core/core-getobjectsignalbaseobject-const/"><span>getObjectSignalBaseObject</span><small>Creates object mutation methods for object signals.</small></a><a class="nav-link" href="../../core/core-maybederivedsignal-type/"><span>MaybeDerivedSignal</span><small>A union type representing a derived signal or a plain value.</small></a><a class="nav-link" href="../../core/core-maybenonsignal-type/"><span>MaybeNonSignal</span><small>A union type representing either a non-signal object or a plain value.</small></a><a class="nav-link" href="../../core/core-maybesignal-type/"><span>MaybeSignal</span><small>A union type representing a signal or a plain value.</small></a><a class="nav-link" href="../../core/core-maybesignalvalue-type/"><span>MaybeSignalValue</span><small>A union type representing a signal, non-signal, or plain value.</small></a><a class="nav-link" href="../../core/core-maybesignalvalues-type/"><span>MaybeSignalValues</span><small>Converts a tuple type to a tuple of `MaybeSignalValue` types.</small></a><a class="nav-link" href="../../core/core-maybesourcesignal-type/"><span>MaybeSourceSignal</span><small>A union type representing a source signal or a plain value.</small></a><a class="nav-link" href="../../core/core-nonnullsignalvalue-type/"><span>NonNullSignalValue</span><small>A utility type that removes `null` and `undefined` from signal realm types.</small></a><a class="nav-link" href="../../core/core-nonsignal-type/"><span>NonSignal</span><small>A runtime type wrapper for plain values.</small></a><a class="nav-link" href="../../core/core-objectsourcesignal-type/"><span>ObjectSourceSignal</span><small>Source signal for plain objects with partial update method.</small></a><a class="nav-link" href="../../core/core-plainvalue-type/"><span>PlainValue</span><small>Extracts a plain value from a `MaybeSignalValue`.</small></a><a class="nav-link" href="../../core/core-plainvalues-type/"><span>PlainValues</span><small>Extracts plain values from a `MaybeSignalValues` tuple.</small></a><a class="nav-link" href="../../core/core-setcurrenteffect-const/"><span>setCurrentEffect</span><small>Sets the currently executing effect.</small></a><a class="nav-link" href="../../core/core-signal-const/"><span>signal</span><small>Creates a mutable source signal from any JavaScript value.</small></a><a class="nav-link" href="../../core/core-signal-type/"><span>Signal</span><small>A union type representing either a source or derived signal.</small></a><a class="nav-link" href="../../core/core-signalifiedobject-type/"><span>SignalifiedObject</span><small>A union type representing a signalified object (signal or non-signal).</small></a><a class="nav-link" href="../../core/core-signalseffect-type/"><span>SignalsEffect</span><small>A function that can be registered to run when signal values change.</small></a><a class="nav-link" href="../../core/core-sourcesignal-type/"><span>SourceSignal</span><small>A mutable source signal created from plain JavaScript data.</small></a><a class="nav-link" href="../../core/core-value-const/"><span>value</span><small>Extracts the plain value from a signal, non-signal, or plain value.</small></a><a class="nav-link" href="../../core/core-valueisderivedsignal-const/"><span>valueIsDerivedSignal</span><small>Checks whether a value is a derived signal.</small></a><a class="nav-link" href="../../core/core-valueismaybesignalvalueofstringorarray-const/"><span>valueIsMaybeSignalValueOfStringOrArray</span><small>Checks whether a value, after unwrapping, is a string or array.</small></a><a class="nav-link" href="../../core/core-valueisnonsignalobject-const/"><span>valueIsNonSignalObject</span><small>Checks whether a value is a non-signal object, optionally matching specific types.</small></a><a class="nav-link" href="../../core/core-valueisnonsignalstring-const/"><span>valueIsNonSignalString</span><small>Checks whether a value is a non-signal of type string.</small></a><a class="nav-link" href="../../core/core-valueisnonsignalstringarray-const/"><span>valueIsNonSignalStringArray</span><small>Checks whether a value is a non-signal of type string array.</small></a><a class="nav-link" href="../../core/core-valueissignal-const/"><span>valueIsSignal</span><small>Checks whether a value is any signal (source or derived).</small></a><a class="nav-link" href="../../core/core-valueissignalifiedobject-const/"><span>valueIsSignalifiedObject</span><small>Checks whether a value is a signal or non-signal object.</small></a><a class="nav-link" href="../../core/core-valueissourcesignal-const/"><span>valueIsSourceSignal</span><small>Checks whether a value is a source signal.</small></a></section></nav>
-    </aside>
-    <main class="main">
-      
-      <article class="doc">
-        <header class="hero"><div class="eyebrow">api / type</div><h1>SignalifiedFunction</h1><p>A function type that accepts signalified arguments and returns a derived signal.</p><div class="meta">Source: <code>src/api/traps/types.ts</code></div></header><p>A function type that accepts signalified arguments and returns a derived signal.</p>
-<p>This is used to convert JavaScript instance methods into derived signal methods.</p>
-<h2 id="signature">Signature</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">type</span> SignalifiedFunction&lt;F extends (...args: any[]) =&gt; any&gt; = (
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SignalifiedFunction | API Docs</title>
+    <link rel="stylesheet" href="../../../assets/docs.css" />
+  </head>
+  <body>
+    <div class="api-docs-top-nav-container">
+      <nav class="content-top-nav">
+        <a class="content-top-nav-brand" href="/">
+          <img src="/assets/images/signal-logo.svg" alt="Cyftec Signal Logo" />
+          <span>Signal</span>
+        </a>
+        <div class="content-top-nav-links">
+          <a href="/api-docs/">Docs</a>
+          <a href="/tutorial/">Tutorial</a>
+          <a href="/architecture/">Architecture</a>
+        </div>
+      </nav>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar" data-collapsed="true">
+        <div class="brand">
+          <div class="brand-kicker">Cyftech Signal</div>
+          <div class="brand-title">API Docs</div>
+        </div>
+        <button
+          type="button"
+          class="nav-toggle"
+          aria-expanded="false"
+          aria-controls="nav"
+          >Browse symbols</button
+        >
+        <label class="search">
+          <span>Search</span>
+          <input
+            id="search"
+            type="search"
+            placeholder="Filter symbols, headings, text"
+          />
+        </label>
+        <div id="searchStatus" class="search-status" aria-live="polite"></div>
+        <nav id="nav"
+          ><section class="nav-group"
+            ><h2>api</h2
+            ><a class="nav-link" href="../api-arraysignaltrap-type/"
+              ><span>ArraySignalTrap</span
+              ><small>Array trap with array transformation methods.</small></a
+            ><a class="nav-link" href="../api-arraytrap-const/"
+              ><span>arrayTrap</span
+              ><small>Creates the array trap for signalified arrays.</small></a
+            ><a class="nav-link" href="../api-compute-const/"
+              ><span>compute</span
+              ><small
+                >Creates a derived signal from a function with signalified
+                arguments.</small
+              ></a
+            ><a class="nav-link" href="../api-genericop-const/"
+              ><span>genericOp</span
+              ><small
+                >Creates the generic operation chain for a value.</small
+              ></a
+            ><a class="nav-link" href="../api-genericoperation-type/"
+              ><span>GenericOperation</span
+              ><small
+                >Generic operation with logical operations available for all
+                types.</small
+              ></a
+            ><a class="nav-link" href="../api-generictrap-const/"
+              ><span>genericTrap</span
+              ><small
+                >Creates the fallback trap for values that do not match a
+                specialized trap.</small
+              ></a
+            ><a class="nav-link" href="../api-generictrap-type/"
+              ><span>GenericTrap</span
+              ><small
+                >Generic trap with basic operations available for all
+                types.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../api-getdesignalifiedmethodparams-const/"
+              ><span>getDesignalifiedMethodParams</span
+              ><small
+                >Converts signalified method parameters to plain values.</small
+              ></a
+            ><a class="nav-link" href="../api-numberop-const/"
+              ><span>numberOp</span
+              ><small
+                >Creates the number-specific operation chain for a value.</small
+              ></a
+            ><a class="nav-link" href="../api-numberoperation-type/"
+              ><span>NumberOperation</span
+              ><small
+                >Number operation with math operations and comparisons.</small
+              ></a
+            ><a class="nav-link" href="../api-numbersignaltrap-type/"
+              ><span>NumberSignalTrap</span
+              ><small
+                >Number trap with numeric operations and formatting
+                methods.</small
+              ></a
+            ><a class="nav-link" href="../api-numbertrap-const/"
+              ><span>numberTrap</span
+              ><small
+                >Creates the number trap for signalified numbers.</small
+              ></a
+            ><a class="nav-link" href="../api-objecttrap-const/"
+              ><span>objectTrap</span
+              ><small
+                >Creates the object trap for signalified plain objects.</small
+              ></a
+            ><a class="nav-link" href="../api-op-const/"
+              ><span>op</span
+              ><small
+                >Creates an operation object for composing logical and
+                mathematical operations.</small
+              ></a
+            ><a class="nav-link" href="../api-operation-type/"
+              ><span>Operation</span
+              ><small
+                >Union type for all operation types, determined by the value
+                type.</small
+              ></a
+            ><a class="nav-link" href="../api-operationresult-type/"
+              ><span>OperationResult</span
+              ><small>Base operation result getters.</small></a
+            ><a class="nav-link" href="../api-promstates-const/"
+              ><span>promstates</span
+              ><small
+                >Creates promise state signals for async operations.</small
+              ></a
+            ><a class="nav-link" href="../api-receive-const/"
+              ><span>receive</span
+              ><small
+                >Connects multiple transmitter signals to a single receiver
+                signal.</small
+              ></a
+            ><a class="nav-link" href="../api-recordsignaltrap-type/"
+              ><span>RecordSignalTrap</span
+              ><small
+                >Record trap for plain objects with property access
+                methods.</small
+              ></a
+            ><a class="nav-link active" href="./"
+              ><span>SignalifiedFunction</span
+              ><small
+                >A function type that accepts signalified arguments and returns
+                a derived signal.</small
+              ></a
+            ><a class="nav-link" href="../api-signaltrap-type/"
+              ><span>SignalTrap</span
+              ><small
+                >Union type for all trap types, determined by the value
+                type.</small
+              ></a
+            ><a class="nav-link" href="../api-stringandarrayop-const/"
+              ><span>stringAndArrayOp</span
+              ><small
+                >Creates the string/array-specific operation chain for a
+                value.</small
+              ></a
+            ><a class="nav-link" href="../api-stringandarrayoperation-type/"
+              ><span>StringAndArrayOperation</span
+              ><small
+                >String and array operation with length-based operations.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../api-stringsignalderivertemplateexpressions-type/"
+              ><span>StringSignalDeriverTemplateExpressions</span
+              ><small
+                >The expressions allowed inside the template
+                placeholders.</small
+              ></a
+            ><a class="nav-link" href="../api-stringsignaltrap-type/"
+              ><span>StringSignalTrap</span
+              ><small>String trap with string manipulation methods.</small></a
+            ><a class="nav-link" href="../api-stringtrap-const/"
+              ><span>stringTrap</span
+              ><small
+                >Creates the string trap for signalified strings.</small
+              ></a
+            ><a class="nav-link" href="../api-tmpl-const/"
+              ><span>tmpl</span
+              ><small
+                >Tagged template function for string interpolation with
+                signals.</small
+              ></a
+            ><a class="nav-link" href="../api-transmit-const/"
+              ><span>transmit</span
+              ><small
+                >Broadcasts changes from one transmitter signal to multiple
+                receiver signals.</small
+              ></a
+            ><a class="nav-link" href="../api-trap-const/"
+              ><span>trap</span
+              ><small
+                >Creates a type-specific trap object with derived signal
+                methods.</small
+              ></a
+            ></section
+          ><section class="nav-group"
+            ><h2>core</h2
+            ><a class="nav-link" href="../../core/core-arraysourcesignal-type/"
+              ><span>ArraySourceSignal</span
+              ><small>Source signal for arrays with mutation methods.</small></a
+            ><a class="nav-link" href="../../core/core-basearraysignal-type/"
+              ><span>BaseArraySignal</span
+              ><small>Array mutation methods for array signals.</small></a
+            ><a class="nav-link" href="../../core/core-baseobjectsignal-type/"
+              ><span>BaseObjectSignal</span
+              ><small>Object mutation methods for object signals.</small></a
+            ><a class="nav-link" href="../../core/core-basesourcesignal-type/"
+              ><span>BaseSourceSignal</span
+              ><small
+                >Base source signal type with value getter/setter.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-derive-const/"
+              ><span>derive</span
+              ><small
+                >Creates a read-only derived signal computed from other
+                signals.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-derivedsignal-type/"
+              ><span>DerivedSignal</span
+              ><small
+                >A read-only derived signal computed from other signals.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-derivedvaluegetterwithsignals-type/"
+              ><span>DerivedValueGetterWithSignals</span
+              ><small
+                >A function that computes a derived signal&#39;s value.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-dispose-const/"
+              ><span>dispose</span
+              ><small
+                >Disposes multiple derived signals and/or effects at
+                once.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-effect-const/"
+              ><span>effect</span
+              ><small
+                >Registers a function to run whenever its accessed signals
+                change.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-getarraysignalbaseobject-const/"
+              ><span>getArraySignalBaseObject</span
+              ><small
+                >Creates array mutation methods for array signals.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-getnonsignalobject-const/"
+              ><span>getNonSignalObject</span
+              ><small
+                >Wraps a plain value in a NonSignal object for runtime type
+                discrimination.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-getobjectsignalbaseobject-const/"
+              ><span>getObjectSignalBaseObject</span
+              ><small
+                >Creates object mutation methods for object signals.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-maybederivedsignal-type/"
+              ><span>MaybeDerivedSignal</span
+              ><small
+                >A union type representing a derived signal or a plain
+                value.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-maybenonsignal-type/"
+              ><span>MaybeNonSignal</span
+              ><small
+                >A union type representing either a non-signal object or a plain
+                value.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-maybesignal-type/"
+              ><span>MaybeSignal</span
+              ><small
+                >A union type representing a signal or a plain value.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-maybesignalvalue-type/"
+              ><span>MaybeSignalValue</span
+              ><small
+                >A union type representing a signal, non-signal, or plain
+                value.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-maybesignalvalues-type/"
+              ><span>MaybeSignalValues</span
+              ><small
+                >Converts a tuple type to a tuple of `MaybeSignalValue`
+                types.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-maybesourcesignal-type/"
+              ><span>MaybeSourceSignal</span
+              ><small
+                >A union type representing a source signal or a plain
+                value.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-nonnullsignalvalue-type/"
+              ><span>NonNullSignalValue</span
+              ><small
+                >A utility type that removes `null` and `undefined` from signal
+                realm types.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-nonsignal-type/"
+              ><span>NonSignal</span
+              ><small>A runtime type wrapper for plain values.</small></a
+            ><a class="nav-link" href="../../core/core-objectsourcesignal-type/"
+              ><span>ObjectSourceSignal</span
+              ><small
+                >Source signal for plain objects with partial update
+                method.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-plainvalue-type/"
+              ><span>PlainValue</span
+              ><small
+                >Extracts a plain value from a `MaybeSignalValue`.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-plainvalues-type/"
+              ><span>PlainValues</span
+              ><small
+                >Extracts plain values from a `MaybeSignalValues` tuple.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-setcurrenteffect-const/"
+              ><span>setCurrentEffect</span
+              ><small>Sets the currently executing effect.</small></a
+            ><a class="nav-link" href="../../core/core-signal-const/"
+              ><span>signal</span
+              ><small
+                >Creates a mutable source signal from any JavaScript
+                value.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-signal-type/"
+              ><span>Signal</span
+              ><small
+                >A union type representing either a source or derived
+                signal.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-signalifiedobject-type/"
+              ><span>SignalifiedObject</span
+              ><small
+                >A union type representing a signalified object (signal or
+                non-signal).</small
+              ></a
+            ><a class="nav-link" href="../../core/core-signalseffect-type/"
+              ><span>SignalsEffect</span
+              ><small
+                >A function that can be registered to run when signal values
+                change.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-sourcesignal-type/"
+              ><span>SourceSignal</span
+              ><small
+                >A mutable source signal created from plain JavaScript
+                data.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-value-const/"
+              ><span>value</span
+              ><small
+                >Extracts the plain value from a signal, non-signal, or plain
+                value.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-valueisderivedsignal-const/"
+              ><span>valueIsDerivedSignal</span
+              ><small>Checks whether a value is a derived signal.</small></a
+            ><a
+              class="nav-link"
+              href="../../core/core-valueismaybesignalvalueofstringorarray-const/"
+              ><span>valueIsMaybeSignalValueOfStringOrArray</span
+              ><small
+                >Checks whether a value, after unwrapping, is a string or
+                array.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-valueisnonsignalobject-const/"
+              ><span>valueIsNonSignalObject</span
+              ><small
+                >Checks whether a value is a non-signal object, optionally
+                matching specific types.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-valueisnonsignalstring-const/"
+              ><span>valueIsNonSignalString</span
+              ><small
+                >Checks whether a value is a non-signal of type string.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-valueisnonsignalstringarray-const/"
+              ><span>valueIsNonSignalStringArray</span
+              ><small
+                >Checks whether a value is a non-signal of type string
+                array.</small
+              ></a
+            ><a class="nav-link" href="../../core/core-valueissignal-const/"
+              ><span>valueIsSignal</span
+              ><small
+                >Checks whether a value is any signal (source or
+                derived).</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-valueissignalifiedobject-const/"
+              ><span>valueIsSignalifiedObject</span
+              ><small
+                >Checks whether a value is a signal or non-signal object.</small
+              ></a
+            ><a
+              class="nav-link"
+              href="../../core/core-valueissourcesignal-const/"
+              ><span>valueIsSourceSignal</span
+              ><small>Checks whether a value is a source signal.</small></a
+            ></section
+          ></nav
+        >
+      </aside>
+      <main class="main">
+        <article class="doc">
+          <header class="hero"
+            ><div class="eyebrow">api / type</div><h1>SignalifiedFunction</h1
+            ><p
+              >A function type that accepts signalified arguments and returns a
+              derived signal.</p
+            ><div class="meta"
+              >Source: <code>src/api/traps/types.ts</code></div
+            ></header
+          ><p
+            >A function type that accepts signalified arguments and returns a
+            derived signal.</p
+          >
+          <p
+            >This is used to convert JavaScript instance methods into derived
+            signal methods.</p
+          >
+          <h2 id="signature">Signature</h2>
+          <div class="code-block"
+            ><button type="button" class="copy-button">Copy</button
+            >><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">type</span> SignalifiedFunction&lt;F extends (...args: any[]) =&gt; any&gt; = (
   ...args: MaybeSignalValues&lt;Parameters&lt;F&gt;&gt;
-) =&gt; DerivedSignal&lt;ReturnType&lt;F&gt;&gt;;</code></pre></div>
-<h2 id="type-parameters">Type Parameters</h2>
-<ul><li>The function type to convert</li></ul>
-<h2 id="see-also">See Also</h2>
-<ul><li><a href="./core/derivedsignal/">DerivedSignal</a> - For the derived signal type</li></ul>
-      </article>
-    </main>
-  </div>
-  <script src="../../../assets/docs.js"></script>
-</body>
+) =&gt; DerivedSignal&lt;ReturnType&lt;F&gt;&gt;;</code></pre>
+          </div>
+          <h2 id="type-parameters">Type Parameters</h2>
+          <ul
+            ><li>The function type to convert</li></ul
+          >
+          <h2 id="see-also">See Also</h2>
+          <ul
+            ><li
+              ><a href="./core/derivedsignal/">DerivedSignal</a> - For the
+              derived signal type</li
+            ></ul
+          >
+        </article>
+      </main>
+    </div>
+    <script src="../../../assets/docs.js"></script>
+  </body>
 </html>
