@@ -432,7 +432,7 @@
           <h2 id="signature">Signature</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> signal = &lt;T&gt;(input: T): SourceSignal&lt;T&gt; =&gt; {
+            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> signal = &lt;T&gt;(input: T): SourceSignal&lt;T&gt; =&gt; {
   <span class="tok kw">let</span> _value = <span class="tok fn">immut</span>(input);
   <span class="tok kw">const</span> _effects = <span class="tok kw">new</span> Set&lt;SignalsEffect&gt;();
 
@@ -519,7 +519,7 @@
           <h2 id="examples">Examples</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok cm">// Primitive values</span>
+            ><pre><code data-lang="typescript"><span class="tok cm">// Primitive values</span>
 <span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
 count.value = <span class="tok num">1</span>;
 console.<span class="tok fn">log</span>(count.value); <span class="tok cm">// 1</span>

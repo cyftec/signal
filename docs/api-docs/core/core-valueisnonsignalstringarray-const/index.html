@@ -425,7 +425,7 @@
           <h2 id="signature">Signature</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> valueIsNonSignalStringArray = (input: any): boolean =&gt;
+            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> valueIsNonSignalStringArray = (input: any): boolean =&gt;
   input?.<span class="tok kw">type</span> === <span class="tok str">&quot;non-signal&quot;</span> &amp;&amp;
   Array.<span class="tok fn">isArray</span>(input?.value) &amp;&amp;
   (input?.value as any[]).<span class="tok fn">every</span>((item) =&gt; typeof item === <span class="tok str">&quot;string&quot;</span>);</code></pre>

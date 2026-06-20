@@ -448,7 +448,7 @@
           <h2 id="signature">Signature</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> tmpl = (
+            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> tmpl = (
   strings: TemplateStringsArray,
   ...tlExpressions: StringSignalDeriverTemplateExpressions
 ): DerivedSignal&lt;string&gt; =&gt;
@@ -498,7 +498,7 @@
           <h2 id="examples">Examples</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">const</span> name = <span class="tok fn">signal</span>(<span class="tok str">&quot;World&quot;</span>);
+            ><pre><code data-lang="typescript"><span class="tok kw">const</span> name = <span class="tok fn">signal</span>(<span class="tok str">&quot;World&quot;</span>);
 <span class="tok kw">const</span> greeting = tmpl<span class="tok str">`Hello ${name}`</span>;
 console.<span class="tok fn">log</span>(greeting.value); <span class="tok cm">// &quot;Hello World&quot;</span>
 

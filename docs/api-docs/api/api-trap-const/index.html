@@ -454,7 +454,7 @@
           <h2 id="signature">Signature</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> trap = &lt;T&gt;(input: MaybeSignalValue&lt;T&gt;) =&gt; {
+            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> trap = &lt;T&gt;(input: MaybeSignalValue&lt;T&gt;) =&gt; {
   <span class="tok kw">return</span> (
     typeof <span class="tok fn">value</span>(input) === <span class="tok str">&quot;number&quot;</span>
       ? <span class="tok fn">numberTrap</span>(input as MaybeSignalValue&lt;number&gt;)
@@ -498,7 +498,7 @@
           <h2 id="examples">Examples</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">5</span>);
+            ><pre><code data-lang="typescript"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">5</span>);
 <span class="tok kw">const</span> trapped = <span class="tok fn">trap</span>(count); <span class="tok cm">// NumberSignalTrap</span>
 <span class="tok kw">const</span> doubled = trapped.<span class="tok fn">add</span>(<span class="tok num">5</span>).result;
 

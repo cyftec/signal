@@ -435,7 +435,7 @@
           <h2 id="signature">Signature</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> getNonSignalObject = &lt;T&gt;(input: T): NonSignal&lt;T&gt; =&gt; {
+            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> getNonSignalObject = &lt;T&gt;(input: T): NonSignal&lt;T&gt; =&gt; {
   <span class="tok kw">return</span> {
     <span class="tok kw">type</span>: <span class="tok str">&quot;non-signal&quot;</span>,
     value: input,
@@ -463,7 +463,7 @@
           <h2 id="examples">Examples</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">const</span> nonSig = <span class="tok fn">getNonSignalObject</span>(<span class="tok num">42</span>);
+            ><pre><code data-lang="typescript"><span class="tok kw">const</span> nonSig = <span class="tok fn">getNonSignalObject</span>(<span class="tok num">42</span>);
 console.<span class="tok fn">log</span>(nonSig.<span class="tok kw">type</span>); <span class="tok cm">// &quot;non-signal&quot;</span>
 console.<span class="tok fn">log</span>(nonSig.value); <span class="tok cm">// 42</span></code></pre>
           </div>

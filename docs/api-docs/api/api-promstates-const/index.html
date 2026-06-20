@@ -445,7 +445,7 @@
           <h2 id="signature">Signature</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> promstates = &lt;R, Args extends Array&lt;any&gt;, I&gt;(
+            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> promstates = &lt;R, Args extends Array&lt;any&gt;, I&gt;(
   promiseFn: (...args: Args) =&gt; Promise&lt;R&gt;,
   initialValue?: I,
   ultimately?: () =&gt; void
@@ -564,7 +564,7 @@
           <h2 id="examples">Examples</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">const</span> promiseFn = <span class="tok kw">async</span> (value: number) =&gt; value * <span class="tok num">2</span>;
+            ><pre><code data-lang="typescript"><span class="tok kw">const</span> promiseFn = <span class="tok kw">async</span> (value: number) =&gt; value * <span class="tok num">2</span>;
 <span class="tok kw">const</span> [runPromise, result, error, isRunning] = <span class="tok fn">promstates</span>(promiseFn, <span class="tok num">0</span>);
 
 <span class="tok kw">await</span> <span class="tok fn">runPromise</span>(<span class="tok num">5</span>);

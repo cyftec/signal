@@ -41,7 +41,7 @@
           ><h2 id="1-install">1. Install</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="ts">import { signal, derive, effect } from <span class="tok str">&quot;@cyftech/signal&quot;</span>;</code></pre>
+            ><pre><code data-lang="ts">import { signal, derive, effect } from <span class="tok str">&quot;@cyftech/signal&quot;</span>;</code></pre>
           </div>
           <p>Expected result:</p>
           <ul
@@ -51,7 +51,7 @@
           <h2 id="2-create-state">2. Create State</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
+            ><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
 console.<span class="tok fn">log</span>(count.value); <span class="tok cm">// 0</span>
 count.value = <span class="tok num">1</span>;
 console.<span class="tok fn">log</span>(count.value); <span class="tok cm">// 1</span></code></pre>
@@ -64,7 +64,7 @@ console.<span class="tok fn">log</span>(count.value); <span class="tok cm">// 1<
           <h2 id="3-read-from-state">3. Read From State</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="ts"><span class="tok kw">const</span> name = <span class="tok fn">signal</span>(<span class="tok str">&quot;Ada&quot;</span>);
+            ><pre><code data-lang="ts"><span class="tok kw">const</span> name = <span class="tok fn">signal</span>(<span class="tok str">&quot;Ada&quot;</span>);
 console.<span class="tok fn">log</span>(<span class="tok str">`Hello, ${name.value}`</span>);</code></pre>
           </div>
           <p>Expected result:</p>
@@ -74,7 +74,7 @@ console.<span class="tok fn">log</span>(<span class="tok str">`Hello, ${name.val
           <h2 id="4-derive-state">4. Derive State</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">2</span>);
+            ><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">2</span>);
 <span class="tok kw">const</span> doubled = <span class="tok fn">derive</span>(() =&gt; count.value * <span class="tok num">2</span>);
 console.<span class="tok fn">log</span>(doubled.value); <span class="tok cm">// 4</span></code></pre>
           </div>
@@ -87,7 +87,7 @@ console.<span class="tok fn">log</span>(doubled.value); <span class="tok cm">// 
           <h2 id="5-react-to-changes">5. React To Changes</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
+            ><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
 <span class="tok fn">effect</span>(() =&gt; {
   console.<span class="tok fn">log</span>(<span class="tok str">&quot;count:&quot;</span>, count.value);
 });
@@ -101,7 +101,7 @@ count.value = <span class="tok num">1</span>;</code></pre>
           <h2 id="6-combine-signals">6. Combine Signals</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="ts"><span class="tok kw">const</span> first = <span class="tok fn">signal</span>(<span class="tok str">&quot;Ada&quot;</span>);
+            ><pre><code data-lang="ts"><span class="tok kw">const</span> first = <span class="tok fn">signal</span>(<span class="tok str">&quot;Ada&quot;</span>);
 <span class="tok kw">const</span> last = <span class="tok fn">signal</span>(<span class="tok str">&quot;Lovelace&quot;</span>);
 <span class="tok kw">const</span> fullName = <span class="tok fn">derive</span>(() =&gt; <span class="tok str">`${first.value} ${last.value}`</span>);
 <span class="tok fn">effect</span>(() =&gt; {
@@ -134,7 +134,7 @@ count.value = <span class="tok num">1</span>;</code></pre>
           <h2 id="9-equality-short-circuit">9. Equality Short-Circuit</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">1</span>);
+            ><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">1</span>);
 <span class="tok fn">effect</span>(() =&gt; {
   console.<span class="tok fn">log</span>(count.value);
 });
@@ -147,7 +147,7 @@ count.value = <span class="tok num">1</span>;</code></pre>
           <h2 id="10-dispose-when-done">10. Dispose When Done</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
+            ><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
 <span class="tok kw">const</span> logger = <span class="tok fn">effect</span>(() =&gt; {
   console.<span class="tok fn">log</span>(count.value);
 });
@@ -165,7 +165,7 @@ count.value = <span class="tok num">1</span>;</code></pre>
           <h2 id="11-arrays-and-objects">11. Arrays And Objects</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="ts"><span class="tok kw">const</span> items = <span class="tok fn">signal</span>([<span class="tok num">1</span>, <span class="tok num">2</span>, <span class="tok num">3</span>]);
+            ><pre><code data-lang="ts"><span class="tok kw">const</span> items = <span class="tok fn">signal</span>([<span class="tok num">1</span>, <span class="tok num">2</span>, <span class="tok num">3</span>]);
 items.<span class="tok fn">push</span>(<span class="tok num">4</span>);
 
 <span class="tok kw">const</span> user = <span class="tok fn">signal</span>({ name: <span class="tok str">&quot;Ada&quot;</span>, age: <span class="tok num">36</span> });

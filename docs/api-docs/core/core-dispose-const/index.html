@@ -431,7 +431,7 @@
           <h2 id="signature">Signature</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> dispose = (
+            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> dispose = (
   ...derivedSignalsOrEffects: (DerivedSignal&lt;any&gt; | SignalsEffect)[]
 ): void =&gt; {
   derivedSignalsOrEffects.<span class="tok fn">forEach</span>((dsigOrEff) =&gt; dsigOrEff.<span class="tok fn">dispose</span>());
@@ -460,7 +460,7 @@
           <h2 id="examples">Examples</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
+            ><pre><code data-lang="typescript"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
 <span class="tok kw">const</span> doubled = <span class="tok fn">derive</span>(() =&gt; count.value * <span class="tok num">2</span>);
 <span class="tok kw">const</span> eff = <span class="tok fn">effect</span>(() =&gt; console.<span class="tok fn">log</span>(count.value));
 

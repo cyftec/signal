@@ -461,7 +461,7 @@
           <h2 id="signature">Signature</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> op = &lt;T&gt;(input: MaybeSignalValue&lt;T&gt; | (() =&gt; T)): Operation&lt;T&gt; =&gt; {
+            ><pre><code data-lang="typescript"><span class="tok kw">export</span> <span class="tok kw">const</span> op = &lt;T&gt;(input: MaybeSignalValue&lt;T&gt; | (() =&gt; T)): Operation&lt;T&gt; =&gt; {
   <span class="tok kw">const</span> evaluator: () =&gt; T =
     typeof input === <span class="tok str">&quot;function&quot;</span>
       ? (input as () =&gt; T)
@@ -513,7 +513,7 @@
           <h2 id="examples">Examples</h2>
           <div class="code-block"
             ><button type="button" class="copy-button">Copy</button
-            >><pre><code data-lang="typescript"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">5</span>);
+            ><pre><code data-lang="typescript"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">5</span>);
 <span class="tok kw">const</span> operation = <span class="tok fn">op</span>(count);
 <span class="tok kw">const</span> doubled = operation.<span class="tok fn">add</span>(<span class="tok num">5</span>).result; <span class="tok cm">// DerivedSignal&lt;number&gt;</span>
 
