@@ -1,8 +1,5 @@
-import {
-  type MaybeSignalValues,
-  type PlainValues,
-  value,
-} from "../../../_core";
+import { MaybeSignalValues, PlainValues } from "../types";
+import { value } from "./value-getter";
 
 /**
  * Converts signalified method parameters to plain values.
@@ -28,7 +25,7 @@ import {
  * // params is ["world"], which can be passed to text.includes("world")
  */
 export const getDesignalifiedMethodParams = <
-  T extends MaybeSignalValues<any[]>
+  T extends MaybeSignalValues<any[]>,
 >(
   ...methodParams: T
 ) => methodParams.map((p) => value(p)) as PlainValues<T>;
