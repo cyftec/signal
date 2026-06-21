@@ -1,34 +1,24 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Cyftech Signal Docs</title>
-    <link rel="stylesheet" href="./assets/docs.css" />
-  </head>
-  <body>
-    <main class="landing">
-      <nav class="content-top-nav">
-        <a class="content-top-nav-brand" href="/">
-          <img src="/assets/images/signal-logo.svg" alt="Cyftec Signal Logo" />
-          <span>Signal</span>
-        </a>
-        <div class="content-top-nav-links">
-          <a href="/api-docs/">Docs</a>
-          <a href="/tutorial/">Tutorial</a>
-          <a href="/architecture/">Architecture</a>
-        </div>
-      </nav>
-      <section class="showcase">
-        <div class="showcase-copy">
-          <div class="eyebrow">Cyftech Signal</div>
-          <h1>Signals you can read in the code and see in the UI.</h1>
-          <p
-            >A source signal owns the state. An effect observes that state. When
-            the value changes, the UI follows synchronously.</p
-          >
-          <div class="showcase-code">
-            <pre><code>import { signal, effect } from <span class="tok str">&quot;@cyftech/signal&quot;</span>;
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cyftech Signal Docs</title>
+  <link rel="stylesheet" href="./assets/docs.css" />
+</head>
+<body>
+  <main class="landing">
+    <nav class="landing-nav">
+      <a href="./api-docs/">API Docs</a>
+      <a href="./tutorial/">Tutorial</a>
+      <a href="./architecture/">Architecture</a>
+    </nav>
+    <section class="showcase">
+      <div class="showcase-copy">
+        <div class="eyebrow">Cyftech Signal</div>
+        <h1>Signals you can read in the code and see in the UI.</h1>
+        <p>A source signal owns the state. An effect observes that state. When the value changes, the UI follows synchronously.</p>
+        <div class="showcase-code"><pre><code>import { signal, effect } from <span class="tok str">&quot;@cyftech/signal&quot;</span>;
 
 <span class="tok kw">type</span> LightState = <span class="tok str">&quot;red&quot;</span> | <span class="tok str">&quot;amber&quot;</span> | <span class="tok str">&quot;green&quot;</span>;
 
@@ -42,54 +32,30 @@
 <span class="tok fn">setInterval</span>(() =&gt; {
   <span class="tok kw">const</span> current = order.<span class="tok fn">indexOf</span>(light.value);
   light.value = order[(current + <span class="tok num">1</span>) % order.length];
-}, <span class="tok num">1200</span>);</code></pre>
+}, <span class="tok num">1200</span>);</code></pre></div>
+      </div>
+      <div class="showcase-demo" aria-label="Animated traffic light driven by a signal state">
+        <div class="traffic-scene">
+          <div class="traffic-controller">
+            <span>signal value</span>
+            <strong class="state-word" aria-label="animated light state"></strong>
+          </div>
+          <div class="traffic-light" aria-hidden="true">
+            <div class="lamp lamp-red"></div>
+            <div class="lamp lamp-amber"></div>
+            <div class="lamp lamp-green"></div>
+          </div>
+          <div class="traffic-timeline">
+            <span>red</span>
+            <span>amber</span>
+            <span>green</span>
           </div>
         </div>
-        <div
-          class="showcase-demo"
-          aria-label="Animated traffic light driven by a signal state"
-        >
-          <div class="traffic-scene">
-            <div class="traffic-controller">
-              <span>signal value</span>
-              <strong
-                class="state-word"
-                aria-label="animated light state"
-              ></strong>
-            </div>
-            <div class="traffic-light" aria-hidden="true">
-              <div class="lamp lamp-red"></div>
-              <div class="lamp lamp-amber"></div>
-              <div class="lamp lamp-green"></div>
-            </div>
-            <div class="traffic-timeline">
-              <span>red</span>
-              <span>amber</span>
-              <span>green</span>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section class="landing-grid">
-        <a class="landing-card" href="./api-docs/"
-          ><span>api-docs</span
-          ><small
-            >Generated API reference driven by TSDoc and validated
-            markdown.</small
-          ></a
-        ><a class="landing-card" href="./tutorial/"
-          ><span>tutorial</span
-          ><small
-            >Learning-first guide with examples, outcomes, and progressive
-            steps.</small
-          ></a
-        ><a class="landing-card" href="./architecture/"
-          ><span>architecture</span
-          ><small
-            >Contributor-focused diagrams and implementation notes.</small
-          ></a
-        >
-      </section>
-    </main>
-  </body>
+      </div>
+    </section>
+    <section class="landing-grid">
+      <a class="landing-card" href="./api-docs/"><span>api-docs</span><small>Generated API reference driven by TSDoc and validated markdown.</small></a><a class="landing-card" href="./tutorial/"><span>tutorial</span><small>Learning-first guide with examples, outcomes, and progressive steps.</small></a><a class="landing-card" href="./architecture/"><span>architecture</span><small>Contributor-focused diagrams and implementation notes.</small></a>
+    </section>
+  </main>
+</body>
 </html>

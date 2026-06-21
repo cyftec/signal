@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-19T14:36:52.686Z",
+  "generatedAt": "2026-06-21T02:23:30.848Z",
   "symbols": {
     "core:effect": {
       "name": "effect",
@@ -722,13 +722,13 @@
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export type DerivedSignal<T> = {\n  /** Runtime type discriminator for derived signals */\n  type: \"derived-signal\";\n  /** The previous computed value (undefined on first computation) */\n  get prevValue(): T | undefined;\n  /** The current computed value */\n  get value(): T;\n  /**\n   * Stops the derived signal from tracking its dependencies.\n   *\n   * After calling dispose(), the derived signal's value remains accessible\n   * but will no longer update when its dependencies change.\n   */\n  dispose: () => void;\n};\n\n/**\n * A function that computes a derived signal's value.\n *\n * This function receives the previous computed value and should access\n * `.value` on signals to establish dependencies. The function is called\n * whenever any tracked dependency changes.\n *\n * @template T - The type of value to return\n * @param oldValue - The previous computed value (undefined on first run)\n * @returns The new computed value\n *\n * @example\n * ```typescript\n * const count = signal(5);\n * const doubled = derive((prev) => {\n *   const current = count.value;\n *   return current * 2;\n * });\n * ```\n *\n * @remarks\n * - Always access signals via `.value` to establish dependencies\n * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n * - The previous value is the previous RETURN value, not the previous dependency values\n */\nexport type DerivedValueGetterWithSignals<T> = (oldValue: T | undefined) => T;\n\n/**\n * Creates a read-only derived signal computed from other signals.\n *\n * The derived signal's value is computed by the provided function, which\n * should access `.value` on signals to establish dependencies. The value\n * is recomputed whenever any tracked dependency changes.\n *\n * @template T - The type of value the derived signal holds\n * @param valueGetterFn - A function that computes the derived value.\n * Receives the previous computed value (undefined on first run).\n * @returns A derived signal with `value`, `prevValue`, and `dispose()` methods\n *\n * @example\n * ```typescript\n * const count = signal(5);\n * const doubled = derive(() => count.value * 2);\n * console.log(doubled.value); // 10\n *\n * // Using previous value\n * const history = derive((prev) => {\n *   const current = count.value;\n *   return prev ? [...prev, current] : [current];\n * });\n * ```\n *\n * @remarks\n * - Dependencies are only tracked for signals whose `.value` is accessed during execution\n * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n * - The previous value is undefined on the first computation\n * - Derived signals can depend on other derived signals (chaining)\n *\n * @see {@link DerivedValueGetterWithSignals} - The type of the value getter function\n * @see {@link signal} - For creating mutable source signals\n * @see {@link effect} - For registering functions to run when signal values change\n */\nexport const derive = <T>(\n  valueGetterFn: DerivedValueGetterWithSignals<T>,\n): DerivedSignal<T> => {\n  let oldValue: T | undefined;\n  let currValue: T | undefined;\n  const derivedSource = signal<T>(oldValue as T);\n  const derivedSourceUpdator = effect(() => {\n    oldValue = currValue;\n    currValue = valueGetterFn(oldValue);\n    derivedSource.value = currValue;\n  });\n\n  const derivedSignal: DerivedSignal<T> = {\n    type: \"derived-signal\",\n    get prevValue() {\n      return oldValue;\n    },\n    get value() {\n      return derivedSource.value;\n    },\n    dispose() {\n      derivedSourceUpdator.dispose();\n    },\n  };\n\n  return derivedSignal;\n};",
+      "signature": "export type DerivedSignal<T> = BaseDerivedSignal<T> &\n  (T extends any[] ? ArraySignalNonMutatingMethodsObject<T> : {});",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
         "summary": "A read-only derived signal computed from other signals.\n\nDerived signals automatically recompute their value whenever any of their\ntracked dependencies change. Dependencies are established by accessing\n`.value` on signals during the initial computation.",
         "remarks": [
-          "- The value getter function receives the previous computed value (undefined on first run)\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Calling `dispose()` stops the derived signal from tracking dependencies\n- After disposal, the value remains accessible but won't update"
+          "- The value getter function receives the previous computed value (undefined on first run)\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Calling `dispose()` stops the derived signal from tracking dependencies\n- After disposal, the value remains accessible but won't update\n- Array derived signals get non-mutating array methods (map, filter, etc.)\n- Object derived signals get non-mutating object methods (get, withLiveProps, keys)"
         ],
         "examples": [],
         "params": [],
@@ -792,7 +792,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export const derive = <T>(\n  valueGetterFn: DerivedValueGetterWithSignals<T>,\n): DerivedSignal<T> => {\n  let oldValue: T | undefined;\n  let currValue: T | undefined;\n  const derivedSource = signal<T>(oldValue as T);\n  const derivedSourceUpdator = effect(() => {\n    oldValue = currValue;\n    currValue = valueGetterFn(oldValue);\n    derivedSource.value = currValue;\n  });\n\n  const derivedSignal: DerivedSignal<T> = {\n    type: \"derived-signal\",\n    get prevValue() {\n      return oldValue;\n    },\n    get value() {\n      return derivedSource.value;\n    },\n    dispose() {\n      derivedSourceUpdator.dispose();\n    },\n  };\n\n  return derivedSignal;\n};",
+      "signature": "export const derive = <T>(\n  valueGetterFn: DerivedValueGetterWithSignals<T>,\n): DerivedSignal<T> => {\n  let oldValue: T | undefined;\n  let currValue: T | undefined;\n  const derivedSource = signal<T>(oldValue as T);\n  const derivedSourceUpdator = effect(() => {\n    oldValue = currValue;\n    currValue = valueGetterFn(oldValue);\n    derivedSource.value = currValue;\n  });\n\n  const baseDerivedSignal: BaseDerivedSignal<T> = {\n    type: \"derived-signal\" as const,\n    get prevValue() {\n      return oldValue;\n    },\n    get value() {\n      return derivedSource.value;\n    },\n    dispose() {\n      derivedSourceUpdator.dispose();\n    },\n  };\n\n  // Add non-mutating methods for array and object derived signals\n  if (Array.isArray(derivedSource.value)) {\n    return Object.assign(\n      baseDerivedSignal,\n      getArraySignalNonMutatingMethodsObject(\n        baseDerivedSignal as BaseDerivedSignal<any[]>,\n      ),\n    ) as any;\n  }\n\n  return baseDerivedSignal as any;\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -935,7 +935,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export const signal = <T>(input: T): SourceSignal<T> => {\n  let _value = immut(input);\n  const _effects = new Set<SignalsEffect>();\n\n  /**\n   * Runs all registered effects when the signal's value changes.\n   *\n   * This function iterates through all effects and:\n   * 1. Skips effects marked for disposal (canDisposeNow = true)\n   * 2. Removes disposed effects from the set (lazy cleanup)\n   * 3. Executes remaining effects\n   *\n   * The lazy cleanup approach ensures that effects are removed on the next\n   * signal update after being disposed, rather than immediately.\n   */\n  const runEffects = () => {\n    _effects.forEach((effect) => {\n      if (effect.canDisposeNow) {\n        _effects.delete(effect);\n        return;\n      }\n      effect();\n    });\n  };\n\n  /**\n   * Updates the signal's value and triggers all dependent effects.\n   *\n   * This function is used internally by the signal's setter and by\n   * type-specific mutation methods (for arrays and objects).\n   *\n   * @param newValue The new value to set\n   */\n  const setValueAndRunEffects = (newValue: T): void => {\n    _value = newValue;\n    runEffects();\n  };\n\n  const baseObject: BaseSourceSignal<T> = {\n    type: \"source-signal\",\n    get value() {\n      // Automatic dependency tracking: if an effect is currently executing,\n      // register this effect as a dependency of this signal\n      if (_currentSignalEffect) _effects.add(_currentSignalEffect);\n      // Return a fresh copy of the immutable value\n      return newVal(_value);\n    },\n    set value(newValue: T) {\n      // Skip if value hasn't changed (prevents unnecessary effect runs)\n      // TODO: if using 'areValuesEqual' from immutjs would be expensive for large data, consider a more efficient equality check or always trigger effects\n      if (newValue === _value) return;\n      // Store new value immutably and trigger effects\n      setValueAndRunEffects(immut(newValue));\n    }",
+      "signature": "export const signal = <T>(input: T): SourceSignal<T> => {\n  let _value = immut(input);\n  const _effects = new Set<SignalsEffect>();\n\n  /**\n   * Runs all registered effects when the signal's value changes.\n   *\n   * This function iterates through all effects and:\n   * 1. Skips effects marked for disposal (canDisposeNow = true)\n   * 2. Removes disposed effects from the set (lazy cleanup)\n   * 3. Executes remaining effects\n   *\n   * The lazy cleanup approach ensures that effects are removed on the next\n   * signal update after being disposed, rather than immediately.\n   */\n  const runEffects = () => {\n    _effects.forEach((effect) => {\n      if (effect.canDisposeNow) {\n        _effects.delete(effect);\n        return;\n      }\n      effect();\n    });\n  };\n\n  /**\n   * Updates the signal's value and triggers all dependent effects.\n   *\n   * This function is used internally by the signal's setter and by\n   * type-specific mutation methods (for arrays and objects).\n   *\n   * @param newValue The new value to set\n   */\n  const setValueAndRunEffects = (newValue: T): void => {\n    _value = newValue;\n    runEffects();\n  };\n\n  const baseSourceSignal: BaseSourceSignal<T> = {\n    type: \"source-signal\",\n    get value() {\n      // Automatic dependency tracking: if an effect is currently executing,\n      // register this effect as a dependency of this signal\n      if (_currentSignalEffect) _effects.add(_currentSignalEffect);\n      // Return a fresh copy of the immutable value\n      return newVal(_value);\n    },\n    set value(newValue: T) {\n      // Skip if value hasn't changed (prevents unnecessary effect runs)\n      // TODO: if using 'areValuesEqual' from immutjs would be expensive for large data, consider a more efficient equality check or always trigger effects\n      if (newValue === _value) return;\n      // Store new value immutably and trigger effects\n      setValueAndRunEffects(immut(newValue));\n    }",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -969,41 +969,90 @@
       },
       "sourcePath": "src/_core/signal/source-signal.ts"
     },
-    "core:getArraySourceSignalMethodsObject": {
-      "name": "getArraySourceSignalMethodsObject",
-      "kind": "const",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/array-signal.ts",
+    "core:BaseSourceSignal": {
+      "name": "BaseSourceSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export const getArraySourceSignalMethodsObject = <T extends any[]>(\n  valueSetter: (method: (oldValue: T) => T) => void\n): ArraySourceSignalMethodsObject<T> => {\n  const mutator = (mutate: (newVal: T) => void): void =>\n    valueSetter((oldValue: T) => {\n      const newValue = Array.from(oldValue) as T;\n      mutate(newValue);\n      return newValue;\n    });\n\n  return {\n    copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) =>\n      mutator((newValue) => newValue.copyWithin(...args)),\n    fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) =>\n      mutator((newValue) => newValue.fill(...args)),\n    pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) =>\n      mutator((newValue) => newValue.pop(...args)),\n    push: (...args: Parameters<Array<T[number]>[\"push\"]>) =>\n      mutator((newValue) => newValue.push(...args)),\n    /** Removes items where the predicate returns true. */\n    remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => {\n      const predicate = args[0];\n      const negativeLogicPredicate = (\n        ...predicateArgs: Parameters<typeof predicate>\n      ) => !predicate(...predicateArgs);\n      args[0] = negativeLogicPredicate;\n      valueSetter((oldValue: T) => {\n        return oldValue.filter(...args) as T;\n      });\n    },\n    reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) =>\n      mutator((newValue) => newValue.reverse(...args)),\n    shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) =>\n      mutator((newValue) => newValue.shift(...args)),\n    sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) =>\n      mutator((newValue) => newValue.sort(...args)),\n    splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) =>\n      mutator((newValue) => newValue.splice(...args)),\n    unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) =>\n      mutator((newValue) => newValue.unshift(...args)),\n  };\n};",
+      "signature": "export type BaseSourceSignal<T> = {\n  /** Runtime type discriminator for source signals */\n  type: \"source-signal\";\n  /** Getter/setter for the signal's value */\n  value: T;\n};\n\n/**\n * Base derived signal type with read-only value access.\n *\n * Derived signals are computed from other signals and automatically update\n * when their dependencies change.\n *\n * @template T - The type of value the signal holds\n *\n * @remarks\n * - Value is read-only (computed from dependencies)\n * - The `prevValue` getter provides access to the previous computed value\n * - Calling `dispose()` stops the signal from tracking its dependencies\n */\nexport type BaseDerivedSignal<T> = {\n  /** Runtime type discriminator for derived signals */\n  type: \"derived-signal\";\n  /** The previous computed value (undefined on first computation) */\n  get prevValue(): T | undefined;\n  /** The current computed value */\n  get value(): T;\n  /**\n   * Stops the derived signal from tracking its dependencies.\n   *\n   * After calling dispose(), the derived signal's value remains accessible\n   * but will no longer update when its dependencies change.\n   */\n  dispose: () => void;\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
-        "summary": "Creates array mutation methods for array signals.\n\nEach mutation method copies the current array, applies the mutation, and\nforwards the result to the caller-provided setter.",
-        "remarks": [
-          "- Methods create new arrays internally but expose a mutable-style API\n- The `remove()` method deletes matching items rather than keeping them\n- `Array.from()` is used to create a shallow copy before mutation"
-        ],
+        "summary": "Base source signal type with value getter/setter.",
+        "remarks": [],
         "examples": [],
-        "params": [
-          {
-            "name": "valueSetter",
-            "description": "Updates the signal value and triggers effects"
-          }
-        ],
-        "returns": [
-          "Array mutation methods for the signal value"
-        ],
+        "params": [],
+        "returns": [],
         "see": [],
         "template": [
           {
             "name": "T",
-            "description": "The array type"
+            "description": "The type of value the signal holds"
           }
         ],
         "deprecated": []
       },
-      "sourcePath": "src/_core/signal/array-signal.ts"
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:BaseDerivedSignal": {
+      "name": "BaseDerivedSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type BaseDerivedSignal<T> = {\n  /** Runtime type discriminator for derived signals */\n  type: \"derived-signal\";\n  /** The previous computed value (undefined on first computation) */\n  get prevValue(): T | undefined;\n  /** The current computed value */\n  get value(): T;\n  /**\n   * Stops the derived signal from tracking its dependencies.\n   *\n   * After calling dispose(), the derived signal's value remains accessible\n   * but will no longer update when its dependencies change.\n   */\n  dispose: () => void;\n};\n\n/**\n * Base signal type union for both source and derived signals.\n *\n * @template T - The type of value the signal holds\n *\n * @remarks\n * - Source signals have mutable values via the setter\n * - Derived signals have read-only values computed from dependencies\n */\nexport type BaseSignal<T> = BaseSourceSignal<T> | BaseDerivedSignal<T>;\n\n/**\n * A function that can be registered to run when signal values change.\n *\n * Effects are created by the `effect()` function and track dependencies\n * by accessing `.value` on signals during execution.\n *\n * @remarks\n * - The effect function runs immediately when created\n * - It re-runs whenever any tracked signal's value changes\n * - The `canDisposeNow` flag marks the effect for disposal\n * - Calling `dispose()` sets `canDisposeNow` to true\n *\n * @see {@link effect} - For creating effects\n */\nexport type SignalsEffect = {\n  /** The effect function body */\n  (): void;\n  /** Flag indicating whether the effect is marked for disposal */\n  canDisposeNow: boolean;\n  /** Marks the effect for disposal */\n  dispose(): void;\n};\n\n/**\n * Intrinsic mutating methods for array signals.\n *\n * These methods mirror JavaScript Array mutating methods but internally create\n * new immutable arrays and trigger effects.\n *\n * @template T - The array type\n *\n * @remarks\n * - All methods create new arrays internally\n * - Effects are triggered synchronously\n * - Methods expose a mutable-style API while maintaining immutability\n */\nexport type ArraySignalIntrinsicMutatingMethodsObject<T extends any[]> = {\n  copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) => void;\n  fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) => void;\n  pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) => void;\n  push: (...args: Parameters<Array<T[number]>[\"push\"]>) => void;\n  reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) => void;\n  shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) => void;\n  sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) => void;\n  splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) => void;\n  unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) => void;\n};\n\n/**\n * Custom mutating methods for array signals.\n *\n * These are library-specific methods that provide additional functionality\n * beyond JavaScript's intrinsic array methods.\n *\n * @template T - The array type\n *\n * @remarks\n * - `keep()` is the inverse of `filter()` - keeps items matching the predicate\n * - `remove()` deletes items matching the predicate\n */\nexport type ArraySignalCustomMutatingMethodsObject<T extends any[]> = {\n  /** Keeps items where the predicate returns true */\n  keep: (...args: Parameters<Array<T[number]>[\"filter\"]>) => void;\n  /** Removes items where the predicate returns true */\n  remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => void;\n};\n\n/**\n * Combined mutating methods for array signals.\n *\n * Combines intrinsic and custom mutating methods into a single type.\n *\n * @template T - The array type\n */\nexport type ArraySignalMutatingMethodsObject<T extends any[]> =\n  ArraySignalIntrinsicMutatingMethodsObject<T> &\n    ArraySignalCustomMutatingMethodsObject<T>;\n\n/**\n * Intrinsic non-mutating methods for array signals.\n *\n * These methods mirror JavaScript Array non-mutating methods but return\n * derived signals instead of plain values.\n *\n * @template T - The array type\n *\n * @remarks\n * - All methods return derived signals\n * - Methods are reactive and update when the source array changes\n * - Works with both source and derived signals\n */\nexport type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {\n  at: (\n    ...args: Parameters<Array<T[number]>[\"at\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"at\"]>>;\n  concat: (\n    ...args: Parameters<Array<T[number]>[\"concat\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"concat\"]>>;\n  every: (\n    ...args: Parameters<Array<T[number]>[\"every\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"every\"]>>;\n  filter: (\n    ...args: Parameters<Array<T[number]>[\"filter\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"filter\"]>>;\n  find: (\n    ...args: Parameters<Array<T[number]>[\"find\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"find\"]>>;\n  findIndex: (\n    ...args: Parameters<Array<T[number]>[\"findIndex\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"findIndex\"]>>;\n  findLast: (\n    ...args: Parameters<Array<T[number]>[\"findLast\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"findLast\"]>>;\n  findLastIndex: (\n    ...args: Parameters<Array<T[number]>[\"findLastIndex\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"findLastIndex\"]>>;\n  get length(): DerivedSignal<number>;\n  map: <U>(\n    mapFn: (item: T[number], index: number, array: T) => U,\n  ) => DerivedSignal<U[]>;\n  reduce: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T[number],\n      currentIndex: number,\n      array: T,\n    ) => U,\n    initialValue: U,\n  ) => DerivedSignal<U>;\n  reduceRight: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T[number],\n      currentIndex: number,\n      array: T,\n    ) => U,\n    initialValue: U,\n  ) => DerivedSignal<U>;\n  some: (\n    ...args: Parameters<Array<T[number]>[\"some\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"some\"]>>;\n  toReversed: (\n    ...args: Parameters<Array<T[number]>[\"toReversed\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"toReversed\"]>>;\n  toSorted: (\n    ...args: Parameters<Array<T[number]>[\"toSorted\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"toSorted\"]>>;\n  toSpliced: (\n    ...args: Parameters<Array<T[number]>[\"toSpliced\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"toSpliced\"]>>;\n};\n\n/**\n * Custom non-mutating methods for array signals.\n *\n * These are library-specific methods that provide additional functionality\n * beyond JavaScript's intrinsic array methods.\n *\n * @template T - The array type\n *\n * @remarks\n * - `lastItem` returns a derived signal for the last array element\n * - `partition` splits an array into two derived signals based on a predicate\n */\nexport type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {\n  /** Last item of the array. */\n  get lastItem(): DerivedSignal<T[number] | undefined>;\n  /** Custom method that splits the array into `[passing, failing]` based on a predicate. */\n  partition: (\n    ...args: Parameters<Array<T[number]>[\"filter\"]>\n  ) => readonly [DerivedSignal<T>, DerivedSignal<T>];\n};\n\n/**\n * Combined non-mutating methods for array signals.\n *\n * Combines intrinsic and custom non-mutating methods into a single type.\n *\n * @template T - The array type\n */\nexport type ArraySignalNonMutatingMethodsObject<T extends any[]> =\n  ArraySignalIntrinsicNonMutatingMethodsObject<T> &\n    ArraySignalCustomNonMutatingMethodsObject<T>;\n\n/**\n * Combined methods for array source signals.\n *\n * Combines mutating and non-mutating methods for array source signals.\n *\n * @template T - The array type\n *\n * @remarks\n * - Mutating methods trigger effects synchronously\n * - Non-mutating methods return derived signals\n * - Methods create new arrays internally but feel mutable\n */\nexport type ArraySourceSignalMethodsObject<T extends any[]> =\n  ArraySignalMutatingMethodsObject<T> & ArraySignalNonMutatingMethodsObject<T>;\n\n/**\n * Source signal for arrays with mutation and non-mutating methods.\n *\n * Array source signals include both mutating methods (push, pop, splice, etc.)\n * and non-mutating methods (map, filter, etc.) that return derived signals.\n *\n * @template T - The array type\n *\n * @see {@link ArraySourceSignalMethodsObject} - For array methods\n */\nexport type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  ArraySourceSignalMethodsObject<T>;\n\n/**\n * Mutating methods for object signals.\n *\n * @template T - The object type\n *\n * @remarks\n * - `set()` performs a shallow merge with the current value\n * - Triggers effects synchronously\n */\nexport type ObjectSourceSignalMethodsObject<T extends object> = {\n  /** Performs a shallow merge with the current value */\n  set: (partiallyNewObjectValue: Partial<T>) => void;\n};\n\n/**\n * Source signal for plain objects with partial update method.\n *\n * Object source signals include the `set()` method for partial updates and\n * non-mutating methods for accessing properties as derived signals.\n *\n * @template T - The object type\n *\n * @see {@link ObjectSourceSignalMethodsObject} - For object methods\n */\nexport type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &\n  ObjectSourceSignalMethodsObject<T>;\n\n/**\n * A mutable source signal created from plain JavaScript data.\n *\n * Source signals can notify dependent computations when their value changes.\n * The specific type (array, object, or primitive) determines which additional\n * methods are available.\n *\n * @template T - The type of value the signal holds\n *\n * @remarks\n * - For arrays: includes array mutation methods (push, pop, splice, etc.)\n * - For plain objects: includes `set()` method for partial updates\n * - For primitives: only the base signal interface\n *\n * @see {@link signal} - For creating source signals\n * @see {@link DerivedSignal} - For read-only derived signals\n */\nexport type SourceSignal<T> = T extends any[]\n  ? ArraySourceSignal<T>\n  : T extends object\n    ? ObjectSourceSignal<T>\n    : BaseSourceSignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Base derived signal type with read-only value access.\n\nDerived signals are computed from other signals and automatically update\nwhen their dependencies change.",
+        "remarks": [
+          "- Value is read-only (computed from dependencies)\n- The `prevValue` getter provides access to the previous computed value\n- Calling `dispose()` stops the signal from tracking its dependencies"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the signal holds"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:BaseSignal": {
+      "name": "BaseSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type BaseSignal<T> = BaseSourceSignal<T> | BaseDerivedSignal<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Base signal type union for both source and derived signals.",
+        "remarks": [
+          "- Source signals have mutable values via the setter\n- Derived signals have read-only values computed from dependencies"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The type of value the signal holds"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
     },
     "core:SignalsEffect": {
       "name": "SignalsEffect",
@@ -1031,6 +1080,176 @@
       },
       "sourcePath": "src/_core/signal/types.ts"
     },
+    "core:ArraySignalIntrinsicMutatingMethodsObject": {
+      "name": "ArraySignalIntrinsicMutatingMethodsObject",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type ArraySignalIntrinsicMutatingMethodsObject<T extends any[]> = {\n  copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) => void;\n  fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) => void;\n  pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) => void;\n  push: (...args: Parameters<Array<T[number]>[\"push\"]>) => void;\n  reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) => void;\n  shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) => void;\n  sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) => void;\n  splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) => void;\n  unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) => void;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Intrinsic mutating methods for array signals.\n\nThese methods mirror JavaScript Array mutating methods but internally create\nnew immutable arrays and trigger effects.",
+        "remarks": [
+          "- All methods create new arrays internally\n- Effects are triggered synchronously\n- Methods expose a mutable-style API while maintaining immutability"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:ArraySignalCustomMutatingMethodsObject": {
+      "name": "ArraySignalCustomMutatingMethodsObject",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type ArraySignalCustomMutatingMethodsObject<T extends any[]> = {\n  /** Keeps items where the predicate returns true */\n  keep: (...args: Parameters<Array<T[number]>[\"filter\"]>) => void;\n  /** Removes items where the predicate returns true */\n  remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => void;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Custom mutating methods for array signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic array methods.",
+        "remarks": [
+          "- `keep()` is the inverse of `filter()` - keeps items matching the predicate\n- `remove()` deletes items matching the predicate"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:ArraySignalMutatingMethodsObject": {
+      "name": "ArraySignalMutatingMethodsObject",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type ArraySignalMutatingMethodsObject<T extends any[]> =\n  ArraySignalIntrinsicMutatingMethodsObject<T> &\n    ArraySignalCustomMutatingMethodsObject<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Combined mutating methods for array signals.\n\nCombines intrinsic and custom mutating methods into a single type.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:ArraySignalIntrinsicNonMutatingMethodsObject": {
+      "name": "ArraySignalIntrinsicNonMutatingMethodsObject",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {\n  at: (\n    ...args: Parameters<Array<T[number]>[\"at\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"at\"]>>;\n  concat: (\n    ...args: Parameters<Array<T[number]>[\"concat\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"concat\"]>>;\n  every: (\n    ...args: Parameters<Array<T[number]>[\"every\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"every\"]>>;\n  filter: (\n    ...args: Parameters<Array<T[number]>[\"filter\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"filter\"]>>;\n  find: (\n    ...args: Parameters<Array<T[number]>[\"find\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"find\"]>>;\n  findIndex: (\n    ...args: Parameters<Array<T[number]>[\"findIndex\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"findIndex\"]>>;\n  findLast: (\n    ...args: Parameters<Array<T[number]>[\"findLast\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"findLast\"]>>;\n  findLastIndex: (\n    ...args: Parameters<Array<T[number]>[\"findLastIndex\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"findLastIndex\"]>>;\n  get length(): DerivedSignal<number>;\n  map: <U>(\n    mapFn: (item: T[number], index: number, array: T) => U,\n  ) => DerivedSignal<U[]>;\n  reduce: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T[number],\n      currentIndex: number,\n      array: T,\n    ) => U,\n    initialValue: U,\n  ) => DerivedSignal<U>;\n  reduceRight: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T[number],\n      currentIndex: number,\n      array: T,\n    ) => U,\n    initialValue: U,\n  ) => DerivedSignal<U>;\n  some: (\n    ...args: Parameters<Array<T[number]>[\"some\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"some\"]>>;\n  toReversed: (\n    ...args: Parameters<Array<T[number]>[\"toReversed\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"toReversed\"]>>;\n  toSorted: (\n    ...args: Parameters<Array<T[number]>[\"toSorted\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"toSorted\"]>>;\n  toSpliced: (\n    ...args: Parameters<Array<T[number]>[\"toSpliced\"]>\n  ) => DerivedSignal<ReturnType<Array<T[number]>[\"toSpliced\"]>>;\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Intrinsic non-mutating methods for array signals.\n\nThese methods mirror JavaScript Array non-mutating methods but return\nderived signals instead of plain values.",
+        "remarks": [
+          "- All methods return derived signals\n- Methods are reactive and update when the source array changes\n- Works with both source and derived signals"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:ArraySignalCustomNonMutatingMethodsObject": {
+      "name": "ArraySignalCustomNonMutatingMethodsObject",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {\n  /** Last item of the array. */\n  get lastItem(): DerivedSignal<T[number] | undefined>;\n  /** Custom method that splits the array into `[passing, failing]` based on a predicate. */\n  partition: (\n    ...args: Parameters<Array<T[number]>[\"filter\"]>\n  ) => readonly [DerivedSignal<T>, DerivedSignal<T>];\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Custom non-mutating methods for array signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic array methods.",
+        "remarks": [
+          "- `lastItem` returns a derived signal for the last array element\n- `partition` splits an array into two derived signals based on a predicate"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:ArraySignalNonMutatingMethodsObject": {
+      "name": "ArraySignalNonMutatingMethodsObject",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type ArraySignalNonMutatingMethodsObject<T extends any[]> =\n  ArraySignalIntrinsicNonMutatingMethodsObject<T> &\n    ArraySignalCustomNonMutatingMethodsObject<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Combined non-mutating methods for array signals.\n\nCombines intrinsic and custom non-mutating methods into a single type.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
     "core:ArraySourceSignalMethodsObject": {
       "name": "ArraySourceSignalMethodsObject",
       "kind": "type",
@@ -1038,18 +1257,47 @@
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export type ArraySourceSignalMethodsObject<T extends any[]> = {\n  copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) => void;\n  fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) => void;\n  pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) => void;\n  push: (...args: Parameters<Array<T[number]>[\"push\"]>) => void;\n  /** Removes items where the predicate returns true (inverse of filter) */\n  remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => void;\n  reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) => void;\n  shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) => void;\n  sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) => void;\n  splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) => void;\n  unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) => void;\n};",
+      "signature": "export type ArraySourceSignalMethodsObject<T extends any[]> =\n  ArraySignalMutatingMethodsObject<T> & ArraySignalNonMutatingMethodsObject<T>;",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
-        "summary": "Array mutation methods for array signals.\n\nThese methods provide mutating-style APIs that internally create new\nimmutable arrays and trigger effects.",
+        "summary": "Combined methods for array source signals.\n\nCombines mutating and non-mutating methods for array source signals.",
         "remarks": [
-          "- The `remove()` method is a custom method (inverse of filter)\n- All methods trigger effects synchronously\n- Methods create new arrays internally but feel mutable"
+          "- Mutating methods trigger effects synchronously\n- Non-mutating methods return derived signals\n- Methods create new arrays internally but feel mutable"
         ],
         "examples": [],
         "params": [],
         "returns": [],
         "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/types.ts"
+    },
+    "core:ArraySourceSignal": {
+      "name": "ArraySourceSignal",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  ArraySourceSignalMethodsObject<T>;",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Source signal for arrays with mutation and non-mutating methods.\n\nArray source signals include both mutating methods (push, pop, splice, etc.)\nand non-mutating methods (map, filter, etc.) that return derived signals.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [
+          "[ArraySourceSignalMethodsObject](./core/arraysourcesignalmethodsobject.md) - For array methods"
+        ],
         "template": [
           {
             "name": "T",
@@ -1071,9 +1319,9 @@
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
-        "summary": "Object mutation methods for object signals.",
+        "summary": "Mutating methods for object signals.",
         "remarks": [
-          "- The `set()` method performs a shallow merge with the current value"
+          "- `set()` performs a shallow merge with the current value\n- Triggers effects synchronously"
         ],
         "examples": [],
         "params": [],
@@ -1083,62 +1331,6 @@
           {
             "name": "T",
             "description": "The object type"
-          }
-        ],
-        "deprecated": []
-      },
-      "sourcePath": "src/_core/signal/types.ts"
-    },
-    "core:BaseSourceSignal": {
-      "name": "BaseSourceSignal",
-      "kind": "type",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
-      "isExported": true,
-      "exportKind": "named",
-      "category": "core",
-      "signature": "export type BaseSourceSignal<T> = {\n  /** Runtime type discriminator for source signals */\n  type: \"source-signal\";\n  /** Getter/setter for the signal's value */\n  value: T;\n};\n\n/**\n * Source signal for arrays with mutation methods.\n *\n * @template T - The array type\n *\n * @see {@link ArraySourceSignalMethodsObject} - For array mutation methods\n */\nexport type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  ArraySourceSignalMethodsObject<T>;\n\n/**\n * Source signal for plain objects with partial update method.\n *\n * @template T - The object type\n *\n * @see {@link ObjectSourceSignalMethodsObject} - For object mutation methods\n */\nexport type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &\n  ObjectSourceSignalMethodsObject<T>;\n\n/**\n * A mutable source signal created from plain JavaScript data.\n *\n * Source signals can notify dependent computations when their value changes.\n * The specific type (array, object, or primitive) determines which additional\n * methods are available.\n *\n * @template T - The type of value the signal holds\n *\n * @remarks\n * - For arrays: includes array mutation methods (push, pop, splice, etc.)\n * - For plain objects: includes `set()` method for partial updates\n * - For primitives: only the base signal interface\n *\n * @see {@link signal} - For creating source signals\n * @see {@link DerivedSignal} - For read-only derived signals\n */\nexport type SourceSignal<T> = T extends any[]\n  ? ArraySourceSignal<T>\n  : T extends object\n  ? ObjectSourceSignal<T>\n  : BaseSourceSignal<T>;",
-      "parameters": [],
-      "typeParameters": [],
-      "tsdoc": {
-        "summary": "Base source signal type with value getter/setter.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": [],
-        "see": [],
-        "template": [
-          {
-            "name": "T",
-            "description": "The type of value the signal holds"
-          }
-        ],
-        "deprecated": []
-      },
-      "sourcePath": "src/_core/signal/types.ts"
-    },
-    "core:ArraySourceSignal": {
-      "name": "ArraySourceSignal",
-      "kind": "type",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/types.ts",
-      "isExported": true,
-      "exportKind": "named",
-      "category": "core",
-      "signature": "export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &\n  ArraySourceSignalMethodsObject<T>;",
-      "parameters": [],
-      "typeParameters": [],
-      "tsdoc": {
-        "summary": "Source signal for arrays with mutation methods.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": [],
-        "see": [
-          "[ArraySourceSignalMethodsObject](./core/basearraysignal.md) - For array mutation methods"
-        ],
-        "template": [
-          {
-            "name": "T",
-            "description": "The array type"
           }
         ],
         "deprecated": []
@@ -1156,13 +1348,13 @@
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
-        "summary": "Source signal for plain objects with partial update method.",
+        "summary": "Source signal for plain objects with partial update method.\n\nObject source signals include the `set()` method for partial updates and\nnon-mutating methods for accessing properties as derived signals.",
         "remarks": [],
         "examples": [],
         "params": [],
         "returns": [],
         "see": [
-          "[ObjectSourceSignalMethodsObject](./core/baseobjectsignal.md) - For object mutation methods"
+          "[ObjectSourceSignalMethodsObject](./core/objectsourcesignalmethodsobject.md) - For object methods"
         ],
         "template": [
           {
@@ -1181,7 +1373,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export type SourceSignal<T> = T extends any[]\n  ? ArraySourceSignal<T>\n  : T extends object\n  ? ObjectSourceSignal<T>\n  : BaseSourceSignal<T>;",
+      "signature": "export type SourceSignal<T> = T extends any[]\n  ? ArraySourceSignal<T>\n  : T extends object\n    ? ObjectSourceSignal<T>\n    : BaseSourceSignal<T>;",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1206,20 +1398,20 @@
       },
       "sourcePath": "src/_core/signal/types.ts"
     },
-    "core:getObjectSourceSignalMethodsObject": {
-      "name": "getObjectSourceSignalMethodsObject",
+    "core:getArraySignalIntrinsicMutatingMethodsObject": {
+      "name": "getArraySignalIntrinsicMutatingMethodsObject",
       "kind": "const",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/object-signal.ts",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/signal-methods-objects/array.ts",
       "isExported": true,
       "exportKind": "named",
       "category": "core",
-      "signature": "export const getObjectSourceSignalMethodsObject = <T extends object>(\n  valueSetter: (method: (oldValue: T) => T) => void\n): ObjectSourceSignalMethodsObject<T> => {\n  return {\n    set: (partiallyNewObjectValue: Partial<T>) =>\n      valueSetter((oldValue: T) => ({\n        ...oldValue,\n        ...partiallyNewObjectValue,\n      })),\n  };\n};",
+      "signature": "export const getArraySignalIntrinsicMutatingMethodsObject = <T extends any[]>(\n  valueSetter: (method: (oldValue: T) => T) => void,\n): ArraySignalIntrinsicMutatingMethodsObject<T> => {\n  const mutator = (mutate: (newVal: T) => void): void =>\n    valueSetter((oldValue: T) => {\n      const newValue = Array.from(oldValue) as T;\n      mutate(newValue);\n      return newValue;\n    });\n\n  return {\n    copyWithin: (...args: Parameters<Array<T[number]>[\"copyWithin\"]>) =>\n      mutator((newValue) => newValue.copyWithin(...args)),\n    fill: (...args: Parameters<Array<T[number]>[\"fill\"]>) =>\n      mutator((newValue) => newValue.fill(...args)),\n    pop: (...args: Parameters<Array<T[number]>[\"pop\"]>) =>\n      mutator((newValue) => newValue.pop(...args)),\n    push: (...args: Parameters<Array<T[number]>[\"push\"]>) =>\n      mutator((newValue) => newValue.push(...args)),\n    reverse: (...args: Parameters<Array<T[number]>[\"reverse\"]>) =>\n      mutator((newValue) => newValue.reverse(...args)),\n    shift: (...args: Parameters<Array<T[number]>[\"shift\"]>) =>\n      mutator((newValue) => newValue.shift(...args)),\n    sort: (...args: Parameters<Array<T[number]>[\"sort\"]>) =>\n      mutator((newValue) => newValue.sort(...args)),\n    splice: (...args: Parameters<Array<T[number]>[\"splice\"]>) =>\n      mutator((newValue) => newValue.splice(...args)),\n    unshift: (...args: Parameters<Array<T[number]>[\"unshift\"]>) =>\n      mutator((newValue) => newValue.unshift(...args)),\n  };\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
-        "summary": "Creates object mutation methods for object signals.",
+        "summary": "Creates intrinsic mutating methods for array signals.\n\nThese methods mirror JavaScript Array mutating methods but internally create\nnew immutable arrays and trigger effects.",
         "remarks": [
-          "- Performs a shallow merge with the current object value\n- The current object is not mutated directly"
+          "- All methods create new arrays internally using `Array.from()`\n- Effects are triggered synchronously\n- Methods expose a mutable-style API while maintaining immutability"
         ],
         "examples": [],
         "params": [
@@ -1229,7 +1421,261 @@
           }
         ],
         "returns": [
-          "Object mutation methods for the signal value"
+          "Intrinsic mutating methods for array signals"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
+    },
+    "core:getArraySignalCustomMutatingMethodsObject": {
+      "name": "getArraySignalCustomMutatingMethodsObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/signal-methods-objects/array.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getArraySignalCustomMutatingMethodsObject = <T extends any[]>(\n  valueSetter: (method: (oldValue: T) => T) => void,\n): ArraySignalCustomMutatingMethodsObject<T> => ({\n  /** Keeps items where the predicate returns true. */\n  keep: (...args: Parameters<Array<T[number]>[\"filter\"]>) =>\n    valueSetter((oldValue: T) => {\n      return oldValue.filter(...args) as T;\n    }),\n  /** Removes items where the predicate returns true. */\n  remove: (...args: Parameters<Array<T[number]>[\"filter\"]>) => {\n    const predicate = args[0];\n    const negativeLogicPredicate = (\n      ...predicateArgs: Parameters<typeof predicate>\n    ) => !predicate(...predicateArgs);\n    args[0] = negativeLogicPredicate;\n    valueSetter((oldValue: T) => {\n      return oldValue.filter(...args) as T;\n    });\n  },\n});",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates custom mutating methods for array signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic array methods.",
+        "remarks": [
+          "- `keep()` is the inverse of `filter()` - keeps items matching the predicate\n- `remove()` deletes items matching the predicate"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "valueSetter",
+            "description": "Updates the signal value and triggers effects"
+          }
+        ],
+        "returns": [
+          "Custom mutating methods for array signals"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
+    },
+    "core:getArraySignalMutatingMethodsObject": {
+      "name": "getArraySignalMutatingMethodsObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/signal-methods-objects/array.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getArraySignalMutatingMethodsObject = <T extends any[]>(\n  valueSetter: (method: (oldValue: T) => T) => void,\n): ArraySignalMutatingMethodsObject<T> => ({\n  ...getArraySignalIntrinsicMutatingMethodsObject(valueSetter),\n  ...getArraySignalCustomMutatingMethodsObject(valueSetter),\n});",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates combined mutating methods for array signals.\n\nCombines intrinsic and custom mutating methods into a single object.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "valueSetter",
+            "description": "Updates the signal value and triggers effects"
+          }
+        ],
+        "returns": [
+          "Combined mutating methods for array signals"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
+    },
+    "core:getArraySignalIntrinsicNonMutatingMethodsObject": {
+      "name": "getArraySignalIntrinsicNonMutatingMethodsObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/signal-methods-objects/array.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getArraySignalIntrinsicNonMutatingMethodsObject = <\n  T extends any[],\n>(\n  baseArraySignal: BaseSignal<T>,\n): ArraySignalIntrinsicNonMutatingMethodsObject<T> => {\n  return {\n    at: (...args: Parameters<Array<T[number]>[\"at\"]>) =>\n      derive(() => baseArraySignal.value.at(...args)),\n    concat: (...args: Parameters<Array<T[number]>[\"concat\"]>) =>\n      derive(() => baseArraySignal.value.concat(...args)),\n    every: (...args: Parameters<Array<T[number]>[\"every\"]>) =>\n      derive(() => baseArraySignal.value.every(...args)),\n    filter: (...args: Parameters<Array<T[number]>[\"filter\"]>) =>\n      derive(() => baseArraySignal.value.filter(...args)),\n    find: (...args: Parameters<Array<T[number]>[\"find\"]>) =>\n      derive(() => baseArraySignal.value.find(...args)),\n    findIndex: (...args: Parameters<Array<T[number]>[\"findIndex\"]>) =>\n      derive(() => baseArraySignal.value.findIndex(...args)),\n    findLast: (...args: Parameters<Array<T[number]>[\"findLast\"]>) =>\n      derive(() => baseArraySignal.value.findLast(...args)),\n    findLastIndex: (...args: Parameters<Array<T[number]>[\"findLastIndex\"]>) =>\n      derive(() => baseArraySignal.value.findLastIndex(...args)),\n    get length() {\n      return derive(() => baseArraySignal.value.length);\n    },\n    map: <U>(mapFn: (item: T[number], index: number, array: T) => U) =>\n      derive(() => baseArraySignal.value.map(mapFn as any) as U[]),\n    reduce: <U>(\n      reducerFn: (\n        previousValue: U,\n        currentValue: T[number],\n        currentIndex: number,\n        array: T,\n      ) => U,\n      initialValue: U,\n    ) =>\n      derive(\n        () => baseArraySignal.value.reduce(reducerFn as any, initialValue) as U,\n      ),\n    reduceRight: <U>(\n      reducerFn: (\n        previousValue: U,\n        currentValue: T[number],\n        currentIndex: number,\n        array: T,\n      ) => U,\n      initialValue: U,\n    ) =>\n      derive(\n        () =>\n          baseArraySignal.value.reduceRight(\n            reducerFn as any,\n            initialValue,\n          ) as U,\n      ),\n    some: (...args: Parameters<Array<T[number]>[\"some\"]>) =>\n      derive(() => baseArraySignal.value.some(...args)),\n    toReversed: (...args: Parameters<Array<T[number]>[\"toReversed\"]>) =>\n      derive(() => baseArraySignal.value.toReversed(...args)),\n    toSorted: (...args: Parameters<Array<T[number]>[\"toSorted\"]>) =>\n      derive(() => baseArraySignal.value.toSorted(...args)),\n    toSpliced: (...args: Parameters<Array<T[number]>[\"toSpliced\"]>) =>\n      derive(() => baseArraySignal.value.toSpliced(...args)),\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates intrinsic non-mutating methods for array signals.\n\nThese methods mirror JavaScript Array non-mutating methods but return\nderived signals instead of plain values.",
+        "remarks": [
+          "- All methods return derived signals\n- Methods are reactive and update when the source array changes\n- Works with both source and derived signals"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "baseArraySignal",
+            "description": "The base array signal to access values from"
+          }
+        ],
+        "returns": [
+          "Intrinsic non-mutating methods for array signals"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
+    },
+    "core:getArraySignalCustomNonMutatingMethodsObject": {
+      "name": "getArraySignalCustomNonMutatingMethodsObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/signal-methods-objects/array.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(\n  baseArraySignal: BaseSignal<T>,\n): ArraySignalCustomNonMutatingMethodsObject<T> => {\n  return {\n    get lastItem() {\n      return derive(() => {\n        const updatedArr = newVal(baseArraySignal.value);\n        const returnVal = updatedArr.pop();\n        return returnVal;\n      });\n    },\n    partition: (...args: Parameters<Array<T[number]>[\"filter\"]>) => {\n      const conditionPassArray = derive(\n        () => baseArraySignal.value.filter(...args) as T,\n      );\n      const conditionFailArray = derive(\n        () =>\n          baseArraySignal.value.filter(\n            (item, index, array) => !args[0](item, index, array),\n          ) as T,\n      );\n      return [conditionPassArray, conditionFailArray];\n    },\n  };\n};",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates custom non-mutating methods for array signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic array methods.",
+        "remarks": [
+          "- `lastItem` returns a derived signal for the last array element\n- `partition` splits an array into two derived signals based on a predicate"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "baseArraySignal",
+            "description": "The base array signal to access values from"
+          }
+        ],
+        "returns": [
+          "Custom non-mutating methods for array signals"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
+    },
+    "core:getArraySignalNonMutatingMethodsObject": {
+      "name": "getArraySignalNonMutatingMethodsObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/signal-methods-objects/array.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getArraySignalNonMutatingMethodsObject = <T extends any[]>(\n  baseArraySignal: BaseSignal<T>,\n): ArraySignalNonMutatingMethodsObject<T> => ({\n  ...getArraySignalIntrinsicNonMutatingMethodsObject(baseArraySignal),\n  ...getArraySignalCustomNonMutatingMethodsObject(baseArraySignal),\n});",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates combined non-mutating methods for array signals.\n\nCombines intrinsic and custom non-mutating methods into a single object.",
+        "remarks": [
+          "- All methods return derived signals\n- Works with both source and derived signals\n- Methods are reactive and update when the source array changes"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "baseArraySignal",
+            "description": "The base array signal to access values from"
+          }
+        ],
+        "returns": [
+          "Combined non-mutating methods for array signals"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
+    },
+    "core:getArraySourceSignalMethodsObject": {
+      "name": "getArraySourceSignalMethodsObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/signal-methods-objects/array.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getArraySourceSignalMethodsObject = <T extends any[]>(\n  valueSetter: (method: (oldValue: T) => T) => void,\n  baseArraySignal: BaseSignal<T>,\n): ArraySourceSignalMethodsObject<T> => ({\n  ...getArraySignalMutatingMethodsObject(valueSetter),\n  ...getArraySignalNonMutatingMethodsObject(baseArraySignal),\n});",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates combined methods for array source signals.\n\nCombines mutating and non-mutating methods for array source signals.",
+        "remarks": [
+          "- Non-mutating methods return derived signals\n- Mutating methods create new arrays internally but feel mutable"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "valueSetter",
+            "description": "Updates the signal value and triggers effects"
+          },
+          {
+            "name": "baseArraySignal",
+            "description": "The base array signal to access values from"
+          }
+        ],
+        "returns": [
+          "Combined methods for array source signals"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The array type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
+    },
+    "core:getObjectSourceSignalMethodsObject": {
+      "name": "getObjectSourceSignalMethodsObject",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/_core/signal/signal-methods-objects/object.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "core",
+      "signature": "export const getObjectSourceSignalMethodsObject = <T extends object>(\n  valueSetter: (method: (oldValue: T) => T) => void,\n): ObjectSourceSignalMethodsObject<T> => ({\n    set: (partiallyNewObjectValue: Partial<T>) =>\n      valueSetter((oldValue: T) => ({\n        ...oldValue,\n        ...partiallyNewObjectValue,\n      })),\n});",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Returns an object with methods to update the source signal's value.",
+        "remarks": [
+          "- `set()` performs a shallow merge with the current value\n- Works with both source and derived signals"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "valueSetter",
+            "description": "A function that updates the signal value and triggers effects"
+          }
+        ],
+        "returns": [
+          "An object with methods to update the source signal's value"
         ],
         "see": [],
         "template": [
@@ -1240,7 +1686,7 @@
         ],
         "deprecated": []
       },
-      "sourcePath": "src/_core/signal/object-signal.ts"
+      "sourcePath": "src/_core/signal/signal-methods-objects/object.ts"
     },
     "api:compute": {
       "name": "compute",
@@ -1249,7 +1695,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "api",
-      "signature": "export const compute = <F extends (...args: any[]) => any>(\n  computerFn: F,\n  ...restArgs: MaybeSignalValues<Parameters<F>>\n): DerivedSignal<ReturnType<F>> => {\n  return derive(() => {\n    const plainArgs = restArgs.map((arg) => value(arg)) as PlainValues<\n      typeof restArgs\n    >;\n    return computerFn(...plainArgs);\n  });\n};",
+      "signature": "export const compute = <F extends (...args: any[]) => any>(\n  computerFn: F,\n  ...restArgs: MaybeSignalValues<Parameters<F>>\n): DerivedSignal<ReturnType<F>> => {\n  return derive<ReturnType<F>>(() => {\n    const plainArgs = restArgs.map((arg) => value(arg)) as PlainValues<\n      typeof restArgs\n    >;\n    return computerFn(...plainArgs);\n  });\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1358,7 +1804,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "api",
-      "signature": "export const promstates = <R, Args extends Array<any>, I>(\n  promiseFn: (...args: Args) => Promise<R>,\n  initialValue?: I,\n  ultimately?: () => void\n): readonly [\n  /**\n   * Promise runner method which takes the same arguments as the original promise\n   * but returns `Promise<void>`.\n   */\n  (...args: Args) => Promise<void>,\n  /** Derived signal of result of the promise. */\n  DerivedSignal<unknown extends I ? R | undefined : R | I>,\n  /** Derived signal of promise error. */\n  DerivedSignal<Error | undefined>,\n  /** Derived signal of whether promise is currently running or not */\n  DerivedSignal<boolean>\n] => {\n  type PromState = {\n    isRunning: boolean;\n    result: unknown extends I ? R | undefined : R | I;\n    error: Error | undefined;\n  };\n  const state = signal<PromState>({\n    isRunning: false,\n    result: (initialValue || undefined) as unknown extends I\n      ? R | undefined\n      : R | I,\n    error: undefined,\n  });\n\n  const runPromise = (...args: Args) =>\n    promiseFn(...args)\n      .then((res) => {\n        state.value = {\n          isRunning: false,\n          result: res,\n          error: undefined,\n        };\n      })\n      .catch((e) => {\n        const prevResult = state.value.result;\n        /**\n         * Result preservation on error:\n         *\n         * The result is NOT set to undefined or initialValue when an error occurs.\n         * This design choice ensures that if the promise is run multiple times and\n         * fails on the nth run, the result from the (n-1)th successful run is preserved.\n         *\n         * Best practice: Always check error first while using promstates.\n         * Rationale: If the promise fails on a subsequent run, the previous successful\n         * result remains intact and accessible, while the error signal is updated with\n         * the current error.\n         *\n         * Note: The error signal is always reset to undefined on success. There is no\n         * value in preserving the error from the last run when a new success occurs.\n         */\n        state.value = {\n          isRunning: false,\n          result: prevResult,\n          error: e,\n        };\n      })\n      .finally(ultimately);\n\n  const { isRunning, result, error } = trap(state).withLiveProps;\n  return [runPromise, result, error, isRunning] as const;\n};",
+      "signature": "export const promstates = <R, Args extends Array<any>, I>(\n  promiseFn: (...args: Args) => Promise<R>,\n  initialValue?: I,\n  ultimately?: () => void\n): readonly [\n  /**\n   * Promise runner method which takes the same arguments as the original promise\n   * but returns `Promise<void>`.\n   */\n  (...args: Args) => Promise<void>,\n  /** Derived signal of result of the promise. */\n  DerivedSignal<unknown extends I ? R | undefined : R | I>,\n  /** Derived signal of promise error. */\n  DerivedSignal<Error | undefined>,\n  /** Derived signal of whether promise is currently running or not */\n  DerivedSignal<boolean>\n] => {\n  type PromState = {\n    isRunning: boolean;\n    result: unknown extends I ? R | undefined : R | I;\n    error: Error | undefined;\n  };\n  const state = signal<PromState>({\n    isRunning: false,\n    result: (initialValue || undefined) as unknown extends I\n      ? R | undefined\n      : R | I,\n    error: undefined,\n  });\n\n  const runPromise = (...args: Args) =>\n    promiseFn(...args)\n      .then((res) => {\n        state.value = {\n          isRunning: false,\n          result: res,\n          error: undefined,\n        };\n      })\n      .catch((e) => {\n        const prevResult = state.value.result;\n        /**\n         * Result preservation on error:\n         *\n         * The result is NOT set to undefined or initialValue when an error occurs.\n         * This design choice ensures that if the promise is run multiple times and\n         * fails on the nth run, the result from the (n-1)th successful run is preserved.\n         *\n         * Best practice: Always check error first while using promstates.\n         * Rationale: If the promise fails on a subsequent run, the previous successful\n         * result remains intact and accessible, while the error signal is updated with\n         * the current error.\n         *\n         * Note: The error signal is always reset to undefined on success. There is no\n         * value in preserving the error from the last run when a new success occurs.\n         */\n        state.value = {\n          isRunning: false,\n          result: prevResult,\n          error: e,\n        };\n      })\n      .finally(ultimately);\n\n  const { isRunning, result, error } = props(state).allLive;\n  return [runPromise, result, error, isRunning] as const;\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1406,6 +1852,75 @@
         "deprecated": []
       },
       "sourcePath": "src/api/promstates.ts"
+    },
+    "api:ObjectSignalProps": {
+      "name": "ObjectSignalProps",
+      "kind": "type",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/props.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export type ObjectSignalProps<T extends object> = {\n  /** Returns a derived signal for a specific property. */\n  get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;\n  /** Returns an object with all properties as derived signals. */\n  get allLive(): { [key in keyof T]: DerivedSignal<T[key]> };\n  /** Returns the object's keys as a derived signal. */\n  get keys(): DerivedSignal<string[]>;\n}; \n\n/**\n * Creates combined methods for object source signals.\n *\n * Combines mutating and non-mutating methods for object source signals.\n *\n * @template T - The object type\n * @param valueSetter - Updates the signal value and triggers effects\n * @param objectSignal - The base object signal to access values from\n * @returns Combined methods for object source signals\n *\n * @remarks\n * - `set()` performs a shallow merge with the current value\n * - Non-mutating methods return derived signals\n * - Methods are reactive and update when the source object changes\n */\nexport const props = <T extends object>(\n  objectSignal: MaybeSignalValue<T>,\n): ObjectSignalProps<T> => ({\n    get: <K extends keyof T>(key: K) =>\n      derive(() => (value(objectSignal) as T)[key]),\n    get allLive() {\n      const signalValue = value(objectSignal);\n      const signalledPropsObj = {} as {\n        [key in keyof T]: DerivedSignal<T[key]>;\n      };\n      for (const key of Object.keys(signalValue) as Array<keyof T>) {\n        signalledPropsObj[key] = derive(() => (value(objectSignal) as T)[key]);\n      }\n      return signalledPropsObj;\n    },\n    get keys() {\n      return derive(() => Object.keys(value(objectSignal)));\n    },\n});",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Methods to get derived signals of object properties.",
+        "remarks": [
+          "- All methods return derived signals\n- Methods are reactive and update when the source object changes\n- Works with both source and derived signals"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": [],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The object type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/props.ts"
+    },
+    "api:props": {
+      "name": "props",
+      "kind": "const",
+      "filePath": "/Users/ck/Desktop/packages/signal/src/api/props.ts",
+      "isExported": true,
+      "exportKind": "named",
+      "category": "api",
+      "signature": "export const props = <T extends object>(\n  objectSignal: MaybeSignalValue<T>,\n): ObjectSignalProps<T> => ({\n    get: <K extends keyof T>(key: K) =>\n      derive(() => (value(objectSignal) as T)[key]),\n    get allLive() {\n      const signalValue = value(objectSignal);\n      const signalledPropsObj = {} as {\n        [key in keyof T]: DerivedSignal<T[key]>;\n      };\n      for (const key of Object.keys(signalValue) as Array<keyof T>) {\n        signalledPropsObj[key] = derive(() => (value(objectSignal) as T)[key]);\n      }\n      return signalledPropsObj;\n    },\n    get keys() {\n      return derive(() => Object.keys(value(objectSignal)));\n    },\n});",
+      "parameters": [],
+      "typeParameters": [],
+      "tsdoc": {
+        "summary": "Creates combined methods for object source signals.\n\nCombines mutating and non-mutating methods for object source signals.",
+        "remarks": [
+          "- `set()` performs a shallow merge with the current value\n- Non-mutating methods return derived signals\n- Methods are reactive and update when the source object changes"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "valueSetter",
+            "description": "Updates the signal value and triggers effects"
+          },
+          {
+            "name": "objectSignal",
+            "description": "The base object signal to access values from"
+          }
+        ],
+        "returns": [
+          "Combined methods for object source signals"
+        ],
+        "see": [],
+        "template": [
+          {
+            "name": "T",
+            "description": "The object type"
+          }
+        ],
+        "deprecated": []
+      },
+      "sourcePath": "src/api/props.ts"
     },
     "api:stringTrap": {
       "name": "stringTrap",
@@ -1474,7 +1989,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "api",
-      "signature": "export type GenericTrap<T> = {\n  /** Converts the value to a string signal. */\n  get string(): DerivedSignal<T extends null | undefined ? undefined : string>;\n  /** Returns the value if truthy, otherwise the fallback value. */\n  or: <OV>(orValue: MaybeSignalValue<OV>) => DerivedSignal<NonNullable<T> | OV>;\n};",
+      "signature": "export type GenericTrap<T> = {\n  /** Converts the value to a string signal. */\n  get string(): DerivedSignal<string>;\n  /** Returns the value if truthy, otherwise the fallback value. */\n  or: <OV>(orValue: MaybeSignalValue<OV>) => DerivedSignal<NonNullable<T> | OV>;\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1528,7 +2043,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "api",
-      "signature": "export type StringSignalTrap = GenericTrap<string> & {\n  at: SignalifiedFunction<string[\"at\"]>;\n  charAt: SignalifiedFunction<string[\"charAt\"]>;\n  charCodeAt: SignalifiedFunction<string[\"charCodeAt\"]>;\n  codePointAt: SignalifiedFunction<string[\"codePointAt\"]>;\n  concat: SignalifiedFunction<string[\"concat\"]>;\n  endsWith: SignalifiedFunction<string[\"endsWith\"]>;\n  includes: SignalifiedFunction<string[\"includes\"]>;\n  indexOf: SignalifiedFunction<string[\"indexOf\"]>;\n  lastIndexOf: SignalifiedFunction<string[\"lastIndexOf\"]>;\n  padEnd: SignalifiedFunction<string[\"padEnd\"]>;\n  padStart: SignalifiedFunction<string[\"padStart\"]>;\n  repeat: SignalifiedFunction<string[\"repeat\"]>;\n  slice: SignalifiedFunction<string[\"slice\"]>;\n  startsWith: SignalifiedFunction<string[\"startsWith\"]>;\n  substring: SignalifiedFunction<string[\"substring\"]>;\n  trim: SignalifiedFunction<string[\"trim\"]>;\n  trimEnd: SignalifiedFunction<string[\"trimEnd\"]>;\n  trimStart: SignalifiedFunction<string[\"trimStart\"]>;\n  /** String length as a derived signal. */\n  get length(): DerivedSignal<number>;\n  /** Lowercase version of the string. */\n  get lowercase(): DerivedSignal<string>;\n  /** First letter capitalized, rest lowercase. */\n  get Sentencecase(): DerivedSignal<string>;\n  /** Each word's first letter capitalized. */\n  get TitleCase(): DerivedSignal<string>;\n  /** Uppercase version of the string. */\n  get UPPERCASE(): DerivedSignal<string>;\n  /** Compares strings according to locale. */\n  localeCompare: (\n    that: MaybeSignalValue<string>,\n    locales?: MaybeSignalValue<string | string[] | undefined>,\n    options?: Intl.CollatorOptions\n  ) => DerivedSignal<number>;\n  /** Normalizes to the specified Unicode form. */\n  normalize: (\n    form: MaybeSignalValue<\"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\">\n  ) => DerivedSignal<string>;\n  /** Replaces the first match of `searchValue` with `replaceValue`. */\n  replace: (\n    searchValue: MaybeSignalValue<string> | RegExp,\n    replaceValue: MaybeSignalValue<string>\n  ) => DerivedSignal<string>;\n  /** Replaces all matches of `searchValue` with `replaceValue`. */\n  replaceAll: (\n    searchValue: MaybeSignalValue<string> | RegExp,\n    replaceValue: MaybeSignalValue<string>\n  ) => DerivedSignal<string>;\n  /** Searches for a match and returns the index. */\n  search: (regexp: RegExp) => DerivedSignal<number>;\n  /** Splits the string into an array. */\n  split: (\n    separator: MaybeSignalValue<string> | RegExp,\n    limit?: MaybeSignalValue<number | undefined>\n  ) => DerivedSignal<string[]>;\n  /** Converts to locale-specific lowercase. */\n  toLocaleLowerCase: (\n    locales?: MaybeSignalValue<string | string[] | undefined>\n  ) => DerivedSignal<string>;\n  /** Converts to locale-specific uppercase. */\n  toLocaleUpperCase: (\n    locales?: MaybeSignalValue<string | string[] | undefined>\n  ) => DerivedSignal<string>;\n};\n\n/**\n * Array trap with array transformation methods.\n *\n * Includes standard array methods as derived signal methods plus custom\n * getters and partition methods.\n *\n * @template T - The array element type\n *\n * @remarks\n * - Mutating array methods are not included because derived signals are immutable\n * - The `partition()` method splits the array into two signals based on a predicate\n */\nexport type ArraySignalTrap<T> = GenericTrap<T> & {\n  at: SignalifiedFunction<Array<T>[\"at\"]>;\n  concat: (items: MaybeSignalValue<T[]>) => DerivedSignal<T[]>;\n  copyWithin: SignalifiedFunction<Array<T>[\"copyWithin\"]>;\n  fill: SignalifiedFunction<Array<T>[\"fill\"]>;\n  includes: SignalifiedFunction<Array<T>[\"includes\"]>;\n  indexOf: SignalifiedFunction<Array<T>[\"indexOf\"]>;\n  join: SignalifiedFunction<Array<T>[\"join\"]>;\n  lastIndexOf: SignalifiedFunction<Array<T>[\"lastIndexOf\"]>;\n  slice: SignalifiedFunction<Array<T>[\"slice\"]>;\n  with: SignalifiedFunction<Array<T>[\"with\"]>;\n  every: (\n    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<boolean>;\n  filter: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T[]>;\n  find: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T | undefined>;\n  findIndex: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<number>;\n  findLast: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T | undefined>;\n  findLastIndex: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<number>;\n  /** Last item of the array. */\n  get lastItem(): DerivedSignal<T | undefined>;\n  /** Array length. */\n  get length(): DerivedSignal<number>;\n  map: <U>(\n    mapFn: (item: T, index: number, array: T[]) => U\n  ) => DerivedSignal<U[]>;\n  /** Splits the array into `[passing, failing]` based on a predicate. */\n  partition: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => readonly [DerivedSignal<T[]>, DerivedSignal<T[]>];\n  reduce: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T,\n      currentIndex: number,\n      array: T[]\n    ) => U,\n    initialValue: U\n  ) => DerivedSignal<U>;\n  reduceRight: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T,\n      currentIndex: number,\n      array: T[]\n    ) => U,\n    initialValue: U\n  ) => DerivedSignal<U>;\n  /** Reversed copy of the array. */\n  get reversed(): DerivedSignal<T[]>;\n  some: (\n    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<boolean>;\n  toSorted: (\n    compareFn?: ((a: T, b: T) => number) | undefined\n  ) => DerivedSignal<T[]>;\n  toSpliced: (\n    start: MaybeSignalValue<number>,\n    deleteCount: MaybeSignalValue<number>,\n    ...items: T[]\n  ) => DerivedSignal<T[]>;\n};\n\n/**\n * Record trap for plain objects with property access methods.\n *\n * @template T - The object type\n *\n * @remarks\n * - Throws if the value is not a plain object\n */\nexport type RecordSignalTrap<T extends Record<string, unknown>> =\n  GenericTrap<T> & {\n    /** Returns a derived signal for a specific property. */\n    get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;\n    /** Returns an object with all properties as derived signals. */\n    get withLiveProps(): { [key in keyof T]: DerivedSignal<T[key]> };\n    /** Returns the object's keys as a derived signal. */\n    get keys(): DerivedSignal<string[]>;\n  };",
+      "signature": "export type StringSignalTrap = GenericTrap<string> & {\n  at: SignalifiedFunction<string[\"at\"]>;\n  charAt: SignalifiedFunction<string[\"charAt\"]>;\n  charCodeAt: SignalifiedFunction<string[\"charCodeAt\"]>;\n  codePointAt: SignalifiedFunction<string[\"codePointAt\"]>;\n  concat: SignalifiedFunction<string[\"concat\"]>;\n  endsWith: SignalifiedFunction<string[\"endsWith\"]>;\n  includes: SignalifiedFunction<string[\"includes\"]>;\n  indexOf: SignalifiedFunction<string[\"indexOf\"]>;\n  lastIndexOf: SignalifiedFunction<string[\"lastIndexOf\"]>;\n  padEnd: SignalifiedFunction<string[\"padEnd\"]>;\n  padStart: SignalifiedFunction<string[\"padStart\"]>;\n  repeat: SignalifiedFunction<string[\"repeat\"]>;\n  slice: SignalifiedFunction<string[\"slice\"]>;\n  startsWith: SignalifiedFunction<string[\"startsWith\"]>;\n  substring: SignalifiedFunction<string[\"substring\"]>;\n  trim: SignalifiedFunction<string[\"trim\"]>;\n  trimEnd: SignalifiedFunction<string[\"trimEnd\"]>;\n  trimStart: SignalifiedFunction<string[\"trimStart\"]>;\n  /** String length as a derived signal. */\n  get length(): DerivedSignal<number>;\n  /** Lowercase version of the string. */\n  get lowercase(): DerivedSignal<string>;\n  /** First letter capitalized, rest lowercase. */\n  get Sentencecase(): DerivedSignal<string>;\n  /** Each word's first letter capitalized. */\n  get TitleCase(): DerivedSignal<string>;\n  /** Uppercase version of the string. */\n  get UPPERCASE(): DerivedSignal<string>;\n  /** Compares strings according to locale. */\n  localeCompare: (\n    that: MaybeSignalValue<string>,\n    locales?: MaybeSignalValue<string | string[] | undefined>,\n    options?: Intl.CollatorOptions\n  ) => DerivedSignal<number>;\n  /** Normalizes to the specified Unicode form. */\n  normalize: (\n    form: MaybeSignalValue<\"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\">\n  ) => DerivedSignal<string>;\n  /** Replaces the first match of `searchValue` with `replaceValue`. */\n  replace: (\n    searchValue: MaybeSignalValue<string> | RegExp,\n    replaceValue: MaybeSignalValue<string>\n  ) => DerivedSignal<string>;\n  /** Replaces all matches of `searchValue` with `replaceValue`. */\n  replaceAll: (\n    searchValue: MaybeSignalValue<string> | RegExp,\n    replaceValue: MaybeSignalValue<string>\n  ) => DerivedSignal<string>;\n  /** Searches for a match and returns the index. */\n  search: (regexp: RegExp) => DerivedSignal<number>;\n  /** Splits the string into an array. */\n  split: (\n    separator: MaybeSignalValue<string> | RegExp,\n    limit?: MaybeSignalValue<number | undefined>\n  ) => DerivedSignal<string[]>;\n  /** Converts to locale-specific lowercase. */\n  toLocaleLowerCase: (\n    locales?: MaybeSignalValue<string | string[] | undefined>\n  ) => DerivedSignal<string>;\n  /** Converts to locale-specific uppercase. */\n  toLocaleUpperCase: (\n    locales?: MaybeSignalValue<string | string[] | undefined>\n  ) => DerivedSignal<string>;\n};  \n\n/**\n * Union type for all trap types, determined by the value type.\n *\n * @template T - The type of value to trap\n *\n * @remarks\n * - Number values → NumberSignalTrap\n * - String values → StringSignalTrap\n * - Array values → ArraySignalTrap\n * - Plain objects → RecordSignalTrap\n * - Other types → GenericTrap\n */\nexport type SignalTrap<T> = T extends number\n  ? NumberSignalTrap\n  : T extends string\n  ? StringSignalTrap\n  : GenericTrap<T>;",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1548,64 +2063,6 @@
       },
       "sourcePath": "src/api/traps/types.ts"
     },
-    "api:ArraySignalTrap": {
-      "name": "ArraySignalTrap",
-      "kind": "type",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/types.ts",
-      "isExported": true,
-      "exportKind": "named",
-      "category": "api",
-      "signature": "export type ArraySignalTrap<T> = GenericTrap<T> & {\n  at: SignalifiedFunction<Array<T>[\"at\"]>;\n  concat: (items: MaybeSignalValue<T[]>) => DerivedSignal<T[]>;\n  copyWithin: SignalifiedFunction<Array<T>[\"copyWithin\"]>;\n  fill: SignalifiedFunction<Array<T>[\"fill\"]>;\n  includes: SignalifiedFunction<Array<T>[\"includes\"]>;\n  indexOf: SignalifiedFunction<Array<T>[\"indexOf\"]>;\n  join: SignalifiedFunction<Array<T>[\"join\"]>;\n  lastIndexOf: SignalifiedFunction<Array<T>[\"lastIndexOf\"]>;\n  slice: SignalifiedFunction<Array<T>[\"slice\"]>;\n  with: SignalifiedFunction<Array<T>[\"with\"]>;\n  every: (\n    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<boolean>;\n  filter: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T[]>;\n  find: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T | undefined>;\n  findIndex: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<number>;\n  findLast: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<T | undefined>;\n  findLastIndex: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<number>;\n  /** Last item of the array. */\n  get lastItem(): DerivedSignal<T | undefined>;\n  /** Array length. */\n  get length(): DerivedSignal<number>;\n  map: <U>(\n    mapFn: (item: T, index: number, array: T[]) => U\n  ) => DerivedSignal<U[]>;\n  /** Splits the array into `[passing, failing]` based on a predicate. */\n  partition: (\n    where: (item: T, index: number, array: T[]) => boolean\n  ) => readonly [DerivedSignal<T[]>, DerivedSignal<T[]>];\n  reduce: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T,\n      currentIndex: number,\n      array: T[]\n    ) => U,\n    initialValue: U\n  ) => DerivedSignal<U>;\n  reduceRight: <U>(\n    reducerFn: (\n      previousValue: U,\n      currentValue: T,\n      currentIndex: number,\n      array: T[]\n    ) => U,\n    initialValue: U\n  ) => DerivedSignal<U>;\n  /** Reversed copy of the array. */\n  get reversed(): DerivedSignal<T[]>;\n  some: (\n    itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean\n  ) => DerivedSignal<boolean>;\n  toSorted: (\n    compareFn?: ((a: T, b: T) => number) | undefined\n  ) => DerivedSignal<T[]>;\n  toSpliced: (\n    start: MaybeSignalValue<number>,\n    deleteCount: MaybeSignalValue<number>,\n    ...items: T[]\n  ) => DerivedSignal<T[]>;\n};",
-      "parameters": [],
-      "typeParameters": [],
-      "tsdoc": {
-        "summary": "Array trap with array transformation methods.\n\nIncludes standard array methods as derived signal methods plus custom\ngetters and partition methods.",
-        "remarks": [
-          "- Mutating array methods are not included because derived signals are immutable\n- The `partition()` method splits the array into two signals based on a predicate"
-        ],
-        "examples": [],
-        "params": [],
-        "returns": [],
-        "see": [],
-        "template": [
-          {
-            "name": "T",
-            "description": "The array element type"
-          }
-        ],
-        "deprecated": []
-      },
-      "sourcePath": "src/api/traps/types.ts"
-    },
-    "api:RecordSignalTrap": {
-      "name": "RecordSignalTrap",
-      "kind": "type",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/types.ts",
-      "isExported": true,
-      "exportKind": "named",
-      "category": "api",
-      "signature": "export type RecordSignalTrap<T extends Record<string, unknown>> =\n  GenericTrap<T> & {\n    /** Returns a derived signal for a specific property. */\n    get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;\n    /** Returns an object with all properties as derived signals. */\n    get withLiveProps(): { [key in keyof T]: DerivedSignal<T[key]> };\n    /** Returns the object's keys as a derived signal. */\n    get keys(): DerivedSignal<string[]>;\n  };\n\n/**\n * Union type for all trap types, determined by the value type.\n *\n * @template T - The type of value to trap\n *\n * @remarks\n * - Number values → NumberSignalTrap\n * - String values → StringSignalTrap\n * - Array values → ArraySignalTrap\n * - Plain objects → RecordSignalTrap\n * - Other types → GenericTrap\n */\nexport type SignalTrap<T> = T extends number\n  ? NumberSignalTrap\n  : T extends string\n  ? StringSignalTrap\n  : T extends (infer I)[]\n  ? ArraySignalTrap<I>\n  : T extends Record<string, unknown>\n  ? RecordSignalTrap<T>\n  : GenericTrap<T>;",
-      "parameters": [],
-      "typeParameters": [],
-      "tsdoc": {
-        "summary": "Record trap for plain objects with property access methods.",
-        "remarks": [
-          "- Throws if the value is not a plain object"
-        ],
-        "examples": [],
-        "params": [],
-        "returns": [],
-        "see": [],
-        "template": [
-          {
-            "name": "T",
-            "description": "The object type"
-          }
-        ],
-        "deprecated": []
-      },
-      "sourcePath": "src/api/traps/types.ts"
-    },
     "api:SignalTrap": {
       "name": "SignalTrap",
       "kind": "type",
@@ -1613,7 +2070,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "api",
-      "signature": "export type SignalTrap<T> = T extends number\n  ? NumberSignalTrap\n  : T extends string\n  ? StringSignalTrap\n  : T extends (infer I)[]\n  ? ArraySignalTrap<I>\n  : T extends Record<string, unknown>\n  ? RecordSignalTrap<T>\n  : GenericTrap<T>;",
+      "signature": "export type SignalTrap<T> = T extends number\n  ? NumberSignalTrap\n  : T extends string\n  ? StringSignalTrap\n  : GenericTrap<T>;",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -1670,78 +2127,6 @@
       },
       "sourcePath": "src/api/traps/transforms/designalified-params.ts"
     },
-    "api:arrayTrap": {
-      "name": "arrayTrap",
-      "kind": "const",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/array-trap.ts",
-      "isExported": true,
-      "exportKind": "named",
-      "category": "api",
-      "signature": "export const arrayTrap = <T>(\n  input: MaybeSignalValue<T[]>,\n): ArraySignalTrap<T> => {\n  const SIMPLE_ARRAY_METHODS = [\n    \"at\",\n    \"copyWithin\",\n    \"fill\",\n    \"includes\",\n    \"indexOf\",\n    \"join\",\n    \"lastIndexOf\",\n    \"slice\",\n    \"with\",\n  ] as const;\n  type ArrayMethodName = (typeof SIMPLE_ARRAY_METHODS)[number];\n  type SimpleArrayMethods = Pick<ArraySignalTrap<T>, ArrayMethodName>;\n\n  const simpleMethodsTrapObject = SIMPLE_ARRAY_METHODS.reduce(\n    (map: SimpleArrayMethods, arrayMethod) => {\n      const method: SignalifiedFunction<Array<T>[typeof arrayMethod]> = (\n        ...params\n      ) => {\n        return derive(() => {\n          const prms = getDesignalifiedMethodParams(...params);\n          // @ts-ignore: A spread argument must either have a tuple type or be passed to a rest parameter.\n          return value(input)[arrayMethod](...prms);\n        });\n      };\n      map[arrayMethod] = method;\n      return map;\n    },\n    {} as SimpleArrayMethods,\n  );\n\n  return {\n    ...genericTrap(input as NonNullable<T>),\n    ...simpleMethodsTrapObject,\n    concat: (items: MaybeSignalValue<T[]>) =>\n      derive(() => value(input).concat(value(items))),\n    every: (\n      itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean,\n    ) => derive(() => value(input).every(itemSatifiesCondition)),\n    filter: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).filter(where)),\n    find: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).find(where)),\n    findIndex: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).findIndex(where)),\n    findLast: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).findLast(where)),\n    findLastIndex: (where: (item: T, index: number, array: T[]) => boolean) =>\n      derive(() => value(input).findLastIndex(where)),\n    get lastItem() {\n      return derive(() => {\n        const updatedArr = newVal(value(input));\n        const returnVal = updatedArr.pop();\n        return returnVal;\n      });\n    },\n    get length() {\n      return derive(() => value(input).length);\n    },\n    map: <U>(mapFn: (item: T, index: number, array: T[]) => U) =>\n      derive(() => value(input).map(mapFn)),\n    partition: (where: (item: T, index: number, array: T[]) => boolean) => {\n      const conditionPassArray = derive(() => value(input).filter(where));\n      const conditionFailArray = derive(() =>\n        value(input).filter((item, index, array) => !where(item, index, array)),\n      );\n      return [conditionPassArray, conditionFailArray];\n    },\n    reduce: <U>(\n      reducerFn: (\n        previousValue: U,\n        currentValue: T,\n        currentIndex: number,\n        array: T[],\n      ) => U,\n      initialValue: U,\n    ) => derive(() => value(input).reduce(reducerFn, initialValue)),\n    reduceRight: <U>(\n      reducerFn: (\n        previousValue: U,\n        currentValue: T,\n        currentIndex: number,\n        array: T[],\n      ) => U,\n      initialValue: U,\n    ) => derive(() => value(input).reduceRight(reducerFn, initialValue)),\n    get reversed() {\n      return derive(() => value(input).toReversed());\n    },\n    some: (\n      itemSatifiesCondition: (item: T, index: number, array: T[]) => boolean,\n    ) => derive(() => value(input).some(itemSatifiesCondition)),\n    toSorted: (compareFn?: (a: T, b: T) => number) =>\n      derive(() => value(input).toSorted(compareFn)),\n    toSpliced: (\n      start: MaybeSignalValue<number>,\n      deleteCount: MaybeSignalValue<number>,\n      ...newItems: T[]\n    ) =>\n      derive(() =>\n        value(input).toSpliced(value(start), value(deleteCount), ...newItems),\n      ),\n  };\n};",
-      "parameters": [],
-      "typeParameters": [],
-      "tsdoc": {
-        "summary": "Creates the array trap for signalified arrays.",
-        "remarks": [
-          "- Uses derived signals for every accessor and method\n- The trap type is selected once at creation time"
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "input",
-            "description": "A signalified array"
-          }
-        ],
-        "returns": [
-          "An array trap with array transformation helpers"
-        ],
-        "see": [],
-        "template": [
-          {
-            "name": "T",
-            "description": "The array element type"
-          }
-        ],
-        "deprecated": []
-      },
-      "sourcePath": "src/api/traps/array-trap.ts"
-    },
-    "api:objectTrap": {
-      "name": "objectTrap",
-      "kind": "const",
-      "filePath": "/Users/ck/Desktop/packages/signal/src/api/traps/object-trap.ts",
-      "isExported": true,
-      "exportKind": "named",
-      "category": "api",
-      "signature": "export const objectTrap = <T extends Record<string, unknown>>(\n  input: MaybeSignalValue<T>,\n): RecordSignalTrap<T> => {\n  if (!isPlainObject(value(input))) {\n    throw new Error(\n      `The argument should be a plain object or a signal of plain object`,\n    );\n  }\n\n  return {\n    ...genericTrap(input),\n    get: <K extends keyof T>(key: K) => derive(() => value(input)[key]),\n    get withLiveProps() {\n      const signalledPropsObj = Object.keys(value(input)).reduce(\n        (map, k) => {\n          const key = k as keyof T;\n          map[key] = this.get(key);\n          return map;\n        },\n        {} as { [key in keyof T]: DerivedSignal<T[key]> },\n      );\n\n      return signalledPropsObj;\n    },\n    get keys() {\n      return derive(() => Object.keys(value(input)));\n    },\n  };\n};",
-      "parameters": [],
-      "typeParameters": [],
-      "tsdoc": {
-        "summary": "Creates the object trap for signalified plain objects.",
-        "remarks": [
-          "- Throws if the input is not a plain object after unwrapping\n- Property accessors are derived signals"
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "input",
-            "description": "A signalified plain object"
-          }
-        ],
-        "returns": [
-          "A record trap exposing derived property accessors"
-        ],
-        "see": [],
-        "template": [
-          {
-            "name": "T",
-            "description": "The object type"
-          }
-        ],
-        "deprecated": []
-      },
-      "sourcePath": "src/api/traps/object-trap.ts"
-    },
     "api:trap": {
       "name": "trap",
       "kind": "const",
@@ -1749,16 +2134,16 @@
       "isExported": true,
       "exportKind": "named",
       "category": "api",
-      "signature": "export const trap = <T>(input: MaybeSignalValue<T>) => {\n  return (\n    typeof value(input) === \"number\"\n      ? numberTrap(input as MaybeSignalValue<number>)\n      : typeof value(input) === \"string\"\n      ? stringTrap(input as MaybeSignalValue<string>)\n      : Array.isArray(value(input))\n      ? arrayTrap(input as MaybeSignalValue<unknown[]>)\n      : isPlainObject(value(input))\n      ? objectTrap(input as MaybeSignalValue<Record<string, unknown>>)\n      : genericTrap(input)\n  ) as SignalTrap<T>;\n};",
+      "signature": "export const trap = <T>(input: MaybeSignalValue<T>) => {\n  return (\n    typeof value(input) === \"number\"\n      ? numberTrap(input as MaybeSignalValue<number>)\n      : typeof value(input) === \"string\"\n      ? stringTrap(input as MaybeSignalValue<string>)\n      : genericTrap(input)\n  ) as SignalTrap<T>;\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
-        "summary": "Creates a type-specific trap object with derived signal methods.\n\nThis function uses runtime type checking to dispatch to the appropriate\ntype-specific trap implementation. The dispatch order is:\n1. Number values → numberTrap (provides math operations, formatting)\n2. String values → stringTrap (provides string manipulation methods)\n3. Array values → arrayTrap (provides array transformation methods)\n4. Plain objects → objectTrap (provides property access methods)\n5. Other types → genericTrap (provides basic string and fallback methods)",
+        "summary": "Creates a type-specific trap object with derived signal methods.\n\nThis function uses runtime type checking to dispatch to the appropriate\ntype-specific trap implementation. The dispatch order is:\n1. Number values → numberTrap (provides math operations, formatting)\n2. String values → stringTrap (provides string manipulation methods)\n3. Other types → genericTrap (provides basic string and fallback methods)\n\nNote: Array and object signals now have their methods directly on the signal,\nso they are not handled by the trap function anymore.",
         "remarks": [
-          "- The trap type is determined by the runtime type of the unwrapped value at creation time\n- Type changes in the input signal are not reflected in the trap type\n- Methods return derived signals that update when the input changes\n- The object trap throws if the value is not a plain object"
+          "- The trap type is determined by the runtime type of the unwrapped value at creation time\n- Type changes in the input signal are not reflected in the trap type\n- Methods return derived signals that update when the input changes\n- Array and object signals have intrinsic methods and don't need traps"
         ],
         "examples": [
-          "```typescript\nconst count = signal(5);\nconst trapped = trap(count); // NumberSignalTrap\nconst doubled = trapped.add(5).result;\n\nconst name = signal(\"hello\");\nconst nameTrap = trap(name); // StringSignalTrap\nconst upper = nameTrap.UPPERCASE;\n\nconst items = signal([1, 2, 3]);\nconst itemsTrap = trap(items); // ArraySignalTrap\nconst filtered = itemsTrap.filter(x => x > 1);\n```"
+          "```typescript\nconst count = signal(5);\nconst trapped = trap(count); // NumberSignalTrap\nconst doubled = trapped.add(5).result;\n\nconst name = signal(\"hello\");\nconst nameTrap = trap(name); // StringSignalTrap\nconst upper = nameTrap.UPPERCASE;\n```"
         ],
         "params": [
           {
@@ -1821,7 +2206,7 @@
       "isExported": true,
       "exportKind": "named",
       "category": "api",
-      "signature": "export const genericTrap = <T>(input: MaybeSignalValue<T>): GenericTrap<T> => {\n  return {\n    get string() {\n      return derive(() => {\n        const val = value(input);\n        const str = (\n          val === undefined || val === null ? \"\" : val.toString()\n        ) as T extends null | undefined ? undefined : string;\n        return str;\n      });\n    },\n    or: <OV>(\n      orValue: MaybeSignalValue<OV>,\n    ): DerivedSignal<OV | NonNullable<T>> =>\n      derive(() => value(input) || value(orValue)),\n  };\n};",
+      "signature": "export const genericTrap = <T>(input: MaybeSignalValue<T>): GenericTrap<T> => {\n  return {\n    get string() {\n      return derive(() => {\n        const val = value(input);\n        const str = (\n          val === undefined || val === null ? \"\" : val.toString()\n        )\n        return str;\n      });\n    },\n    or: <OV>(\n      orValue: MaybeSignalValue<OV>,\n    ): DerivedSignal<OV | NonNullable<T>> =>\n      derive(() => value(input) || value(orValue)),\n  };\n};",
       "parameters": [],
       "typeParameters": [],
       "tsdoc": {
@@ -2238,14 +2623,28 @@
         "getNonSignalObject",
         "setCurrentEffect",
         "signal",
-        "getArraySourceSignalMethodsObject",
-        "SignalsEffect",
-        "ArraySourceSignalMethodsObject",
-        "ObjectSourceSignalMethodsObject",
         "BaseSourceSignal",
+        "BaseDerivedSignal",
+        "BaseSignal",
+        "SignalsEffect",
+        "ArraySignalIntrinsicMutatingMethodsObject",
+        "ArraySignalCustomMutatingMethodsObject",
+        "ArraySignalMutatingMethodsObject",
+        "ArraySignalIntrinsicNonMutatingMethodsObject",
+        "ArraySignalCustomNonMutatingMethodsObject",
+        "ArraySignalNonMutatingMethodsObject",
+        "ArraySourceSignalMethodsObject",
         "ArraySourceSignal",
+        "ObjectSourceSignalMethodsObject",
         "ObjectSourceSignal",
         "SourceSignal",
+        "getArraySignalIntrinsicMutatingMethodsObject",
+        "getArraySignalCustomMutatingMethodsObject",
+        "getArraySignalMutatingMethodsObject",
+        "getArraySignalIntrinsicNonMutatingMethodsObject",
+        "getArraySignalCustomNonMutatingMethodsObject",
+        "getArraySignalNonMutatingMethodsObject",
+        "getArraySourceSignalMethodsObject",
         "getObjectSourceSignalMethodsObject"
       ]
     },
@@ -2256,17 +2655,15 @@
         "StringSignalDeriverTemplateExpressions",
         "tmpl",
         "promstates",
+        "ObjectSignalProps",
+        "props",
         "stringTrap",
         "SignalifiedFunction",
         "GenericTrap",
         "NumberSignalTrap",
         "StringSignalTrap",
-        "ArraySignalTrap",
-        "RecordSignalTrap",
         "SignalTrap",
         "getDesignalifiedMethodParams",
-        "arrayTrap",
-        "objectTrap",
         "trap",
         "numberTrap",
         "genericTrap",
