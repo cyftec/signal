@@ -75,7 +75,6 @@ export type SignalsEffect = {
   dispose(): void;
 };
 
-
 /**
  * Intrinsic mutating methods for array signals.
  *
@@ -127,8 +126,9 @@ export type ArraySignalCustomMutatingMethodsObject<T extends any[]> = {
  *
  * @template T - The array type
  */
-export type ArraySignalMutatingMethodsObject<T extends any[]> = ArraySignalIntrinsicMutatingMethodsObject<T> & ArraySignalCustomMutatingMethodsObject<T>;
-
+export type ArraySignalMutatingMethodsObject<T extends any[]> =
+  ArraySignalIntrinsicMutatingMethodsObject<T> &
+    ArraySignalCustomMutatingMethodsObject<T>;
 
 /**
  * Intrinsic non-mutating methods for array signals.
@@ -144,22 +144,64 @@ export type ArraySignalMutatingMethodsObject<T extends any[]> = ArraySignalIntri
  * - Works with both source and derived signals
  */
 export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
-  at: (...args: Parameters<Array<T[number]>["at"]>) => DerivedSignal<ReturnType<Array<T[number]>["at"]>>;
-  concat: (...args: Parameters<Array<T[number]>["concat"]>) => DerivedSignal<ReturnType<Array<T[number]>["concat"]>>;
-  every: (...args: Parameters<Array<T[number]>["every"]>) => DerivedSignal<ReturnType<Array<T[number]>["every"]>>;
-  filter: (...args: Parameters<Array<T[number]>["filter"]>) => DerivedSignal<ReturnType<Array<T[number]>["filter"]>>;
-  find: (...args: Parameters<Array<T[number]>["find"]>) => DerivedSignal<ReturnType<Array<T[number]>["find"]>>;
-  findIndex: (...args: Parameters<Array<T[number]>["findIndex"]>) => DerivedSignal<ReturnType<Array<T[number]>["findIndex"]>>;
-  findLast: (...args: Parameters<Array<T[number]>["findLast"]>) => DerivedSignal<ReturnType<Array<T[number]>["findLast"]>>;
-  findLastIndex: (...args: Parameters<Array<T[number]>["findLastIndex"]>) => DerivedSignal<ReturnType<Array<T[number]>["findLastIndex"]>>;
+  at: (
+    ...args: Parameters<Array<T[number]>["at"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["at"]>>;
+  concat: (
+    ...args: Parameters<Array<T[number]>["concat"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["concat"]>>;
+  every: (
+    ...args: Parameters<Array<T[number]>["every"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["every"]>>;
+  filter: (
+    ...args: Parameters<Array<T[number]>["filter"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["filter"]>>;
+  find: (
+    ...args: Parameters<Array<T[number]>["find"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["find"]>>;
+  findIndex: (
+    ...args: Parameters<Array<T[number]>["findIndex"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["findIndex"]>>;
+  findLast: (
+    ...args: Parameters<Array<T[number]>["findLast"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["findLast"]>>;
+  findLastIndex: (
+    ...args: Parameters<Array<T[number]>["findLastIndex"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["findLastIndex"]>>;
   get length(): DerivedSignal<number>;
-  map:  <U>(mapFn: (item: T[number], index: number, array: T) => U) => DerivedSignal<U[]>;
-  reduce: <U>(reducerFn: ( previousValue: U, currentValue: T[number], currentIndex: number, array: T) => U, initialValue: U) => DerivedSignal<U>;
-  reduceRight: <U>(reducerFn: ( previousValue: U, currentValue: T[number], currentIndex: number, array: T) => U, initialValue: U) => DerivedSignal<U>;
-  some:  (...args: Parameters<Array<T[number]>["some"]>) => DerivedSignal<ReturnType<Array<T[number]>["some"]>>;
-  toReversed: (...args: Parameters<Array<T[number]>["toReversed"]>) => DerivedSignal<ReturnType<Array<T[number]>["toReversed"]>>;
-  toSorted: (...args: Parameters<Array<T[number]>["toSorted"]>) => DerivedSignal<ReturnType<Array<T[number]>["toSorted"]>>;
-  toSpliced: (...args: Parameters<Array<T[number]>["toSpliced"]>) => DerivedSignal<ReturnType<Array<T[number]>["toSpliced"]>>;
+  map: <U>(
+    mapFn: (item: T[number], index: number, array: T) => U,
+  ) => DerivedSignal<U[]>;
+  reduce: <U>(
+    reducerFn: (
+      previousValue: U,
+      currentValue: T[number],
+      currentIndex: number,
+      array: T,
+    ) => U,
+    initialValue: U,
+  ) => DerivedSignal<U>;
+  reduceRight: <U>(
+    reducerFn: (
+      previousValue: U,
+      currentValue: T[number],
+      currentIndex: number,
+      array: T,
+    ) => U,
+    initialValue: U,
+  ) => DerivedSignal<U>;
+  some: (
+    ...args: Parameters<Array<T[number]>["some"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["some"]>>;
+  toReversed: (
+    ...args: Parameters<Array<T[number]>["toReversed"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["toReversed"]>>;
+  toSorted: (
+    ...args: Parameters<Array<T[number]>["toSorted"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["toSorted"]>>;
+  toSpliced: (
+    ...args: Parameters<Array<T[number]>["toSpliced"]>
+  ) => DerivedSignal<ReturnType<Array<T[number]>["toSpliced"]>>;
 };
 
 /**
@@ -178,7 +220,9 @@ export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
   /** Last item of the array. */
   get lastItem(): DerivedSignal<T[number] | undefined>;
   /** Custom method that splits the array into `[passing, failing]` based on a predicate. */
-  partition: (...args: Parameters<Array<T[number]>["filter"]>) => readonly [DerivedSignal<T>, DerivedSignal<T>];
+  partition: (
+    ...args: Parameters<Array<T[number]>["filter"]>
+  ) => readonly [DerivedSignal<T>, DerivedSignal<T>];
 };
 
 /**
@@ -188,8 +232,9 @@ export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
  *
  * @template T - The array type
  */
-export type ArraySignalNonMutatingMethodsObject<T extends any[]> =  ArraySignalIntrinsicNonMutatingMethodsObject<T> & ArraySignalCustomNonMutatingMethodsObject<T>;
-
+export type ArraySignalNonMutatingMethodsObject<T extends any[]> =
+  ArraySignalIntrinsicNonMutatingMethodsObject<T> &
+    ArraySignalCustomNonMutatingMethodsObject<T>;
 
 /**
  * Combined methods for array source signals.
@@ -203,7 +248,8 @@ export type ArraySignalNonMutatingMethodsObject<T extends any[]> =  ArraySignalI
  * - Non-mutating methods return derived signals
  * - Methods create new arrays internally but feel mutable
  */
-export type ArraySourceSignalMethodsObject<T extends any[]> = ArraySignalMutatingMethodsObject<T> & ArraySignalNonMutatingMethodsObject<T>;
+export type ArraySourceSignalMethodsObject<T extends any[]> =
+  ArraySignalMutatingMethodsObject<T> & ArraySignalNonMutatingMethodsObject<T>;
 
 /**
  * Source signal for arrays with mutation and non-mutating methods.
@@ -227,44 +273,10 @@ export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &
  * - `set()` performs a shallow merge with the current value
  * - Triggers effects synchronously
  */
-export type ObjectSignalMutatingMethodsObject<T extends object> = {
+export type ObjectSourceSignalMethodsObject<T extends object> = {
   /** Performs a shallow merge with the current value */
   set: (partiallyNewObjectValue: Partial<T>) => void;
 };
-
-/**
- * Non-mutating methods for object signals.
- *
- * These methods return derived signals for accessing object properties.
- *
- * @template T - The object type
- *
- * @remarks
- * - All methods return derived signals
- * - Methods are reactive and update when the source object changes
- * - Works with both source and derived signals
- */
-export type ObjectSignalNonMutatingMethodsObject<T extends object> = {
-  /** Returns a derived signal for a specific property. */
-  get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
-  /** Returns an object with all properties as derived signals. */
-  get withLiveProps(): { [key in keyof T]: DerivedSignal<T[key]> };
-  /** Returns the object's keys as a derived signal. */
-  get keys(): DerivedSignal<string[]>;
-};
-
-/**
- * Combined methods for object source signals.
- *
- * Combines mutating and non-mutating methods for object source signals.
- *
- * @template T - The object type
- *
- * @remarks
- * - `set()` performs a shallow merge with the current value
- * - Non-mutating methods return derived signals
- */
-export type ObjectSourceSignalMethodsObject<T extends object> = ObjectSignalMutatingMethodsObject<T> & ObjectSignalNonMutatingMethodsObject<T>;
 
 /**
  * Source signal for plain objects with partial update method.
@@ -299,5 +311,5 @@ export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &
 export type SourceSignal<T> = T extends any[]
   ? ArraySourceSignal<T>
   : T extends object
-  ? ObjectSourceSignal<T>
-  : BaseSourceSignal<T>;
+    ? ObjectSourceSignal<T>
+    : BaseSourceSignal<T>;

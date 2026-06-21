@@ -1,4 +1,5 @@
 import { type DerivedSignal, signal } from "../_core";
+import { props } from "./props";
 
 /**
  * Creates promise state signals for async operations.
@@ -113,6 +114,6 @@ export const promstates = <R, Args extends Array<any>, I>(
       })
       .finally(ultimately);
 
-  const { isRunning, result, error } = state.withLiveProps;
+  const { isRunning, result, error } = props(state).allLive;
   return [runPromise, result, error, isRunning] as const;
 };

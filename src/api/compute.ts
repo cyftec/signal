@@ -52,7 +52,7 @@ export const compute = <F extends (...args: any[]) => any>(
   computerFn: F,
   ...restArgs: MaybeSignalValues<Parameters<F>>
 ): DerivedSignal<ReturnType<F>> => {
-  return derive(() => {
+  return derive<ReturnType<F>>(() => {
     const plainArgs = restArgs.map((arg) => value(arg)) as PlainValues<
       typeof restArgs
     >;

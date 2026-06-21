@@ -20,7 +20,7 @@ export const genericTrap = <T>(input: MaybeSignalValue<T>): GenericTrap<T> => {
         const val = value(input);
         const str = (
           val === undefined || val === null ? "" : val.toString()
-        ) as T extends null | undefined ? undefined : string;
+        )
         return str;
       });
     },

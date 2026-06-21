@@ -1,14 +1,10 @@
 import { effect } from "./effect";
-import { signal } from "./signal";
 import {
   getArraySignalNonMutatingMethodsObject,
-  getObjectSignalNonMutatingMethodsObject,
-} from "./signal/signal-methods-objects";
-import {
-  ArraySignalNonMutatingMethodsObject,
-  BaseDerivedSignal,
-  ObjectSignalNonMutatingMethodsObject,
-} from "./signal/types";
+  signal,
+  type ArraySignalNonMutatingMethodsObject,
+  type BaseDerivedSignal,
+} from "./signal";
 
 /**
  * A read-only derived signal computed from other signals.
@@ -32,11 +28,7 @@ import {
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
-  (T extends any[]
-    ? ArraySignalNonMutatingMethodsObject<T>
-    : T extends object
-      ? ObjectSignalNonMutatingMethodsObject<T>
-      : {});
+  (T extends any[] ? ArraySignalNonMutatingMethodsObject<T> : {});
 
 /**
  * A function that computes a derived signal's value.
@@ -129,14 +121,9 @@ export const derive = <T>(
   if (Array.isArray(derivedSource.value)) {
     return Object.assign(
       baseDerivedSignal,
-      getArraySignalNonMutatingMethodsObject(baseDerivedSignal as BaseDerivedSignal<any[]>),
-    ) as any;
-  }
-
-  if (typeof derivedSource.value === "object" && derivedSource.value !== null) {
-    return Object.assign(
-      baseDerivedSignal,
-      getObjectSignalNonMutatingMethodsObject(baseDerivedSignal as BaseDerivedSignal<object>),
+      getArraySignalNonMutatingMethodsObject(
+        baseDerivedSignal as BaseDerivedSignal<any[]>,
+      ),
     ) as any;
   }
 

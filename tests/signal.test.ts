@@ -94,38 +94,7 @@ describe("signal - object values", () => {
   it("should handle empty object", () => {
     const obj = signal({});
     expect(obj.value).toEqual({});
-  });
-
-  // Non-mutating methods returning derived signals
-  it("should have 'get' method returning derived signal for the accessed property", () => {
-    const obj = signal({ name: "test", count: 0 });
-    const name = obj.get("name");
-    expect(name.value).toBe("test");
-    obj.set({ name: "updated" });
-    expect(name.value).toBe("updated");
-  });
-
-  it("should have 'withLiveProps' getter returning all properties as derived signals", () => {
-    const obj = signal({ name: "test", count: 0 });
-    const withLiveProps = obj.withLiveProps;
-    expect(withLiveProps.name.value).toBe("test");
-    expect(withLiveProps.count.value).toBe(0);
-    obj.set({ name: "updated", count: 5 });
-    expect(withLiveProps.name.value).toBe("updated");
-    expect(withLiveProps.count.value).toBe(5);
-  });
-
-  it("should have 'keys' getter returning derived signal", () => {
-    const obj = signal({ name: "test", count: 0 } as {
-      name: string;
-      count: number;
-      active?: boolean;
-    });
-    const keys = obj.keys;
-    expect(keys.value).toEqual(["name", "count"]);
-    obj.set({ name: "test", count: 0, active: true });
-    expect(keys.value).toEqual(["name", "count", "active"]);
-  });
+  }); 
 });
 
 describe("signal - array values", () => {
@@ -644,41 +613,6 @@ describe("derive - array signals", () => {
     expect(found.value).toBeUndefined();
     arr.push(6);
     expect(found.value).toBe(6);
-  });
-});
-
-describe("derive - object signals", () => {
-  it("should have 'get' method on derived object signal", () => {
-    const obj = signal({ name: "test", count: 0 });
-    const derived = derive(() => obj.value);
-    const name = derived.get("name");
-    expect(name.value).toBe("test");
-    obj.set({ name: "updated" });
-    expect(name.value).toBe("updated");
-  });
-
-  it("should have 'withLiveProps' getter on derived object signal", () => {
-    const obj = signal({ name: "test", count: 0 });
-    const derived = derive(() => obj.value);
-    const withLiveProps = derived.withLiveProps;
-    expect(withLiveProps.name.value).toBe("test");
-    expect(withLiveProps.count.value).toBe(0);
-    obj.set({ name: "updated", count: 5 });
-    expect(withLiveProps.name.value).toBe("updated");
-    expect(withLiveProps.count.value).toBe(5);
-  });
-
-  it("should have 'keys' getter on derived object signal", () => {
-    const obj = signal({ name: "test", count: 0 } as {
-      name: string;
-      count: number;
-      active?: boolean;
-    });
-    const derived = derive(() => obj.value);
-    const keys = derived.keys;
-    expect(keys.value).toEqual(["name", "count"]);
-    obj.set({ name: "test", count: 0, active: true });
-    expect(keys.value).toEqual(["name", "count", "active"]);
   });
 });
 

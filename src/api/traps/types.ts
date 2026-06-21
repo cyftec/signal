@@ -31,7 +31,7 @@ export type SignalifiedFunction<F extends (...args: any[]) => any> = (
  */
 export type GenericTrap<T> = {
   /** Converts the value to a string signal. */
-  get string(): DerivedSignal<T extends null | undefined ? undefined : string>;
+  get string(): DerivedSignal<string>;
   /** Returns the value if truthy, otherwise the fallback value. */
   or: <OV>(orValue: MaybeSignalValue<OV>) => DerivedSignal<NonNullable<T> | OV>;
 };
