@@ -1,9 +1,15 @@
 import { effect } from "./effect";
 import {
   getArraySignalNonMutatingMethodsObject,
+  getBooleanSignalNonMutatingMethodsObject,
+  getNumberSignalMethodsObject,
+  getStringSignalMethodsObject,
   signal,
   type ArraySignalNonMutatingMethodsObject,
   type BaseDerivedSignal,
+  type BooleanSignalNonMutatingMethodsObject,
+  type NumberSignalNonMutatingMethodsObject,
+  type StringSignalNonMutatingMethodsObject,
 } from "./signal";
 
 /**
@@ -22,13 +28,23 @@ import {
  * - Calling `dispose()` stops the derived signal from tracking dependencies
  * - After disposal, the value remains accessible but won't update
  * - Array derived signals get non-mutating array methods (map, filter, etc.)
- * - Object derived signals get non-mutating object methods (get, withLiveProps, keys)
+ * - String derived signals get non-mutating string methods (toLowerCase, toUpperCase, etc.)
+ * - Number derived signals get non-mutating number methods (toFixed, toPrecision, etc.)
+ * - Boolean derived signals get non-mutating boolean methods (not, toString)
  *
  * @see {@link signal} - For creating mutable source signals
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
-  (T extends any[] ? ArraySignalNonMutatingMethodsObject<T> : {});
+  (T extends any[]
+    ? ArraySignalNonMutatingMethodsObject<T>
+    : T extends string
+      ? StringSignalNonMutatingMethodsObject
+      : T extends number
+        ? NumberSignalNonMutatingMethodsObject
+        : T extends boolean
+          ? BooleanSignalNonMutatingMethodsObject
+          : {});
 
 /**
  * A function that computes a derived signal's value.
@@ -117,12 +133,39 @@ export const derive = <T>(
     },
   };
 
-  // Add non-mutating methods for array and object derived signals
+  // Add non-mutating methods for array, string, number, and boolean derived signals
   if (Array.isArray(derivedSource.value)) {
     return Object.assign(
       baseDerivedSignal,
       getArraySignalNonMutatingMethodsObject(
         baseDerivedSignal as BaseDerivedSignal<any[]>,
+      ),
+    ) as any;
+  }
+
+  if (typeof derivedSource.value === "string") {
+    return Object.assign(
+      baseDerivedSignal,
+      getStringSignalMethodsObject(
+        baseDerivedSignal as BaseDerivedSignal<string>,
+      ),
+    ) as any;
+  }
+
+  if (typeof derivedSource.value === "number") {
+    return Object.assign(
+      baseDerivedSignal,
+      getNumberSignalMethodsObject(
+        baseDerivedSignal as BaseDerivedSignal<number>,
+      ),
+    ) as any;
+  }
+
+  if (typeof derivedSource.value === "boolean") {
+    return Object.assign(
+      baseDerivedSignal,
+      getBooleanSignalNonMutatingMethodsObject(
+        baseDerivedSignal as BaseDerivedSignal<boolean>,
       ),
     ) as any;
   }

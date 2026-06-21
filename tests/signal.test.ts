@@ -609,6 +609,66 @@ describe("derive - array signals", () => {
   });
 });
 
+describe("derive - string signals", () => {
+  it("should have 'length' method on derived string signal", () => {
+    const text = signal("hello");
+    const derived = derive(() => text.value);
+    const len = derived.length();
+    expect(len.value).toBe(5);
+    text.value = "hello world";
+    expect(len.value).toBe(11);
+  });
+
+  it("should have 'lowercase' method on derived string signal", () => {
+    const text = signal("HELLO");
+    const derived = derive(() => text.value);
+    const lowercase = derived.lowercase();
+    expect(lowercase.value).toBe("hello");
+    text.value = "WORLD";
+    expect(lowercase.value).toBe("world");
+  });
+
+  it("should have 'UPPERCASE' method on derived string signal", () => {
+    const text = signal("hello");
+    const derived = derive(() => text.value);
+    const uppercase = derived.UPPERCASE();
+    expect(uppercase.value).toBe("HELLO");
+    text.value = "world";
+    expect(uppercase.value).toBe("WORLD");
+  });
+});
+
+describe("derive - number signals", () => {
+  it("should have 'toFixed' method on derived number signal", () => {
+    const num = signal(3.14159);
+    const derived = derive(() => num.value);
+    const fixed = derived.toFixed(2);
+    expect(fixed.value).toBe("3.14");
+    num.value = 2.71828;
+    expect(fixed.value).toBe("2.72");
+  });
+
+  it("should have 'toPrecision' method on derived number signal", () => {
+    const num = signal(123.456);
+    const derived = derive(() => num.value);
+    const precision = derived.toPrecision(4);
+    expect(precision.value).toBe("123.5");
+    num.value = 789.012;
+    expect(precision.value).toBe("789.0");
+  });
+});
+
+describe("derive - boolean signals", () => {
+  it("should have 'negated' method on derived boolean signal", () => {
+    const bool = signal(true);
+    const derived = derive(() => bool.value);
+    const neg = derived.negated();
+    expect(neg.value).toBe(false);
+    bool.value = false;
+    expect(neg.value).toBe(true);
+  });
+});
+
 describe("dispose utility", () => {
   it("should dispose single derived signal", () => {
     const count = signal(1);
@@ -1039,20 +1099,11 @@ describe("signal - boolean values", () => {
   });
 
   // Custom non-mutating methods
-  it("should have 'not' getter returning derived signal", () => {
+  it("should have 'negated' getter returning derived signal", () => {
     const bool = signal(true);
-    const not = bool.negated();
-    expect(not.value).toBe(false);
+    const neg = bool.negated();
+    expect(neg.value).toBe(false);
     bool.value = false;
-    expect(not.value).toBe(true);
-  });
-
-  // Custom non-mutating methods
-  it("should have 'not' getter returning derived signal", () => {
-    const bool = signal(true);
-    const not = bool.negated();
-    expect(not.value).toBe(false);
-    bool.value = false;
-    expect(not.value).toBe(true);
+    expect(neg.value).toBe(true);
   });
 });
