@@ -110,7 +110,7 @@ export const derive = <T>(
       return oldValue;
     },
     get value() {
-      return derivedSource.value;
+      return derivedSource.value as T;
     },
     dispose() {
       derivedSourceUpdator.dispose();

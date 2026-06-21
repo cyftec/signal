@@ -27,34 +27,34 @@ import {
  * - Methods expose a mutable-style API while maintaining immutability
  */
 export const getArraySignalIntrinsicMutatingMethodsObject = <T extends any[]>(
-  valueSetter: (method: (oldValue: T) => T) => void,
+  valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
 ): ArraySignalIntrinsicMutatingMethodsObject<T> => {
-  const mutator = (mutate: (newVal: T) => void): void =>
+  const signalUpdator = (mutatorMethod: (newVal: T) => void): void =>
     valueSetter((oldValue: T) => {
       const newValue = Array.from(oldValue) as T;
-      mutate(newValue);
+      mutatorMethod(newValue);
       return newValue;
     });
 
   return {
     copyWithin: (...args: Parameters<Array<T[number]>["copyWithin"]>) =>
-      mutator((newValue) => newValue.copyWithin(...args)),
+      signalUpdator((newValue) => newValue.copyWithin(...args)),
     fill: (...args: Parameters<Array<T[number]>["fill"]>) =>
-      mutator((newValue) => newValue.fill(...args)),
+      signalUpdator((newValue) => newValue.fill(...args)),
     pop: (...args: Parameters<Array<T[number]>["pop"]>) =>
-      mutator((newValue) => newValue.pop(...args)),
+      signalUpdator((newValue) => newValue.pop(...args)),
     push: (...args: Parameters<Array<T[number]>["push"]>) =>
-      mutator((newValue) => newValue.push(...args)),
+      signalUpdator((newValue) => newValue.push(...args)),
     reverse: (...args: Parameters<Array<T[number]>["reverse"]>) =>
-      mutator((newValue) => newValue.reverse(...args)),
+      signalUpdator((newValue) => newValue.reverse(...args)),
     shift: (...args: Parameters<Array<T[number]>["shift"]>) =>
-      mutator((newValue) => newValue.shift(...args)),
+      signalUpdator((newValue) => newValue.shift(...args)),
     sort: (...args: Parameters<Array<T[number]>["sort"]>) =>
-      mutator((newValue) => newValue.sort(...args)),
+      signalUpdator((newValue) => newValue.sort(...args)),
     splice: (...args: Parameters<Array<T[number]>["splice"]>) =>
-      mutator((newValue) => newValue.splice(...args)),
+      signalUpdator((newValue) => newValue.splice(...args)),
     unshift: (...args: Parameters<Array<T[number]>["unshift"]>) =>
-      mutator((newValue) => newValue.unshift(...args)),
+      signalUpdator((newValue) => newValue.unshift(...args)),
   };
 };
 
@@ -73,7 +73,7 @@ export const getArraySignalIntrinsicMutatingMethodsObject = <T extends any[]>(
  * - `remove()` deletes items matching the predicate
  */
 export const getArraySignalCustomMutatingMethodsObject = <T extends any[]>(
-  valueSetter: (method: (oldValue: T) => T) => void,
+  valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
 ): ArraySignalCustomMutatingMethodsObject<T> => ({
   /** Keeps items where the predicate returns true. */
   keep: (...args: Parameters<Array<T[number]>["filter"]>) =>
@@ -103,7 +103,7 @@ export const getArraySignalCustomMutatingMethodsObject = <T extends any[]>(
  * @returns Combined mutating methods for array signals
  */
 export const getArraySignalMutatingMethodsObject = <T extends any[]>(
-  valueSetter: (method: (oldValue: T) => T) => void,
+  valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
 ): ArraySignalMutatingMethodsObject<T> => ({
   ...getArraySignalIntrinsicMutatingMethodsObject(valueSetter),
   ...getArraySignalCustomMutatingMethodsObject(valueSetter),
@@ -146,9 +146,7 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
       derive(() => baseArraySignal.value.findLast(...args)),
     findLastIndex: (...args: Parameters<Array<T[number]>["findLastIndex"]>) =>
       derive(() => baseArraySignal.value.findLastIndex(...args)),
-    get length() {
-      return derive(() => baseArraySignal.value.length);
-    },
+    length: () => derive(() => baseArraySignal.value.length),
     map: <U>(mapFn: (item: T[number], index: number, array: T) => U) =>
       derive(() => baseArraySignal.value.map(mapFn as any) as U[]),
     reduce: <U>(
@@ -208,7 +206,7 @@ export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
   baseArraySignal: BaseSignal<T>,
 ): ArraySignalCustomNonMutatingMethodsObject<T> => {
   return {
-    get lastItem() {
+    lastItem: () => {
       return derive(() => {
         const updatedArr = newVal(baseArraySignal.value);
         const returnVal = updatedArr.pop();

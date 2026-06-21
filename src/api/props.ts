@@ -1,4 +1,4 @@
-import { derive, DerivedSignal, MaybeSignalValue, Signal, value } from "../_core";
+import { derive, DerivedSignal, MaybeSignalValue, value } from "../_core";
 
 /**
  * Methods to get derived signals of object properties.
@@ -14,10 +14,10 @@ export type ObjectSignalProps<T extends object> = {
   /** Returns a derived signal for a specific property. */
   get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
   /** Returns an object with all properties as derived signals. */
-  get allLive(): { [key in keyof T]: DerivedSignal<T[key]> };
+  allAlive(): { [key in keyof T]: DerivedSignal<T[key]> };
   /** Returns the object's keys as a derived signal. */
-  get keys(): DerivedSignal<string[]>;
-}; 
+  keys(): DerivedSignal<string[]>;
+};
 
 /**
  * Creates combined methods for object source signals.
@@ -37,19 +37,19 @@ export type ObjectSignalProps<T extends object> = {
 export const props = <T extends object>(
   objectSignal: MaybeSignalValue<T>,
 ): ObjectSignalProps<T> => ({
-    get: <K extends keyof T>(key: K) =>
-      derive(() => (value(objectSignal) as T)[key]),
-    get allLive() {
-      const signalValue = value(objectSignal);
-      const signalledPropsObj = {} as {
-        [key in keyof T]: DerivedSignal<T[key]>;
-      };
-      for (const key of Object.keys(signalValue) as Array<keyof T>) {
-        signalledPropsObj[key] = derive(() => (value(objectSignal) as T)[key]);
-      }
-      return signalledPropsObj;
-    },
-    get keys() {
-      return derive(() => Object.keys(value(objectSignal)));
-    },
+  get: <K extends keyof T>(key: K) =>
+    derive(() => (value(objectSignal) as T)[key]),
+  allAlive: () => {
+    const signalValue = value(objectSignal);
+    const signalledPropsObj = {} as {
+      [key in keyof T]: DerivedSignal<T[key]>;
+    };
+    for (const key of Object.keys(signalValue) as Array<keyof T>) {
+      signalledPropsObj[key] = derive(() => (value(objectSignal) as T)[key]);
+    }
+    return signalledPropsObj;
+  },
+  keys: () => {
+    return derive(() => Object.keys(value(objectSignal)));
+  },
 });

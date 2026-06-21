@@ -1,12 +1,5 @@
-import { describe, it, expect } from "bun:test";
-import {
-  signal,
-  effect,
-  derive,
-  dispose,
-  type SourceSignal,
-  type DerivedSignal,
-} from "../src/index";
+import { describe, expect, it } from "bun:test";
+import { derive, dispose, effect, signal } from "../src/index";
 
 describe("signal - primitive values", () => {
   it("should create a signal with initial value", () => {
@@ -94,7 +87,7 @@ describe("signal - object values", () => {
   it("should handle empty object", () => {
     const obj = signal({});
     expect(obj.value).toEqual({});
-  }); 
+  });
 });
 
 describe("signal - array values", () => {
@@ -254,7 +247,7 @@ describe("signal - array values", () => {
 
   it("should have 'lastItem' getter returning derived signal", () => {
     const arr = signal([1, 2, 3]);
-    const last = arr.lastItem;
+    const last = arr.lastItem();
     expect(last.value).toBe(3);
     arr.push(4);
     expect(last.value).toBe(4);
@@ -262,7 +255,7 @@ describe("signal - array values", () => {
 
   it("should have 'length' getter returning derived signal", () => {
     const arr = signal([1, 2, 3]);
-    const len = arr.length;
+    const len = arr.length();
     expect(len.value).toBe(3);
     arr.push(4);
     expect(len.value).toBe(4);
@@ -291,7 +284,7 @@ describe("signal - array values", () => {
 
   it("should have 'reduce' method returning derived signal", () => {
     const arr = signal([1, 2, 3, 4]);
-    const sum = arr.reduce((acc, item) => acc as number + item, 0);
+    const sum = arr.reduce((acc, item) => (acc as number) + item, 0);
     expect(sum.value).toBe(10);
     arr.push(5);
     expect(sum.value).toBe(15);
@@ -303,7 +296,7 @@ describe("signal - array values", () => {
 
   it("should have 'reduceRight' method returning derived signal", () => {
     const arr = signal([1, 2, 3]);
-    const result = arr.reduceRight((acc, item) => acc as string + item, "");
+    const result = arr.reduceRight((acc, item) => (acc as string) + item, "");
     expect(result.value).toBe("321");
   });
 
@@ -600,7 +593,7 @@ describe("derive - array signals", () => {
   it("should have 'length' getter on derived array signal", () => {
     const arr = signal([1, 2, 3]);
     const derived = derive(() => arr.value);
-    const len = derived.length;
+    const len = derived.length();
     expect(len.value).toBe(3);
     arr.push(4);
     expect(len.value).toBe(4);
@@ -701,5 +694,365 @@ describe("dispose utility", () => {
     dispose(doubled); // Should not throw
     count.value = 5;
     expect(doubled.value).toBe(0);
+  });
+});
+
+describe("signal - string values", () => {
+  it("should create a string signal with initial value", () => {
+    const text = signal("hello");
+    expect(text.value).toBe("hello");
+  });
+
+  it("should update string signal value", () => {
+    const text = signal("hello");
+    text.value = "world";
+    expect(text.value).toBe("world");
+  });
+
+  // Intrinsic non-mutating methods
+  it("should have 'length' getter returning derived signal", () => {
+    const text = signal("hello");
+    const length = text.length();
+    expect(length.value).toBe(5);
+    text.value = "hello world";
+    expect(length.value).toBe(11);
+  });
+
+  it("should have 'toLowerCase' method returning derived signal", () => {
+    const text = signal("HELLO");
+    const lowercase = text.lowercase();
+    expect(lowercase.value).toBe("hello");
+    text.value = "WORLD";
+    expect(lowercase.value).toBe("world");
+  });
+
+  it("should have 'toUpperCase' method returning derived signal", () => {
+    const text = signal("hello");
+    const uppercase = text.UPPERCASE();
+    expect(uppercase.value).toBe("HELLO");
+    text.value = "world";
+    expect(uppercase.value).toBe("WORLD");
+  });
+
+  it("should have 'charAt' method returning derived signal", () => {
+    const text = signal("hello");
+    const char = text.charAt(1);
+    expect(char.value).toBe("e");
+    text.value = "world";
+    expect(char.value).toBe("o");
+  });
+
+  it("should have 'slice' method returning derived signal", () => {
+    const text = signal("hello");
+    const sliced = text.slice(1, 4);
+    expect(sliced.value).toBe("ell");
+    text.value = "world";
+    expect(sliced.value).toBe("orl");
+  });
+
+  it("should have 'includes' method returning derived signal", () => {
+    const text = signal("hello");
+    const includes = text.includes("ell");
+    expect(includes.value).toBe(true);
+    text.value = "world";
+    expect(includes.value).toBe(false);
+  });
+
+  it("should have 'at' method returning derived signal", () => {
+    const text = signal("hello");
+    const char = text.at(1);
+    expect(char.value).toBe("e");
+    text.value = "world";
+    expect(char.value).toBe("o");
+  });
+
+  it("should have 'charCodeAt' method returning derived signal", () => {
+    const text = signal("hello");
+    const code = text.charCodeAt(0);
+    expect(code.value).toBe(104); // 'h'
+    text.value = "world";
+    expect(code.value).toBe(119); // 'w'
+  });
+
+  it("should have 'codePointAt' method returning derived signal", () => {
+    const text = signal("hello");
+    const code = text.codePointAt(0);
+    expect(code.value).toBe(104); // 'h'
+    text.value = "world";
+    expect(code.value).toBe(119); // 'w'
+  });
+
+  it("should have 'concat' method returning derived signal", () => {
+    const text = signal("hello");
+    const concatenated = text.concat(" world");
+    expect(concatenated.value).toBe("hello world");
+    text.value = "hi";
+    expect(concatenated.value).toBe("hi world");
+  });
+
+  it("should have 'endsWith' method returning derived signal", () => {
+    const text = signal("hello");
+    const ends = text.endsWith("lo");
+    expect(ends.value).toBe(true);
+    text.value = "world";
+    expect(ends.value).toBe(false);
+  });
+
+  it("should have 'indexOf' method returning derived signal", () => {
+    const text = signal("hello");
+    const index = text.indexOf("l");
+    expect(index.value).toBe(2);
+    text.value = "world";
+    expect(index.value).toBe(3);
+  });
+
+  it("should have 'lastIndexOf' method returning derived signal", () => {
+    const text = signal("hello");
+    const index = text.lastIndexOf("l");
+    expect(index.value).toBe(3);
+    text.value = "world";
+    expect(index.value).toBe(3);
+  });
+
+  it("should have 'padEnd' method returning derived signal", () => {
+    const text = signal("hello");
+    const padded = text.padEnd(10, "-");
+    expect(padded.value).toBe("hello-----");
+    text.value = "hi";
+    expect(padded.value).toBe("hi--------");
+  });
+
+  it("should have 'padStart' method returning derived signal", () => {
+    const text = signal("hello");
+    const padded = text.padStart(10, "-");
+    expect(padded.value).toBe("-----hello");
+    text.value = "hi";
+    expect(padded.value).toBe("--------hi");
+  });
+
+  it("should have 'repeat' method returning derived signal", () => {
+    const text = signal("hello");
+    const repeated = text.repeat(2);
+    expect(repeated.value).toBe("hellohello");
+    text.value = "hi";
+    expect(repeated.value).toBe("hihi");
+  });
+
+  it("should have 'startsWith' method returning derived signal", () => {
+    const text = signal("hello");
+    const starts = text.startsWith("he");
+    expect(starts.value).toBe(true);
+    text.value = "world";
+    expect(starts.value).toBe(false);
+  });
+
+  it("should have 'substring' method returning derived signal", () => {
+    const text = signal("hello");
+    const sub = text.substring(1, 4);
+    expect(sub.value).toBe("ell");
+    text.value = "world";
+    expect(sub.value).toBe("orl");
+  });
+
+  it("should have 'trim' method returning derived signal", () => {
+    const text = signal("  hello  ");
+    const trimmed = text.trim();
+    expect(trimmed.value).toBe("hello");
+    text.value = "  world  ";
+    expect(trimmed.value).toBe("world");
+  });
+
+  it("should have 'trimEnd' method returning derived signal", () => {
+    const text = signal("  hello  ");
+    const trimmed = text.trimEnd();
+    expect(trimmed.value).toBe("  hello");
+    text.value = "  world  ";
+    expect(trimmed.value).toBe("  world");
+  });
+
+  it("should have 'trimStart' method returning derived signal", () => {
+    const text = signal("  hello  ");
+    const trimmed = text.trimStart();
+    expect(trimmed.value).toBe("hello  ");
+    text.value = "  world  ";
+    expect(trimmed.value).toBe("world  ");
+  });
+
+  it("should have 'localeCompare' method returning derived signal", () => {
+    const text = signal("a");
+    const compared = text.localeCompare("b");
+    expect(compared.value).toBe(-1);
+    text.value = "c";
+    expect(compared.value).toBe(1);
+  });
+
+  it("should have 'normalize' method returning derived signal", () => {
+    const text = signal("\u00E9"); // é
+    const normalized = text.normalize("NFC");
+    expect(normalized.value).toBe("\u00E9");
+    text.value = "\u0065\u0301"; // e + combining acute
+    expect(normalized.value).toBe("\u00E9");
+  });
+
+  it("should have 'replace' method returning derived signal", () => {
+    const text = signal("hello world");
+    const replaced = text.replace("world", "there");
+    expect(replaced.value).toBe("hello there");
+    text.value = "hi world";
+    expect(replaced.value).toBe("hi there");
+  });
+
+  it("should have 'replaceAll' method returning derived signal", () => {
+    const text = signal("hello hello");
+    const replaced = text.replaceAll("hello", "hi");
+    expect(replaced.value).toBe("hi hi");
+    text.value = "world world";
+    expect(replaced.value).toBe("world world");
+  });
+
+  it("should have 'search' method returning derived signal", () => {
+    const text = signal("hello world");
+    const index = text.search(/world/);
+    expect(index.value).toBe(6);
+    text.value = "hi there";
+    expect(index.value).toBe(-1);
+  });
+
+  it("should have 'split' method returning derived signal", () => {
+    const text = signal("hello world");
+    const split = text.split(" ");
+    expect(split.value).toEqual(["hello", "world"]);
+    text.value = "hi there";
+    expect(split.value).toEqual(["hi", "there"]);
+  });
+
+  it("should have 'toLocaleLowerCase' method returning derived signal", () => {
+    const text = signal("HELLO");
+    const lowercase = text.toLocaleLowerCase();
+    expect(lowercase.value).toBe("hello");
+    text.value = "WORLD";
+    expect(lowercase.value).toBe("world");
+  });
+
+  it("should have 'toLocaleUpperCase' method returning derived signal", () => {
+    const text = signal("hello");
+    const uppercase = text.toLocaleUpperCase();
+    expect(uppercase.value).toBe("HELLO");
+    text.value = "world";
+    expect(uppercase.value).toBe("WORLD");
+  });
+
+  // Custom non-mutating methods
+  it("should have 'Sentencecase' getter returning derived signal", () => {
+    const text = signal("hello world");
+    const sentence = text.Sentencecase();
+    expect(sentence.value).toBe("Hello world");
+    text.value = "hi there";
+    expect(sentence.value).toBe("Hi there");
+  });
+
+  it("should have 'TitleCase' getter returning derived signal", () => {
+    const text = signal("hello world");
+    const title = text.TitleCase();
+    expect(title.value).toBe("Hello World");
+    text.value = "hi there";
+    expect(title.value).toBe("Hi There");
+  });
+});
+
+describe("signal - number values", () => {
+  it("should create a number signal with initial value", () => {
+    const count = signal(42);
+    expect(count.value).toBe(42);
+  });
+
+  it("should update number signal value", () => {
+    const count = signal(42);
+    count.value = 100;
+    expect(count.value).toBe(100);
+  });
+
+  // Intrinsic non-mutating methods
+  it("should have 'toFixed' method returning derived signal", () => {
+    const num = signal(3.14159);
+    const fixed = num.toFixed(2);
+    expect(fixed.value).toBe("3.14");
+    num.value = 2.71828;
+    expect(fixed.value).toBe("2.72");
+  });
+
+  it("should have 'toPrecision' method returning derived signal", () => {
+    const num = signal(123.456);
+    const precision = num.toPrecision(4);
+    expect(precision.value).toBe("123.5");
+    num.value = 789.012;
+    expect(precision.value).toBe("789.0");
+  });
+
+  it("should have 'toExponential' method returning derived signal", () => {
+    const num = signal(1000);
+    const exp = num.toExponential();
+    expect(exp.value).toBe("1e+3");
+    num.value = 2000;
+    expect(exp.value).toBe("2e+3");
+  });
+
+  it("should have 'toLocaleString' method returning derived signal", () => {
+    const num = signal(1234567.89);
+    const localized = num.toLocaleString();
+    expect(localized.value).toBe("1,234,567.89");
+    num.value = 9876543.21;
+    expect(localized.value).toBe("9,876,543.21");
+  });
+
+  // Custom non-mutating methods
+  it("should have 'toConfined' method returning derived signal", () => {
+    const num = signal(50);
+    const confined = num.toConfined(0, 100);
+    expect(confined.value).toBe(50);
+    num.value = 150;
+    expect(confined.value).toBe(100);
+    num.value = -10;
+    expect(confined.value).toBe(0);
+  });
+});
+
+describe("signal - boolean values", () => {
+  it("should create a boolean signal with initial value", () => {
+    const bool = signal(true);
+    expect(bool.value).toBe(true);
+  });
+
+  it("should update boolean signal value", () => {
+    const bool = signal(true);
+    bool.value = false;
+    expect(bool.value).toBe(false);
+  });
+
+  // Custom mutating methods
+  it("should have 'toggle' method", () => {
+    const bool = signal(true);
+    bool.toggle();
+    expect(bool.value).toBe(false);
+    bool.toggle();
+    expect(bool.value).toBe(true);
+  });
+
+  // Custom non-mutating methods
+  it("should have 'not' getter returning derived signal", () => {
+    const bool = signal(true);
+    const not = bool.negated();
+    expect(not.value).toBe(false);
+    bool.value = false;
+    expect(not.value).toBe(true);
+  });
+
+  // Custom non-mutating methods
+  it("should have 'not' getter returning derived signal", () => {
+    const bool = signal(true);
+    const not = bool.negated();
+    expect(not.value).toBe(false);
+    bool.value = false;
+    expect(not.value).toBe(true);
   });
 });

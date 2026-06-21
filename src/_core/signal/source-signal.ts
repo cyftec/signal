@@ -1,7 +1,10 @@
 import { immut, newVal } from "@cyftech/immutjs";
 import {
   getArraySourceSignalMethodsObject,
+  getBooleanSignalMethodsObject,
+  getNumberSignalMethodsObject,
   getObjectSourceSignalMethodsObject,
+  getStringSignalMethodsObject,
 } from "./signal-methods-objects";
 import { BaseSourceSignal, SignalsEffect, SourceSignal } from "./types";
 
@@ -128,28 +131,58 @@ export const signal = <T>(input: T): SourceSignal<T> => {
    * Type-specific signal creation:
    * - Arrays get array mutation methods and non-mutating derived signal methods
    * - Plain objects get the `set()` method for partial updates and non-mutating derived signal methods
-   * - Primitives get only the base signal interface
+   * - Strings get non-mutating derived signal methods
+   * - Numbers get non-mutating derived signal methods
+   * - Booleans get non-mutating derived signal methods
+   * - Other primitives get only the base signal interface
    *
    * The type-specific methods use setValueAndRunEffects to ensure
    * immutability and effect triggering.
    */
-  return (
+  const result: SourceSignal<T> = (
     Array.isArray(input)
       ? Object.assign(
           baseSourceSignal,
           getArraySourceSignalMethodsObject(
-            (method) => setValueAndRunEffects(method(_value as unknown[]) as T),
+            (mutatorMethod) =>
+              setValueAndRunEffects(mutatorMethod(_value as unknown[]) as T),
             baseSourceSignal as BaseSourceSignal<any[]>,
           ),
         )
       : typeof input === "object" && input !== null
         ? Object.assign(
             baseSourceSignal,
-            getObjectSourceSignalMethodsObject(
-              (method) => setValueAndRunEffects(method(_value as object) as T),
-              baseSourceSignal as BaseSourceSignal<object>,
+            getObjectSourceSignalMethodsObject((mutatorMethod) =>
+              setValueAndRunEffects(mutatorMethod(_value as object) as T),
             ),
           )
-        : baseSourceSignal
-  ) as SourceSignal<typeof input>;
+        : typeof input === "string"
+          ? Object.assign(
+              baseSourceSignal,
+              getStringSignalMethodsObject(
+                baseSourceSignal as BaseSourceSignal<string>,
+              ),
+            )
+          : typeof input === "number"
+            ? Object.assign(
+                baseSourceSignal,
+                getNumberSignalMethodsObject(
+                  baseSourceSignal as BaseSourceSignal<number>,
+                ),
+              )
+            : typeof input === "boolean"
+              ? Object.assign(
+                  baseSourceSignal,
+                  getBooleanSignalMethodsObject(
+                    (mutatorMethod) =>
+                      setValueAndRunEffects(
+                        mutatorMethod(_value as boolean) as T,
+                      ),
+                    baseSourceSignal as BaseSourceSignal<boolean>,
+                  ),
+                )
+              : baseSourceSignal
+  ) as SourceSignal<T>;
+
+  return result;
 };

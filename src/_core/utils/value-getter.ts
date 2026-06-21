@@ -31,5 +31,5 @@ import { valueIsSignalifiedObject } from "./type-checkers";
  */
 export const value = <T>(input: MaybeSignalValue<T>): T =>
   valueIsSignalifiedObject(input)
-    ? (input as SignalifiedObject<T>).value
+    ? ((input as SignalifiedObject<T>).value as T)
     : (input as T);

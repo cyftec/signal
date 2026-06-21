@@ -12,11 +12,11 @@ import { ObjectSourceSignalMethodsObject } from "../types";
  * - Works with both source and derived signals
  */
 export const getObjectSourceSignalMethodsObject = <T extends object>(
-  valueSetter: (method: (oldValue: T) => T) => void,
+  valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
 ): ObjectSourceSignalMethodsObject<T> => ({
-    set: (partiallyNewObjectValue: Partial<T>) =>
-      valueSetter((oldValue: T) => ({
-        ...oldValue,
-        ...partiallyNewObjectValue,
-      })),
+  set: (partiallyNewObjectValue: Partial<T>) =>
+    valueSetter((oldValue: T) => ({
+      ...oldValue,
+      ...partiallyNewObjectValue,
+    })),
 });

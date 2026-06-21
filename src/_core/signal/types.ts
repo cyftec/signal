@@ -168,7 +168,7 @@ export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
   findLastIndex: (
     ...args: Parameters<Array<T[number]>["findLastIndex"]>
   ) => DerivedSignal<ReturnType<Array<T[number]>["findLastIndex"]>>;
-  get length(): DerivedSignal<number>;
+  length: () => DerivedSignal<number>;
   map: <U>(
     mapFn: (item: T[number], index: number, array: T) => U,
   ) => DerivedSignal<U[]>;
@@ -218,7 +218,7 @@ export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
  */
 export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
   /** Last item of the array. */
-  get lastItem(): DerivedSignal<T[number] | undefined>;
+  lastItem: () => DerivedSignal<T[number] | undefined>;
   /** Custom method that splits the array into `[passing, failing]` based on a predicate. */
   partition: (
     ...args: Parameters<Array<T[number]>["filter"]>
@@ -292,18 +292,257 @@ export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &
   ObjectSourceSignalMethodsObject<T>;
 
 /**
+ * Intrinsic non-mutating methods for string signals.
+ *
+ * These methods mirror JavaScript String non-mutating methods but return
+ * derived signals instead of plain values.
+ *
+ * @remarks
+ * - All methods return derived signals
+ * - Methods are reactive and update when the source string changes
+ * - Works with both source and derived signals
+ */
+export type StringSignalIntrinsicNonMutatingMethodsObject = {
+  at: (
+    ...args: Parameters<String["at"]>
+  ) => DerivedSignal<ReturnType<String["at"]>>;
+  charAt: (
+    ...args: Parameters<String["charAt"]>
+  ) => DerivedSignal<ReturnType<String["charAt"]>>;
+  charCodeAt: (
+    ...args: Parameters<String["charCodeAt"]>
+  ) => DerivedSignal<ReturnType<String["charCodeAt"]>>;
+  codePointAt: (
+    ...args: Parameters<String["codePointAt"]>
+  ) => DerivedSignal<ReturnType<String["codePointAt"]>>;
+  concat: (
+    ...args: Parameters<String["concat"]>
+  ) => DerivedSignal<ReturnType<String["concat"]>>;
+  endsWith: (
+    ...args: Parameters<String["endsWith"]>
+  ) => DerivedSignal<ReturnType<String["endsWith"]>>;
+  includes: (
+    ...args: Parameters<String["includes"]>
+  ) => DerivedSignal<ReturnType<String["includes"]>>;
+  indexOf: (
+    ...args: Parameters<String["indexOf"]>
+  ) => DerivedSignal<ReturnType<String["indexOf"]>>;
+  lastIndexOf: (
+    ...args: Parameters<String["lastIndexOf"]>
+  ) => DerivedSignal<ReturnType<String["lastIndexOf"]>>;
+  padEnd: (
+    ...args: Parameters<String["padEnd"]>
+  ) => DerivedSignal<ReturnType<String["padEnd"]>>;
+  padStart: (
+    ...args: Parameters<String["padStart"]>
+  ) => DerivedSignal<ReturnType<String["padStart"]>>;
+  repeat: (
+    ...args: Parameters<String["repeat"]>
+  ) => DerivedSignal<ReturnType<String["repeat"]>>;
+  slice: (
+    ...args: Parameters<String["slice"]>
+  ) => DerivedSignal<ReturnType<String["slice"]>>;
+  startsWith: (
+    ...args: Parameters<String["startsWith"]>
+  ) => DerivedSignal<ReturnType<String["startsWith"]>>;
+  substring: (
+    ...args: Parameters<String["substring"]>
+  ) => DerivedSignal<ReturnType<String["substring"]>>;
+  trim: (
+    ...args: Parameters<String["trim"]>
+  ) => DerivedSignal<ReturnType<String["trim"]>>;
+  trimEnd: (
+    ...args: Parameters<String["trimEnd"]>
+  ) => DerivedSignal<ReturnType<String["trimEnd"]>>;
+  trimStart: (
+    ...args: Parameters<String["trimStart"]>
+  ) => DerivedSignal<ReturnType<String["trimStart"]>>;
+  length: () => DerivedSignal<number>;
+  localeCompare: (
+    that: string,
+    locales?: string | string[] | undefined,
+    options?: Intl.CollatorOptions,
+  ) => DerivedSignal<ReturnType<String["localeCompare"]>>;
+  normalize: (
+    form: "NFC" | "NFD" | "NFKC" | "NFKD",
+  ) => DerivedSignal<ReturnType<String["normalize"]>>;
+  replace: (
+    searchValue: string | RegExp,
+    replaceValue: string,
+  ) => DerivedSignal<ReturnType<String["replace"]>>;
+  replaceAll: (
+    searchValue: string | RegExp,
+    replaceValue: string,
+  ) => DerivedSignal<ReturnType<String["replaceAll"]>>;
+  search: (regexp: RegExp) => DerivedSignal<ReturnType<String["search"]>>;
+  split: (
+    separator: string | RegExp,
+    limit?: number | undefined,
+  ) => DerivedSignal<ReturnType<String["split"]>>;
+  toLocaleLowerCase: (
+    locales?: string | string[] | undefined,
+  ) => DerivedSignal<ReturnType<String["toLocaleLowerCase"]>>;
+  toLocaleUpperCase: (
+    locales?: string | string[] | undefined,
+  ) => DerivedSignal<ReturnType<String["toLocaleUpperCase"]>>;
+};
+
+/**
+ * Custom non-mutating methods for string signals.
+ *
+ * These are library-specific methods that provide additional functionality
+ * beyond JavaScript's intrinsic string methods.
+ *
+ * @remarks
+ * - `lowercase` returns a derived signal for the lowercase version
+ * - `Sentencecase` returns a derived signal with first letter capitalized
+ * - `TitleCase` returns a derived signal with each word capitalized
+ * - `UPPERCASE` returns a derived signal for the uppercase version
+ */
+export type StringSignalCustomNonMutatingMethodsObject = {
+  /** Lowercase version of the string. */
+  lowercase: () => DerivedSignal<string>;
+  /** First letter capitalized, rest lowercase. */
+  Sentencecase: () => DerivedSignal<string>;
+  /** Each word capitalized. */
+  TitleCase: () => DerivedSignal<string>;
+  /** Uppercase version of the string. */
+  UPPERCASE: () => DerivedSignal<string>;
+};
+
+/**
+ * Combined non-mutating methods for string signals.
+ *
+ * Combines intrinsic and custom non-mutating methods into a single type.
+ */
+export type StringSignalNonMutatingMethodsObject =
+  StringSignalIntrinsicNonMutatingMethodsObject &
+    StringSignalCustomNonMutatingMethodsObject;
+
+/**
+ * Source signal for strings with non-mutating methods.
+ *
+ * String source signals include non-mutating methods that return derived signals.
+ *
+ * @see {@link StringSignalNonMutatingMethodsObject} - For string methods
+ */
+export type StringSourceSignal = BaseSourceSignal<string> &
+  StringSignalNonMutatingMethodsObject;
+
+/**
+ * Intrinsic non-mutating methods for number signals.
+ *
+ * These methods mirror JavaScript Number non-mutating methods but return
+ * derived signals instead of plain values.
+ *
+ * @remarks
+ * - All methods return derived signals
+ * - Methods are reactive and update when the source number changes
+ * - Works with both source and derived signals
+ */
+export type NumberSignalIntrinsicNonMutatingMethodsObject = {
+  toExponential: (
+    ...args: Parameters<number["toExponential"]>
+  ) => DerivedSignal<ReturnType<number["toExponential"]>>;
+  toFixed: (
+    ...args: Parameters<number["toFixed"]>
+  ) => DerivedSignal<ReturnType<number["toFixed"]>>;
+  toPrecision: (
+    ...args: Parameters<number["toPrecision"]>
+  ) => DerivedSignal<ReturnType<number["toPrecision"]>>;
+  toLocaleString: (
+    locales?: string | string[] | undefined,
+    options?: Intl.NumberFormatOptions,
+  ) => DerivedSignal<ReturnType<number["toLocaleString"]>>;
+};
+
+/**
+ * Custom non-mutating methods for number signals.
+ *
+ * These are library-specific methods that provide additional functionality
+ * beyond JavaScript's intrinsic number methods.
+ *
+ * @remarks
+ * - `toConfined` confines the number within a range
+ */
+export type NumberSignalCustomNonMutatingMethodsObject = {
+  /** Confines the number within a range [start, end]. */
+  toConfined: (start: number, end: number) => DerivedSignal<number>;
+};
+
+/**
+ * Combined non-mutating methods for number signals.
+ *
+ * Combines intrinsic and custom non-mutating methods into a single type.
+ */
+export type NumberSignalNonMutatingMethodsObject =
+  NumberSignalIntrinsicNonMutatingMethodsObject &
+    NumberSignalCustomNonMutatingMethodsObject;
+
+/**
+ * Source signal for numbers with non-mutating methods.
+ *
+ * Number source signals include non-mutating methods that return derived signals.
+ *
+ * @see {@link NumberSignalNonMutatingMethodsObject} - For number methods
+ */
+export type NumberSourceSignal = BaseSourceSignal<number> &
+  NumberSignalNonMutatingMethodsObject;
+
+/**
+ * Mutating methods for boolean signals.
+ *
+ * @remarks
+ * - `toggle()` flips the boolean value
+ * - Triggers effects synchronously
+ */
+export type BooleanSignalMutatingMethodsObject = {
+  toggle: () => void;
+};
+
+/**
+ * Custom non-mutating methods for boolean signals.
+ *
+ * These are library-specific methods that provide additional functionality
+ * for boolean values.
+ *
+ * @remarks
+ * - `negated` returns the negated boolean value
+ */
+export type BooleanSignalNonMutatingMethodsObject = {
+  /** Negated boolean value. */
+  negated: () => DerivedSignal<boolean>;
+};
+
+export type BooleanSignalMethodsObject = BooleanSignalMutatingMethodsObject &
+  BooleanSignalNonMutatingMethodsObject;
+
+/**
+ * Source signal for booleans with non-mutating methods.
+ *
+ * Boolean source signals include non-mutating methods that return derived signals.
+ *
+ * @see {@link BooleanSignalNonMutatingMethodsObject} - For boolean methods
+ */
+export type BooleanSourceSignal = BaseSourceSignal<boolean> &
+  BooleanSignalMethodsObject;
+
+/**
  * A mutable source signal created from plain JavaScript data.
  *
  * Source signals can notify dependent computations when their value changes.
- * The specific type (array, object, or primitive) determines which additional
- * methods are available.
+ * The specific type (array, object, string, number, or boolean) determines which
+ * additional methods are available.
  *
  * @template T - The type of value the signal holds
  *
  * @remarks
  * - For arrays: includes array mutation methods (push, pop, splice, etc.)
  * - For plain objects: includes `set()` method for partial updates
- * - For primitives: only the base signal interface
+ * - For strings: includes string methods (toLowerCase, toUpperCase, etc.)
+ * - For numbers: includes number methods (toFixed, toPrecision, etc.)
+ * - For booleans: includes boolean methods (not, toString)
+ * - For other primitives: only the base signal interface
  *
  * @see {@link signal} - For creating source signals
  * @see {@link DerivedSignal} - For read-only derived signals
@@ -312,4 +551,10 @@ export type SourceSignal<T> = T extends any[]
   ? ArraySourceSignal<T>
   : T extends object
     ? ObjectSourceSignal<T>
-    : BaseSourceSignal<T>;
+    : T extends string
+      ? StringSourceSignal
+      : T extends number
+        ? NumberSourceSignal
+        : T extends boolean
+          ? BooleanSourceSignal
+          : BaseSourceSignal<T>;

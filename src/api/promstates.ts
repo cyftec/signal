@@ -53,7 +53,7 @@ import { props } from "./props";
 export const promstates = <R, Args extends Array<any>, I>(
   promiseFn: (...args: Args) => Promise<R>,
   initialValue?: I,
-  ultimately?: () => void
+  ultimately?: () => void,
 ): readonly [
   /**
    * Promise runner method which takes the same arguments as the original promise
@@ -65,7 +65,7 @@ export const promstates = <R, Args extends Array<any>, I>(
   /** Derived signal of promise error. */
   DerivedSignal<Error | undefined>,
   /** Derived signal of whether promise is currently running or not */
-  DerivedSignal<boolean>
+  DerivedSignal<boolean>,
 ] => {
   type PromState = {
     isRunning: boolean;
@@ -114,6 +114,6 @@ export const promstates = <R, Args extends Array<any>, I>(
       })
       .finally(ultimately);
 
-  const { isRunning, result, error } = props(state).allLive;
+  const { isRunning, result, error } = props(state).allAlive();
   return [runPromise, result, error, isRunning] as const;
 };

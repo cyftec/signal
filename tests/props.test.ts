@@ -11,14 +11,14 @@ describe("props (for object signals)", () => {
     expect(name.value).toBe("updated");
   });
 
-  it("should have 'allLive' getter returning all properties as derived signals", () => {
+  it("should have 'allAlive' getter returning all properties as derived signals", () => {
     const obj = signal({ name: "test", count: 0 });
-    const allLive = props(obj).allLive;
-    expect(allLive.name.value).toBe("test");
-    expect(allLive.count.value).toBe(0);
+    const allAlive = props(obj).allAlive();
+    expect(allAlive.name.value).toBe("test");
+    expect(allAlive.count.value).toBe(0);
     obj.set({ name: "updated", count: 5 });
-    expect(allLive.name.value).toBe("updated");
-    expect(allLive.count.value).toBe(5);
+    expect(allAlive.name.value).toBe("updated");
+    expect(allAlive.count.value).toBe(5);
   });
 
   it("should have 'keys' getter returning derived signal", () => {
@@ -27,7 +27,7 @@ describe("props (for object signals)", () => {
       count: number;
       active?: boolean;
     });
-    const keys = props(obj).keys;
+    const keys = props(obj).keys();
     expect(keys.value).toEqual(["name", "count"]);
     obj.set({ name: "test", count: 0, active: true });
     expect(keys.value).toEqual(["name", "count", "active"]);
