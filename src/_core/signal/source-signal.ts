@@ -39,7 +39,7 @@ export const setCurrentEffect = (effect: SignalsEffect | null) =>
  * dependency tracking system to establish relationships with effects.
  *
  * @template T - The type of value the signal holds
- * @param input - Any JavaScript value to convert to a signal
+ * @param initialValue - Any JavaScript value to convert to a signal
  * @returns A source signal with a `value` getter/setter. Arrays include
  * mutation methods and plain objects include `set()`.
  *
@@ -71,8 +71,11 @@ export const setCurrentEffect = (effect: SignalsEffect | null) =>
  * @see {@link effect} - For registering functions to run when signal values change
  * @see {@link derive} - For creating read-only derived signals
  */
-export const signal = <T>(input: T): SourceSignal<T> => {
-  let _value = immut(input);
+export const signal = <T>(
+  initialValue: T,
+  nonNullableInitialValue?: NonNullable<T extends Record<string, any> ? {} : T>,
+): SourceSignal<T> => {
+  let _value = immut(initialValue);
   const _effects = new Set<SignalsEffect>();
 
   /**
@@ -139,8 +142,12 @@ export const signal = <T>(input: T): SourceSignal<T> => {
    * The type-specific methods use setValueAndRunEffects to ensure
    * immutability and effect triggering.
    */
+  const nonNullableInitial =
+    nonNullableInitialValue === undefined
+      ? initialValue
+      : nonNullableInitialValue;
   const result: SourceSignal<T> = (
-    Array.isArray(input)
+    Array.isArray(nonNullableInitial)
       ? Object.assign(
           baseSourceSignal,
           getArraySourceSignalMethodsObject(
@@ -149,7 +156,7 @@ export const signal = <T>(input: T): SourceSignal<T> => {
             baseSourceSignal as BaseSourceSignal<any[]>,
           ),
         )
-      : isPlainObject(input)
+      : isPlainObject(nonNullableInitial)
         ? Object.assign(
             baseSourceSignal,
             getObjectSourceSignalMethodsObject(
@@ -160,21 +167,21 @@ export const signal = <T>(input: T): SourceSignal<T> => {
               baseSourceSignal as BaseSourceSignal<Record<string, any>>,
             ),
           )
-        : typeof input === "string"
+        : typeof nonNullableInitial === "string"
           ? Object.assign(
               baseSourceSignal,
               getStringSignalMethodsObject(
                 baseSourceSignal as BaseSourceSignal<string>,
               ),
             )
-          : typeof input === "number"
+          : typeof nonNullableInitial === "number"
             ? Object.assign(
                 baseSourceSignal,
                 getNumberSignalMethodsObject(
                   baseSourceSignal as BaseSourceSignal<number>,
                 ),
               )
-            : typeof input === "boolean"
+            : typeof nonNullableInitial === "boolean"
               ? Object.assign(
                   baseSourceSignal,
                   getBooleanSignalMethodsObject(
