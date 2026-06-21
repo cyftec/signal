@@ -59,43 +59,13 @@ describe("signal - primitive values", () => {
   });
 });
 
-describe("signal - object values", () => {
-  it("should create a signal with object value", () => {
-    const obj = signal({ name: "test", count: 0 });
-    expect(obj.value).toEqual({ name: "test", count: 0 });
-  });
-
-  it("should have 'set' method for partial updates", () => {
-    const obj = signal({ name: "test", count: 0 });
-    obj.set({ count: 5 });
-    expect(obj.value).toEqual({ name: "test", count: 5 });
-  });
-
-  it("should trigger effects on set", () => {
-    const obj = signal({ name: "test", count: 0 });
-    let effectRunCount = 0;
-
-    effect(() => {
-      effectRunCount++;
-      obj.value;
-    });
-
-    obj.set({ count: 5 });
-    expect(effectRunCount).toBe(2); // Initial + update
-  });
-
-  it("should handle empty object", () => {
-    const obj = signal({});
-    expect(obj.value).toEqual({});
-  });
-});
-
 describe("signal - array values", () => {
   it("should create a signal with array value", () => {
     const arr = signal([1, 2, 3]);
     expect(arr.value).toEqual([1, 2, 3]);
   });
 
+  // Array mutation methods
   it("should have 'push' method", () => {
     const arr = signal([1, 2, 3]);
     arr.push(4);
@@ -328,6 +298,67 @@ describe("signal - array values", () => {
     const spliced = arr.toSpliced(1, 2);
     expect(spliced.value).toEqual([1, 4]);
     expect(arr.value).toEqual([1, 2, 3, 4]); // Original unchanged
+  });
+});
+
+describe("signal - object values", () => {
+  it("should create a signal with object value", () => {
+    const obj = signal({ name: "test", count: 0 });
+    expect(obj.value).toEqual({ name: "test", count: 0 });
+  });
+
+  it("should have 'prop' method returning derived signal for the accessed property", () => {
+    const obj = signal({ name: "test", count: 0 });
+    const name = obj.prop("name");
+    expect(name.value).toBe("test");
+    obj.set({ name: "updated" });
+    expect(name.value).toBe("updated");
+  });
+
+  it("should have 'props' method returning all properties as derived signals", () => {
+    const obj = signal({ name: "test", count: 0 });
+    const allProps = obj.props();
+    expect(allProps.name.value).toBe("test");
+    expect(allProps.count.value).toBe(0);
+    obj.set({ name: "updated", count: 5 });
+    expect(allProps.name.value).toBe("updated");
+    expect(allProps.count.value).toBe(5);
+  });
+
+  it("should have 'keys' method returning derived signal", () => {
+    const obj = signal({ name: "test", count: 0 } as {
+      name: string;
+      count: number;
+      active?: boolean;
+    });
+    const keys = obj.keys();
+    expect(keys.value).toEqual(["name", "count"]);
+    obj.set({ name: "test", count: 0, active: true });
+    expect(keys.value).toEqual(["name", "count", "active"]);
+  });
+
+  it("should have 'set' method for partial updates", () => {
+    const obj = signal({ name: "test", count: 0 });
+    obj.set({ count: 5 });
+    expect(obj.value).toEqual({ name: "test", count: 5 });
+  });
+
+  it("should trigger effects on set", () => {
+    const obj = signal({ name: "test", count: 0 });
+    let effectRunCount = 0;
+
+    effect(() => {
+      effectRunCount++;
+      obj.value;
+    });
+
+    obj.set({ count: 5 });
+    expect(effectRunCount).toBe(2); // Initial + update
+  });
+
+  it("should handle empty object", () => {
+    const obj = signal({});
+    expect(obj.value).toEqual({});
   });
 });
 
@@ -606,6 +637,41 @@ describe("derive - array signals", () => {
     expect(found.value).toBeUndefined();
     arr.push(6);
     expect(found.value).toBe(6);
+  });
+});
+
+describe("derive - object signals", () => {
+  it("should have 'prop' method on derived object signal", () => {
+    const obj = signal({ name: "test", count: 0 });
+    const derived = derive(() => obj.value);
+    const name = derived.prop("name");
+    expect(name.value).toBe("test");
+    obj.set({ name: "updated" });
+    expect(name.value).toBe("updated");
+  });
+
+  it("should have 'props' method returning all properties as derived signals", () => {
+    const obj = signal({ name: "test", count: 0 });
+    const derived = derive(() => obj.value);
+    const allProps = derived.props();
+    expect(allProps.name.value).toBe("test");
+    expect(allProps.count.value).toBe(0);
+    obj.set({ name: "updated", count: 5 });
+    expect(allProps.name.value).toBe("updated");
+    expect(allProps.count.value).toBe(5);
+  });
+
+  it("should have 'keys' method returning derived signal", () => {
+    const obj = signal({ name: "test", count: 0 } as {
+      name: string;
+      count: number;
+      active?: boolean;
+    });
+    const derived = derive(() => obj.value);
+    const keys = derived.keys();
+    expect(keys.value).toEqual(["name", "count"]);
+    obj.set({ name: "test", count: 0, active: true });
+    expect(keys.value).toEqual(["name", "count", "active"]);
   });
 });
 

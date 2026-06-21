@@ -1,4 +1,4 @@
-import { immut, newVal } from "@cyftech/immutjs";
+import { immut, isPlainObject, newVal } from "@cyftech/immutjs";
 import {
   getArraySourceSignalMethodsObject,
   getBooleanSignalMethodsObject,
@@ -149,11 +149,15 @@ export const signal = <T>(input: T): SourceSignal<T> => {
             baseSourceSignal as BaseSourceSignal<any[]>,
           ),
         )
-      : typeof input === "object" && input !== null
+      : isPlainObject(input)
         ? Object.assign(
             baseSourceSignal,
-            getObjectSourceSignalMethodsObject((mutatorMethod) =>
-              setValueAndRunEffects(mutatorMethod(_value as object) as T),
+            getObjectSourceSignalMethodsObject(
+              (mutatorMethod) =>
+                setValueAndRunEffects(
+                  mutatorMethod(_value as Record<string, any>) as T,
+                ),
+              baseSourceSignal as BaseSourceSignal<Record<string, any>>,
             ),
           )
         : typeof input === "string"

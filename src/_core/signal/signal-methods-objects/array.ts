@@ -133,11 +133,13 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
     at: (...args: Parameters<Array<T[number]>["at"]>) =>
       derive(() => baseArraySignal.value.at(...args)),
     concat: (...args: Parameters<Array<T[number]>["concat"]>) =>
-      derive(() => baseArraySignal.value.concat(...args)),
+      derive(
+        () => baseArraySignal.value.concat(...(args as any)) as T[number][],
+      ),
     every: (...args: Parameters<Array<T[number]>["every"]>) =>
       derive(() => baseArraySignal.value.every(...args)),
     filter: (...args: Parameters<Array<T[number]>["filter"]>) =>
-      derive(() => baseArraySignal.value.filter(...args)),
+      derive(() => baseArraySignal.value.filter(...args) as T[number][]),
     find: (...args: Parameters<Array<T[number]>["find"]>) =>
       derive(() => baseArraySignal.value.find(...args)),
     findIndex: (...args: Parameters<Array<T[number]>["findIndex"]>) =>
@@ -180,11 +182,11 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
     some: (...args: Parameters<Array<T[number]>["some"]>) =>
       derive(() => baseArraySignal.value.some(...args)),
     toReversed: (...args: Parameters<Array<T[number]>["toReversed"]>) =>
-      derive(() => baseArraySignal.value.toReversed(...args)),
+      derive(() => baseArraySignal.value.toReversed(...args) as T[number][]),
     toSorted: (...args: Parameters<Array<T[number]>["toSorted"]>) =>
-      derive(() => baseArraySignal.value.toSorted(...args)),
+      derive(() => baseArraySignal.value.toSorted(...args) as T[number][]),
     toSpliced: (...args: Parameters<Array<T[number]>["toSpliced"]>) =>
-      derive(() => baseArraySignal.value.toSpliced(...args)),
+      derive(() => baseArraySignal.value.toSpliced(...args) as T[number][]),
   };
 };
 

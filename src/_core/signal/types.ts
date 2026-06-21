@@ -273,10 +273,31 @@ export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &
  * - `set()` performs a shallow merge with the current value
  * - Triggers effects synchronously
  */
-export type ObjectSourceSignalMethodsObject<T extends object> = {
+export type ObjectSourceSignalMutatingMethodsObject<
+  T extends Record<string, any>,
+> = {
   /** Performs a shallow merge with the current value */
   set: (partiallyNewObjectValue: Partial<T>) => void;
 };
+
+/**
+ * Non-mutating methods for object signals.
+ *
+ */
+export type ObjectSignalNonMutatingMethodsObject<
+  T extends Record<string, any>,
+> = {
+  /** Returns a derived signal for a specific property. */
+  prop: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
+  /** Returns an object with all properties as derived signals. */
+  props: () => { [key in keyof T]: DerivedSignal<T[key]> };
+  /** Returns the object's keys as a derived signal. */
+  keys: () => DerivedSignal<string[]>;
+};
+
+export type ObjectSourceSignalMethodsObject<T extends Record<string, any>> =
+  ObjectSourceSignalMutatingMethodsObject<T> &
+    ObjectSignalNonMutatingMethodsObject<T>;
 
 /**
  * Source signal for plain objects with partial update method.
@@ -288,8 +309,8 @@ export type ObjectSourceSignalMethodsObject<T extends object> = {
  *
  * @see {@link ObjectSourceSignalMethodsObject} - For object methods
  */
-export type ObjectSourceSignal<T extends object> = BaseSourceSignal<T> &
-  ObjectSourceSignalMethodsObject<T>;
+export type ObjectSourceSignal<T extends Record<string, any>> =
+  BaseSourceSignal<T> & ObjectSourceSignalMethodsObject<T>;
 
 /**
  * Intrinsic non-mutating methods for string signals.
@@ -549,7 +570,7 @@ export type BooleanSourceSignal = BaseSourceSignal<boolean> &
  */
 export type SourceSignal<T> = T extends any[]
   ? ArraySourceSignal<T>
-  : T extends object
+  : T extends Record<string, any>
     ? ObjectSourceSignal<T>
     : T extends string
       ? StringSourceSignal

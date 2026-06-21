@@ -10,7 +10,7 @@ import { derive, DerivedSignal, MaybeSignalValue, value } from "../_core";
  * - Methods are reactive and update when the source object changes
  * - Works with both source and derived signals
  */
-export type ObjectSignalProps<T extends object> = {
+export type ObjectSignalProps<T extends Record<string, any>> = {
   /** Returns a derived signal for a specific property. */
   get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
   /** Returns an object with all properties as derived signals. */
@@ -34,7 +34,7 @@ export type ObjectSignalProps<T extends object> = {
  * - Non-mutating methods return derived signals
  * - Methods are reactive and update when the source object changes
  */
-export const props = <T extends object>(
+export const props = <T extends Record<string, any>>(
   objectSignal: MaybeSignalValue<T>,
 ): ObjectSignalProps<T> => ({
   get: <K extends keyof T>(key: K) =>

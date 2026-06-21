@@ -1,9 +1,12 @@
+import { isPlainObject } from "@cyftech/immutjs";
 import { effect } from "./effect";
 import {
   getArraySignalNonMutatingMethodsObject,
   getBooleanSignalNonMutatingMethodsObject,
   getNumberSignalMethodsObject,
+  getObjectSignalNonMutatingMethodsObject,
   getStringSignalMethodsObject,
+  ObjectSignalNonMutatingMethodsObject,
   signal,
   type ArraySignalNonMutatingMethodsObject,
   type BaseDerivedSignal,
@@ -38,13 +41,15 @@ import {
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
   (T extends any[]
     ? ArraySignalNonMutatingMethodsObject<T>
-    : T extends string
-      ? StringSignalNonMutatingMethodsObject
-      : T extends number
-        ? NumberSignalNonMutatingMethodsObject
-        : T extends boolean
-          ? BooleanSignalNonMutatingMethodsObject
-          : {});
+    : T extends Record<string, any>
+      ? ObjectSignalNonMutatingMethodsObject<T>
+      : T extends string
+        ? StringSignalNonMutatingMethodsObject
+        : T extends number
+          ? NumberSignalNonMutatingMethodsObject
+          : T extends boolean
+            ? BooleanSignalNonMutatingMethodsObject
+            : {});
 
 /**
  * A function that computes a derived signal's value.
@@ -139,6 +144,15 @@ export const derive = <T>(
       baseDerivedSignal,
       getArraySignalNonMutatingMethodsObject(
         baseDerivedSignal as BaseDerivedSignal<any[]>,
+      ),
+    ) as any;
+  }
+
+  if (isPlainObject(derivedSource.value)) {
+    return Object.assign(
+      baseDerivedSignal,
+      getObjectSignalNonMutatingMethodsObject(
+        baseDerivedSignal as BaseDerivedSignal<Record<string, any>>,
       ),
     ) as any;
   }
