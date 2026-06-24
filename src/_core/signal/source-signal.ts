@@ -1,4 +1,4 @@
-import { immut, isPlainObject, newVal } from "@cyftech/immutjs";
+import { immut, isPlainObject, newVal } from "@cyftec/immut";
 import {
   getArraySourceSignalMethodsObject,
   getBooleanSignalMethodsObject,
@@ -64,7 +64,7 @@ export const setCurrentEffect = (effect: SignalsEffect | null) =>
  * @remarks
  * - Setting the same value does not trigger effects
  * - Effects are triggered synchronously and immediately upon value change
- * - Signal values are stored immutably via `@cyftech/immutjs`
+ * - Signal values are stored immutably via `@cyftec/immut`
  * - Object `set()` performs a shallow merge
  * - Array mutation methods create new arrays internally
  *

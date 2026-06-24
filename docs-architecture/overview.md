@@ -15,14 +15,16 @@ The architecture uses a global variable-based dependency tracking system rather 
 ### Signal Primitives
 
 **SourceSignal<T>**
+
 - Created via `signal(input: T)` function
 - Has `type: "source-signal"` property for runtime type discrimination
 - Contains a `value` getter/setter
 - For arrays: extends with array mutation methods (push, pop, splice, etc.)
 - For objects: extends with `set(partial)` method for partial updates
-- Internally uses `@cyftech/immutjs` for immutable value handling
+- Internally uses `@cyftec/immut` for immutable value handling
 
 **DerivedSignal<T>**
+
 - Created via `derive(valueGetterFn: (oldValue) => T)` function
 - Has `type: "derived-signal"` property
 - Read-only - has `value` getter but no setter
@@ -31,6 +33,7 @@ The architecture uses a global variable-based dependency tracking system rather 
 - Internally implemented as a source signal + effect pattern
 
 **NonSignal<T>**
+
 - Runtime type wrapper for plain values
 - Has `type: "non-signal"` property
 - Used for runtime type discrimination in MaybeSignalValue types
@@ -39,6 +42,7 @@ The architecture uses a global variable-based dependency tracking system rather 
 ### Effects
 
 **SignalsEffect**
+
 - Created via `effect(fn: () => void)` function
 - Has `canDisposeNow: boolean` flag
 - Has `dispose()` method to mark for cleanup
@@ -48,6 +52,7 @@ The architecture uses a global variable-based dependency tracking system rather 
 ### Dependency Tracking Strategy
 
 **Global Variable-Based Tracking**
+
 - Uses module-level `_currentSignalEffect: SignalsEffect | null` variable
 - When `effect()` is called, it sets `_currentSignalEffect` before executing the function
 - When a signal's `.value` getter is called, it checks if `_currentSignalEffect` exists
@@ -55,6 +60,7 @@ The architecture uses a global variable-based dependency tracking system rather 
 - After effect execution, `_currentSignalEffect` is set back to `null`
 
 **No Explicit Graph Structure**
+
 - No dependency graph data structure
 - Each signal maintains a Set of registered effects
 - Dependencies are tracked implicitly through the global variable during execution
@@ -63,12 +69,14 @@ The architecture uses a global variable-based dependency tracking system rather 
 ### Scheduling Strategy
 
 **Synchronous Execution**
+
 - No batching or deferred execution
 - When a signal's value is set, all registered effects run immediately
 - Effects run in the order they were registered
 - No scheduling queue or microtask timing
 
 **Effect Execution Flow**
+
 1. Signal value is set via setter
 2. Signal checks if new value equals old value (short-circuits if equal)
 3. Signal updates internal value using `immut()`
@@ -79,6 +87,7 @@ The architecture uses a global variable-based dependency tracking system rather 
 ### Batching
 
 **No Batching Mechanism**
+
 - All updates are synchronous and immediate
 - No automatic batching of multiple signal updates
 - No manual batch API provided
@@ -87,16 +96,19 @@ The architecture uses a global variable-based dependency tracking system rather 
 ### Cleanup/Disposal
 
 **Effect Disposal**
+
 - Call `effect.dispose()` to set `canDisposeNow = true`
 - Disposed effects are removed from signal's `_effects` Set on next signal update
 - Disposed effects never run again
 
 **Derived Signal Disposal**
+
 - Call `derivedSignal.dispose()` to dispose its internal effect
 - This stops the derived signal from tracking its dependencies
 - The derived signal's value remains accessible but won't update
 
 **Bulk Disposal**
+
 - `dispose(...derivedSignalsOrEffects)` utility function
 - Accepts multiple derived signals and/or effects
 - Calls `.dispose()` on each argument
@@ -104,15 +116,18 @@ The architecture uses a global variable-based dependency tracking system rather 
 ### Internal Graph Structures
 
 **Signal Internal State**
-- `_value`: The current value (stored immutably via `@cyftech/immutjs`)
+
+- `_value`: The current value (stored immutably via `@cyftec/immut`)
 - `_effects`: A Set of registered SignalsEffect functions
 
 **Derived Signal Internal State**
+
 - `oldValue`: Previous computed value
 - `derivedSource`: Internal source signal holding the computed value
 - `derivedSourceUpdator`: Internal effect that recomputes the value
 
 **Effect Internal State**
+
 - `canDisposeNow`: Boolean flag for disposal status
 - `dispose()`: Method to mark for disposal
 
@@ -214,11 +229,13 @@ The architecture uses a global variable-based dependency tracking system rather 
 The library has two main layers:
 
 **Core Layer** (`src/_core/`)
+
 - Primitive implementations: signal, derive, effect, dispose
 - Type definitions and utilities
 - Type checkers and value getters
 
 **API Layer** (`src/api/`)
+
 - Higher-level convenience APIs
 - Operations: composable operations on signals
 - Traps: type-specific utility methods
@@ -229,7 +246,7 @@ The library has two main layers:
 
 ## Dependencies
 
-- `@cyftech/immutjs` - Used for immutable value handling
+- `@cyftec/immut` - Used for immutable value handling
   - `immut()` - Creates immutable copy of value
   - `newVal()` - Extracts value from immutable wrapper
   - `isPlainObject()` - Type checking for plain objects

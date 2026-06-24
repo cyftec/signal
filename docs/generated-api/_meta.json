@@ -941,7 +941,7 @@
       "tsdoc": {
         "summary": "Creates a mutable source signal from any JavaScript value.\n\nA signal is a reactive data unit that automatically notifies dependent\ncomputations when its value changes. Signals use a global variable-based\ndependency tracking system to establish relationships with effects.",
         "remarks": [
-          "- Setting the same value does not trigger effects\n- Effects are triggered synchronously and immediately upon value change\n- Signal values are stored immutably via `@cyftech/immutjs`\n- Object `set()` performs a shallow merge\n- Array mutation methods create new arrays internally"
+          "- Setting the same value does not trigger effects\n- Effects are triggered synchronously and immediately upon value change\n- Signal values are stored immutably via `@cyftec/immut`\n- Object `set()` performs a shallow merge\n- Array mutation methods create new arrays internally"
         ],
         "examples": [
           "```typescript\n// Primitive values\nconst count = signal(0);\ncount.value = 1;\nconsole.log(count.value); // 1\n\n// Object values with partial updates\nconst user = signal({ name: \"John\", age: 30 });\nuser.set({ age: 31 }); // Shallow merge\nconsole.log(user.value); // { name: \"John\", age: 31 }\n\n// Array values with mutation methods\nconst items = signal([1, 2, 3]);\nitems.push(4);\nitems.remove((item) => item % 2 === 0); // Custom method\n```"

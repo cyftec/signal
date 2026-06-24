@@ -35,7 +35,7 @@ Converts plain JavaScript data into a reactive signal that can notify subscriber
 - `null` and `undefined` are valid signal values
 - Empty arrays and empty objects are valid
 - Nested objects and arrays are supported
-- Signal values are stored immutably via `@cyftech/immutjs`
+- Signal values are stored immutably via `@cyftec/immut`
 
 **Failure cases**
 

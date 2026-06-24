@@ -1,4 +1,4 @@
-import { newVal } from "@cyftech/immutjs";
+import { newVal } from "@cyftec/immut";
 import { derive } from "../../derive";
 import {
   ArraySignalCustomMutatingMethodsObject,

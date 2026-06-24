@@ -72,23 +72,28 @@ export const signal = <T>(input: T): SourceSignal<T> => {
 ```
 
 ## Type Parameters
+
 - The type of value the signal holds
 
 ## Parameters
+
 - `input`: Any JavaScript value to convert to a signal
 
 ## Returns
+
 A source signal with a `value` getter/setter. Arrays include
 mutation methods and plain objects include `set()`.
 
 ## Remarks
+
 - Setting the same value does not trigger effects
 - Effects are triggered synchronously and immediately upon value change
-- Signal values are stored immutably via `@cyftech/immutjs`
+- Signal values are stored immutably via `@cyftec/immut`
 - Object `set()` performs a shallow merge
 - Array mutation methods create new arrays internally
 
 ## Examples
+
 ```typescript
 // Primitive values
 const count = signal(0);
@@ -107,5 +112,6 @@ items.remove((item) => item % 2 === 0); // Custom method
 ```
 
 ## See Also
+
 - [effect](./core/effect.md) - For registering functions to run when signal values change
 - [derive](./core/derive.md) - For creating read-only derived signals

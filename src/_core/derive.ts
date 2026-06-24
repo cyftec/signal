@@ -1,4 +1,4 @@
-import { isPlainObject } from "@cyftech/immutjs";
+import { isPlainObject } from "@cyftec/immut";
 import { effect } from "./effect";
 import {
   getArraySignalNonMutatingMethodsObject,

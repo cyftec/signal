@@ -1,6 +1,6 @@
 {
   "name": "@cyftec/signal",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Signal implementation in TypeScript",
   "keywords": [
     "cyftech",
@@ -12,7 +12,7 @@
   "license": "MIT",
   "exports": "./index.ts",
   "dependencies": {
-    "@cyftech/immutjs": "0.1.0"
+    "@cyftec/immut": "^0.1.0"
   },
   "publishConfig": {
     "access": "public"
