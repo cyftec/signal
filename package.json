@@ -24,6 +24,7 @@
     "docs:api": "bun docs/scripts/generate-api-docs.ts",
     "docs:validate-api": "bun docs/scripts/validate-api-docs.ts",
     "docs:build": "bun docs/scripts/build-docs.ts",
-    "docs": "bun run docs:api && bun run docs:validate-api && bun run docs:build"
+    "docs": "bun run docs:api && bun run docs:validate-api && bun run docs:build",
+    "build:meta": "bun run ./api-docs-builder/generate-meta.ts"
   }
 }
