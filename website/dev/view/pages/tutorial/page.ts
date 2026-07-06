@@ -1,5 +1,6 @@
 import { m } from "@cyftec/maya";
 import { CodeBlock, HtmlPage } from "../../components";
+import { CODE_SAMPLES, extractCodeTokens } from "../../../controller";
 
 export default HtmlPage({
   title: "Tutorial",
@@ -23,12 +24,7 @@ export default HtmlPage({
             m.H2({ children: "1. Import" }),
             m.Pre({
               children: CodeBlock({
-                tokens: [
-                  ["kw", "import"],
-                  ["str", " { signal, derive, effect } "],
-                  ["kw", "from"],
-                  ["str", ' "@cyftec/signal";'],
-                ],
+                tokens: extractCodeTokens(CODE_SAMPLES.IMPORT, "ts"),
               }),
             }),
             m.P({ children: "Expected result:" }),
@@ -47,16 +43,7 @@ export default HtmlPage({
             m.H2({ children: "2. Create State" }),
             m.Pre({
               children: CodeBlock({
-                tokens: [
-                  ["kw", "const "],
-                  ["str", "count = "],
-                  ["fn", "signal"],
-                  ["str", "(0);\nconsole."],
-                  ["fn", "log"],
-                  ["str", "(count.value); // 0\ncount.value = 1;\nconsole."],
-                  ["fn", "log"],
-                  ["str", "(count.value); // 1"],
-                ],
+                tokens: extractCodeTokens(CODE_SAMPLES.CREATE_STATE, "ts"),
               }),
             }),
             m.P({ children: "What changed:" }),
@@ -75,14 +62,7 @@ export default HtmlPage({
             m.H2({ children: "3. Read From State" }),
             m.Pre({
               children: CodeBlock({
-                tokens: [
-                  ["kw", "const"],
-                  ["str", " name = "],
-                  ["fn", "signal"],
-                  ["str", '("Ada");\nconsole.'],
-                  ["fn", "log"],
-                  ["str", "(`Hello, ${name.value}`); // Hello, Ada"],
-                ],
+                tokens: extractCodeTokens(CODE_SAMPLES.READ_FROM_STATE, "ts"),
               }),
             }),
             m.P({ children: "Expected result:" }),
@@ -100,18 +80,7 @@ export default HtmlPage({
             m.H2({ children: "4. Derive State" }),
             m.Pre({
               children: CodeBlock({
-                tokens: [
-                  ["kw", "const"],
-                  ["str", " count = "],
-                  ["fn", "signal"],
-                  ["str", "(2);\n"],
-                  ["kw", "const"],
-                  ["str", " doubled = "],
-                  ["fn", "derive"],
-                  ["str", "(() => count.value * 2);\nconsole."],
-                  ["fn", "log"],
-                  ["str", "(doubled.value); // 4"],
-                ],
+                tokens: extractCodeTokens(CODE_SAMPLES.DERIVE_STATE, "ts"),
               }),
             }),
             m.P({ children: "What changed:" }),
@@ -132,16 +101,7 @@ export default HtmlPage({
             m.H2({ children: "5. React To Changes" }),
             m.Pre({
               children: CodeBlock({
-                tokens: [
-                  ["kw", "const"],
-                  ["str", " count = "],
-                  ["fn", "signal"],
-                  ["str", "(0);\n\n"],
-                  ["fn", "effect"],
-                  ["str", "(() => {\n  console."],
-                  ["fn", "log"],
-                  ["str", "(count.value); // 0\n});\n\ncount.value = 1; // 1"],
-                ],
+                tokens: extractCodeTokens(CODE_SAMPLES.REACT_TO_CHANGES, "ts"),
               }),
             }),
             m.P({ children: "Expected result:" }),
@@ -160,24 +120,7 @@ export default HtmlPage({
             m.H2({ children: "6. Combine Signals" }),
             m.Pre({
               children: CodeBlock({
-                tokens: [
-                  ["kw", "const"],
-                  ["str", " first = "],
-                  ["fn", "signal"],
-                  ["str", '("Ada");\n'],
-                  ["kw", "const"],
-                  ["str", " last = "],
-                  ["fn", "signal"],
-                  ["str", '("Lovelace");\n'],
-                  ["kw", "const"],
-                  ["str", " fullName = "],
-                  ["fn", "derive"],
-                  ["str", "(() => `${first.value} ${last.value}`);\n\n"],
-                  ["fn", "effect"],
-                  ["str", "(() => {\n  console."],
-                  ["fn", "log"],
-                  ["str", "(fullName.value); // Ada Lovelace\n});"],
-                ],
+                tokens: extractCodeTokens(CODE_SAMPLES.COMBINE_SIGNALS, "ts"),
               }),
             }),
           ],
@@ -237,19 +180,10 @@ export default HtmlPage({
             m.H2({ children: "9. Equality Short-Circuit" }),
             m.Pre({
               children: CodeBlock({
-                tokens: [
-                  ["kw", "const"],
-                  ["str", " count = "],
-                  ["fn", "signal"],
-                  ["str", "(1);\n\n"],
-                  ["kw", "effect"],
-                  ["str", "(() => {\n  console."],
-                  ["fn", "log"],
-                  [
-                    "str",
-                    "(count.value); // 1\n});\n\ncount.value = 1; // no log",
-                  ],
-                ],
+                tokens: extractCodeTokens(
+                  CODE_SAMPLES.EQUALITY_SHORT_CIRCUIT,
+                  "ts",
+                ),
               }),
             }),
             m.P({ children: "Expected result:" }),
@@ -267,20 +201,7 @@ export default HtmlPage({
             m.H2({ children: "10. Dispose When Done" }),
             m.Pre({
               children: CodeBlock({
-                tokens: [
-                  ["kw", "const"],
-                  ["str", " count = "],
-                  ["fn", "signal"],
-                  ["str", "(0);\n"],
-                  ["kw", "const"],
-                  ["str", " logger = "],
-                  ["fn", "effect"],
-                  ["str", "(() => {\n  console."],
-                  ["fn", "log"],
-                  ["str", "(count.value); // 0\n});\n\nlogger."],
-                  ["fn", "dispose"],
-                  ["str", "();\ncount.value = 1; // no log"],
-                ],
+                tokens: extractCodeTokens(CODE_SAMPLES.DISPOSE_WHEN_DONE, "ts"),
               }),
             }),
             m.P({ children: "Expected result:" }),
@@ -299,20 +220,10 @@ export default HtmlPage({
             m.H2({ children: "11. Arrays And Objects" }),
             m.Pre({
               children: CodeBlock({
-                tokens: [
-                  ["kw", "const"],
-                  ["str", " items = "],
-                  ["fn", "signal"],
-                  ["str", "([1, 2, 3]);\nitems."],
-                  ["fn", "push"],
-                  ["str", "(4);\n\n"],
-                  ["kw", "const"],
-                  ["str", " user = "],
-                  ["fn", "signal"],
-                  ["str", '({ name: "Ada", age: 36 });\nuser.'],
-                  ["fn", "set"],
-                  ["str", "({ age: 37 });"],
-                ],
+                tokens: extractCodeTokens(
+                  CODE_SAMPLES.ARRAYS_AND_OBJECTS,
+                  "ts",
+                ),
               }),
             }),
             m.P({ children: "Expected result:" }),

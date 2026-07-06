@@ -1,8 +1,6 @@
 import { m } from "@cyftec/maya";
 import { CodeBlock, HtmlPage } from "../components";
-import { extractCodeTokens, SHOWCASE_CODE } from "../../controller";
-
-console.log(extractCodeTokens(SHOWCASE_CODE, "ts"));
+import { CODE_SAMPLES, extractCodeTokens } from "../../controller";
 
 export default HtmlPage({
   children: m.Main({
@@ -22,7 +20,7 @@ export default HtmlPage({
               ),
               CodeBlock({
                 noCopy: true,
-                tokens: extractCodeTokens(SHOWCASE_CODE, "ts"),
+                tokens: extractCodeTokens(CODE_SAMPLES.SHOWCASE, "ts"),
               }),
             ],
           }),

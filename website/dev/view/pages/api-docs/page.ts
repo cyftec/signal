@@ -1,8 +1,9 @@
 import { m } from "@cyftec/maya";
 import { derive, signal, tmpl } from "@cyftec/maya/signal";
-import { HeaderCard } from "./@components";
+import { updateSearchParamWithoutReload } from "../../../controller";
 import { ApiMeta } from "../../../models";
 import { HtmlPage, Tabs } from "../../components";
+import { HeaderCard } from "./@components";
 
 const selectedSymbolName = signal("");
 const symbolKindTabs = ["const", "all", "type"];
@@ -43,6 +44,11 @@ const symbolsDetails = derive(() => {
   ];
 });
 
+const onTabChange = (index: number) => {
+  selectedTabIndex.value = index;
+  updateSearchParamWithoutReload({ tabIndex: `${index}` });
+};
+
 const loadApiDocs = async () => {
   const response = await fetch("/assets/_meta.json");
   if (!response.ok) throw new Error("Failed to load _meta.json");
@@ -57,7 +63,11 @@ const onPageMount = () => {
     new URLSearchParams(window.location.search),
   );
   if (params.name) selectedSymbolName.value = params.name;
+
   console.log(params);
+  if (params.tabIndex !== undefined) selectedTabIndex.value = +params.tabIndex;
+  else
+    updateSearchParamWithoutReload({ tabIndex: `${selectedTabIndex.value}` });
 };
 
 export default HtmlPage({
@@ -94,20 +104,27 @@ export default HtmlPage({
               Tabs({
                 tabs: symbolKindTabs,
                 selected: selectedTabIndex,
-                onSelect: (index) => (selectedTabIndex.value = index),
+                onSelect: onTabChange,
               }),
               m.Section({
                 class: "nav-group",
                 children: m.For({
                   subject: filteredSymbols,
-                  map: (symbol) =>
+                  map: ({ category, kind, name, tsdoc }) =>
                     m.A({
-                      class: tmpl`nav-link ${() => (selectedSymbolName.value === symbol.name ? "active" : "")}`,
-                      href: `?kind=${symbol.kind}&category=${symbol.category}&name=${symbol.name}`,
+                      class: tmpl`nav-link ${() => (selectedSymbolName.value === name ? "active" : "")}`,
+                      onclick: () => {
+                        updateSearchParamWithoutReload({
+                          kind,
+                          category,
+                          name,
+                        });
+                        selectedSymbolName.value = name;
+                      },
                       children: [
-                        m.Small({ children: symbol.category.toUpperCase() }),
-                        m.Span({ children: symbol.name }),
-                        m.Small({ children: symbol.tsdoc.title }),
+                        m.Small({ children: category.toUpperCase() }),
+                        m.Span({ children: name }),
+                        m.Small({ children: tsdoc.title }),
                       ],
                     }),
                 }),
