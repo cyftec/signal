@@ -1,5 +1,5 @@
 import { m } from "@cyftec/maya";
-import { HtmlPage } from "../@components";
+import { HtmlPage } from "../../components";
 
 export default HtmlPage({
   title: "Architecture",

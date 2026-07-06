@@ -1,12 +1,13 @@
 import { component, m, MHtmlElement } from "@cyftec/maya";
 import { signal } from "@cyftec/maya/signal";
+import { CodeToken } from "../../models";
 
 type CodeblockProps = {
   noCopy?: boolean;
-  blocks: [type: "kw" | "fn" | "str", code: string][];
+  tokens: CodeToken[];
 };
 
-export const CodeBlock = component<CodeblockProps>(({ noCopy, blocks }) => {
+export const CodeBlock = component<CodeblockProps>(({ noCopy, tokens }) => {
   const buttonLabel = signal("Copy");
   let codeBlock: MHtmlElement | null = null;
 
@@ -35,7 +36,7 @@ export const CodeBlock = component<CodeblockProps>(({ noCopy, blocks }) => {
           onmount: (el: MHtmlElement) => (codeBlock = el),
           "data-lang": "ts",
           children: m.For({
-            subject: blocks,
+            subject: tokens,
             map: ([type, code]) =>
               m.Span({ class: `tok ${type}`, children: code }),
           }),

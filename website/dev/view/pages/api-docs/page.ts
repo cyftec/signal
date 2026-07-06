@@ -1,9 +1,10 @@
 import { m } from "@cyftec/maya";
-import { derive, signal } from "@cyftec/maya/signal";
-import { HtmlPage, Tabs } from "../@components";
+import { derive, signal, tmpl } from "@cyftec/maya/signal";
 import { HeaderCard } from "./@components";
-import { ApiMeta } from "./@models";
+import { ApiMeta } from "../../../models";
+import { HtmlPage, Tabs } from "../../components";
 
+const selectedSymbolName = signal("");
 const symbolKindTabs = ["const", "all", "type"];
 const selectedTabIndex = signal(0);
 const selectedSymbolKinds = derive(() => {
@@ -50,10 +51,19 @@ const loadApiDocs = async () => {
   meta.value = metaJson;
 };
 
+const onPageMount = () => {
+  loadApiDocs();
+  const params = Object.fromEntries(
+    new URLSearchParams(window.location.search),
+  );
+  if (params.name) selectedSymbolName.value = params.name;
+  console.log(params);
+};
+
 export default HtmlPage({
   title: "API Docs",
   children: m.Div({
-    onmount: loadApiDocs,
+    onmount: onPageMount,
     class: "app-shell",
     children: [
       m.Aside({
@@ -92,12 +102,12 @@ export default HtmlPage({
                   subject: filteredSymbols,
                   map: (symbol) =>
                     m.A({
-                      class: "nav-link",
-                      href: `?kind=${symbol.kind}&category=${symbol.category}&symbol=${symbol.name}`,
+                      class: tmpl`nav-link ${() => (selectedSymbolName.value === symbol.name ? "active" : "")}`,
+                      href: `?kind=${symbol.kind}&category=${symbol.category}&name=${symbol.name}`,
                       children: [
                         m.Small({ children: symbol.category.toUpperCase() }),
                         m.Span({ children: symbol.name }),
-                        m.Small({ children: symbol.tsdoc.summary }),
+                        m.Small({ children: symbol.tsdoc.title }),
                       ],
                     }),
                 }),

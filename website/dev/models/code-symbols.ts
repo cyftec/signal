@@ -4,7 +4,7 @@ export type TSDocTag = {
 };
 
 export type TSDoc = {
-  title?: string;
+  title: string;
   summary: string;
   remarks: string[];
   examples: string[];

@@ -1,5 +1,5 @@
 import { m } from "@cyftec/maya";
-import { CodeBlock, HtmlPage } from "../@components";
+import { CodeBlock, HtmlPage } from "../../components";
 
 export default HtmlPage({
   title: "Tutorial",
@@ -23,7 +23,7 @@ export default HtmlPage({
             m.H2({ children: "1. Import" }),
             m.Pre({
               children: CodeBlock({
-                blocks: [
+                tokens: [
                   ["kw", "import"],
                   ["str", " { signal, derive, effect } "],
                   ["kw", "from"],
@@ -47,7 +47,7 @@ export default HtmlPage({
             m.H2({ children: "2. Create State" }),
             m.Pre({
               children: CodeBlock({
-                blocks: [
+                tokens: [
                   ["kw", "const "],
                   ["str", "count = "],
                   ["fn", "signal"],
@@ -75,7 +75,7 @@ export default HtmlPage({
             m.H2({ children: "3. Read From State" }),
             m.Pre({
               children: CodeBlock({
-                blocks: [
+                tokens: [
                   ["kw", "const"],
                   ["str", " name = "],
                   ["fn", "signal"],
@@ -100,7 +100,7 @@ export default HtmlPage({
             m.H2({ children: "4. Derive State" }),
             m.Pre({
               children: CodeBlock({
-                blocks: [
+                tokens: [
                   ["kw", "const"],
                   ["str", " count = "],
                   ["fn", "signal"],
@@ -132,7 +132,7 @@ export default HtmlPage({
             m.H2({ children: "5. React To Changes" }),
             m.Pre({
               children: CodeBlock({
-                blocks: [
+                tokens: [
                   ["kw", "const"],
                   ["str", " count = "],
                   ["fn", "signal"],
@@ -160,7 +160,7 @@ export default HtmlPage({
             m.H2({ children: "6. Combine Signals" }),
             m.Pre({
               children: CodeBlock({
-                blocks: [
+                tokens: [
                   ["kw", "const"],
                   ["str", " first = "],
                   ["fn", "signal"],
@@ -237,7 +237,7 @@ export default HtmlPage({
             m.H2({ children: "9. Equality Short-Circuit" }),
             m.Pre({
               children: CodeBlock({
-                blocks: [
+                tokens: [
                   ["kw", "const"],
                   ["str", " count = "],
                   ["fn", "signal"],
@@ -267,7 +267,7 @@ export default HtmlPage({
             m.H2({ children: "10. Dispose When Done" }),
             m.Pre({
               children: CodeBlock({
-                blocks: [
+                tokens: [
                   ["kw", "const"],
                   ["str", " count = "],
                   ["fn", "signal"],
@@ -299,7 +299,7 @@ export default HtmlPage({
             m.H2({ children: "11. Arrays And Objects" }),
             m.Pre({
               children: CodeBlock({
-                blocks: [
+                tokens: [
                   ["kw", "const"],
                   ["str", " items = "],
                   ["fn", "signal"],

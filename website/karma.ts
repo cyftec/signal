@@ -3,7 +3,7 @@ import type { Karma, ProjectFileNames } from "./karma-types.ts";
 const files = {
   buildable: {
     appSrcDir: "dev",
-    appViewDir: "dev",
+    appViewDir: "dev/view/pages",
     pageFile: "page.ts",
     manifestFile: "manifest.ts",
   },

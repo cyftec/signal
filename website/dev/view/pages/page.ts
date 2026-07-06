@@ -1,5 +1,8 @@
 import { m } from "@cyftec/maya";
-import { HtmlPage, CodeBlock } from "./@components";
+import { CodeBlock, HtmlPage } from "../components";
+import { extractCodeTokens, SHOWCASE_CODE } from "../../controller";
+
+console.log(extractCodeTokens(SHOWCASE_CODE, "ts"));
 
 export default HtmlPage({
   children: m.Main({
@@ -19,34 +22,7 @@ export default HtmlPage({
               ),
               CodeBlock({
                 noCopy: true,
-                blocks: [
-                  ["kw", "import"],
-                  ["str", " { signal, effect } "],
-                  ["kw", "from"],
-                  ["str", ' "@cyftec/signal";'],
-                  ["kw", "\n\ntype "],
-                  ["str", 'LightState = "red" | "amber" | "green";'],
-                  ["kw", "\n\nconst "],
-                  ["str", 'order: LightState[] = ["red", "amber", "green"];'],
-                  ["kw", "\nconst "],
-                  ["str", "light = "],
-                  ["fn", "signal"],
-                  ["str", '<LightState>("red");'],
-                  ["fn", "\n\neffect"],
-                  [
-                    "str",
-                    "(() => {\n  trafficLight.dataset.state = light.value;\n});\n\n",
-                  ],
-                  ["fn", "setInterval"],
-                  ["str", "(() => {\n "],
-                  ["kw", "const"],
-                  ["str", " current = order."],
-                  ["fn", "indexOf"],
-                  [
-                    "str",
-                    "(light.value);\n  light.value = order[(current + 1) % order.length];\n}, 1200);",
-                  ],
-                ],
+                tokens: extractCodeTokens(SHOWCASE_CODE, "ts"),
               }),
             ],
           }),

@@ -14,6 +14,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A union type representing either a source or derived signal.",
             "summary": "A union type representing either a source or derived signal.",
             "remarks": [],
             "examples": [],
@@ -44,6 +45,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A union type representing either a non-signal object or a plain value.",
             "summary": "A union type representing either a non-signal object or a plain value.",
             "remarks": [],
             "examples": [],
@@ -73,6 +75,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A union type representing a signal or a plain value.",
             "summary": "A union type representing a signal or a plain value.\n\nThis is commonly used for function parameters that can accept either\na signal or a plain value of the same type.",
             "remarks": [],
             "examples": [],
@@ -102,6 +105,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A union type representing a source signal or a plain value.",
             "summary": "A union type representing a source signal or a plain value.",
             "remarks": [],
             "examples": [],
@@ -131,6 +135,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A union type representing a derived signal or a plain value.",
             "summary": "A union type representing a derived signal or a plain value.",
             "remarks": [],
             "examples": [],
@@ -160,6 +165,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A union type representing a signalified object (signal or non-signal).",
             "summary": "A union type representing a signalified object (signal or non-signal).",
             "remarks": [],
             "examples": [],
@@ -190,6 +196,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A union type representing a signal, non-signal, or plain value.",
             "summary": "A union type representing a signal, non-signal, or plain value.\n\nThis is the most permissive type for values that may or may not be signalified.",
             "remarks": [],
             "examples": [],
@@ -219,6 +226,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A utility type that removes `null` and `undefined` from signal realm types.",
             "summary": "A utility type that removes `null` and `undefined` from signal realm types.\n\nThis is similar to TypeScript's `NonNullable` but handles signal types specifically.",
             "remarks": [],
             "examples": [],
@@ -246,6 +254,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Converts a tuple type to a tuple of `MaybeSignalValue` types.",
             "summary": "Converts a tuple type to a tuple of `MaybeSignalValue` types.\n\nFunctions are left as-is, while other values are converted to MaybeSignalValue.",
             "remarks": [],
             "examples": [],
@@ -275,6 +284,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Extracts plain values from a `MaybeSignalValues` tuple.",
             "summary": "Extracts plain values from a `MaybeSignalValues` tuple.\n\nThis is the inverse of MaybeSignalValues, converting signalified values\nback to their plain types.",
             "remarks": [],
             "examples": [],
@@ -304,6 +314,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Extracts a plain value from a `MaybeSignalValue`.",
             "summary": "Extracts a plain value from a `MaybeSignalValue`.\n\nIf the input is a signalified object, returns the wrapped value.\nOtherwise, returns the input as-is.",
             "remarks": [],
             "examples": [],
@@ -334,6 +345,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A read-only derived signal computed from other signals.",
             "summary": "A read-only derived signal computed from other signals.\n\nDerived signals automatically recompute their value whenever any of their\ntracked dependencies change. Dependencies are established by accessing\n`.value` on signals during the initial computation.",
             "remarks": [
               "- The value getter function receives the previous computed value (undefined on first run)\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Calling `dispose()` stops the derived signal from tracking dependencies\n- After disposal, the value remains accessible but won't update\n- Array derived signals get non-mutating array methods (map, filter, etc.)\n- String derived signals get non-mutating string methods (toLowerCase, toUpperCase, etc.)\n- Number derived signals get non-mutating number methods (toFixed, toPrecision, etc.)\n- Boolean derived signals get non-mutating boolean methods (not, toString)"
@@ -366,6 +378,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A function that computes a derived signal's value.",
             "summary": "A function that computes a derived signal's value.\n\nThis function receives the previous computed value and should access\n`.value` on signals to establish dependencies. The function is called\nwhenever any tracked dependency changes.",
             "remarks": [
               "- Always access signals via `.value` to establish dependencies\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is the previous RETURN value, not the previous dependency values"
@@ -404,6 +417,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A runtime type wrapper for plain values.",
             "summary": "A runtime type wrapper for plain values.\n\nNonSignal objects are used for runtime type discrimination in complex\ntype scenarios where TypeScript's compile-time types are insufficient.\nThey enable distinguishing between plain values and signalified objects\nat runtime.",
             "remarks": [
               "- Used with `MaybeSignal` types to resolve ambiguity at runtime\n- Has a `type: \"non-signal\"` property for runtime type checking\n- The `value` property holds the wrapped plain value"
@@ -437,6 +451,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Base source signal type with value getter/setter.",
             "summary": "Base source signal type with value getter/setter.",
             "remarks": [],
             "examples": [],
@@ -464,6 +479,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Base derived signal type with read-only value access.",
             "summary": "Base derived signal type with read-only value access.\n\nDerived signals are computed from other signals and automatically update\nwhen their dependencies change.",
             "remarks": [
               "- Value is read-only (computed from dependencies)\n- The `prevValue` getter provides access to the previous computed value\n- Calling `dispose()` stops the signal from tracking its dependencies"
@@ -493,6 +509,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Base signal type union for both source and derived signals.",
             "summary": "Base signal type union for both source and derived signals.",
             "remarks": [
               "- Source signals have mutable values via the setter\n- Derived signals have read-only values computed from dependencies"
@@ -522,6 +539,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A function that can be registered to run when signal values change.",
             "summary": "A function that can be registered to run when signal values change.\n\nEffects are created by the `effect()` function and track dependencies\nby accessing `.value` on signals during execution.",
             "remarks": [
               "- The effect function runs immediately when created\n- It re-runs whenever any tracked signal's value changes\n- The `canDisposeNow` flag marks the effect for disposal\n- Calling `dispose()` sets `canDisposeNow` to true"
@@ -548,6 +566,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Intrinsic mutating methods for array signals.",
             "summary": "Intrinsic mutating methods for array signals.\n\nThese methods mirror JavaScript Array mutating methods but internally create\nnew immutable arrays and trigger effects.",
             "remarks": [
               "- All methods create new arrays internally\n- Effects are triggered synchronously\n- Methods expose a mutable-style API while maintaining immutability"
@@ -577,6 +596,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Custom mutating methods for array signals.",
             "summary": "Custom mutating methods for array signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic array methods.",
             "remarks": [
               "- `keep()` is the inverse of `filter()` - keeps items matching the predicate\n- `remove()` deletes items matching the predicate"
@@ -606,6 +626,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Combined mutating methods for array signals.",
             "summary": "Combined mutating methods for array signals.\n\nCombines intrinsic and custom mutating methods into a single type.",
             "remarks": [],
             "examples": [],
@@ -633,6 +654,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Intrinsic non-mutating methods for array signals.",
             "summary": "Intrinsic non-mutating methods for array signals.\n\nThese methods mirror JavaScript Array non-mutating methods but return\nderived signals instead of plain values.",
             "remarks": [
               "- All methods return derived signals\n- Methods are reactive and update when the source array changes\n- Works with both source and derived signals"
@@ -662,6 +684,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Custom non-mutating methods for array signals.",
             "summary": "Custom non-mutating methods for array signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic array methods.",
             "remarks": [
               "- `lastItem` returns a derived signal for the last array element\n- `partition` splits an array into two derived signals based on a predicate"
@@ -691,6 +714,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Combined non-mutating methods for array signals.",
             "summary": "Combined non-mutating methods for array signals.\n\nCombines intrinsic and custom non-mutating methods into a single type.",
             "remarks": [],
             "examples": [],
@@ -718,6 +742,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Combined methods for array source signals.",
             "summary": "Combined methods for array source signals.\n\nCombines mutating and non-mutating methods for array source signals.",
             "remarks": [
               "- Mutating methods trigger effects synchronously\n- Non-mutating methods return derived signals\n- Methods create new arrays internally but feel mutable"
@@ -747,6 +772,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Source signal for arrays with mutation and non-mutating methods.",
             "summary": "Source signal for arrays with mutation and non-mutating methods.\n\nArray source signals include both mutating methods (push, pop, splice, etc.)\nand non-mutating methods (map, filter, etc.) that return derived signals.",
             "remarks": [],
             "examples": [],
@@ -776,6 +802,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Mutating methods for object signals.",
             "summary": "Mutating methods for object signals.",
             "remarks": [
               "- `set()` performs a shallow merge with the current value\n- Triggers effects synchronously"
@@ -805,6 +832,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Non-mutating methods for object signals.",
             "summary": "Non-mutating methods for object signals.",
             "remarks": [],
             "examples": [],
@@ -849,6 +877,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Source signal for plain objects with partial update method.",
             "summary": "Source signal for plain objects with partial update method.\n\nObject source signals include the `set()` method for partial updates and\nnon-mutating methods for accessing properties as derived signals.",
             "remarks": [],
             "examples": [],
@@ -878,6 +907,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Intrinsic non-mutating methods for string signals.",
             "summary": "Intrinsic non-mutating methods for string signals.\n\nThese methods mirror JavaScript String non-mutating methods but return\nderived signals instead of plain values.",
             "remarks": [
               "- All methods return derived signals\n- Methods are reactive and update when the source string changes\n- Works with both source and derived signals"
@@ -902,6 +932,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Custom non-mutating methods for string signals.",
             "summary": "Custom non-mutating methods for string signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic string methods.",
             "remarks": [
               "- `lowercase` returns a derived signal for the lowercase version\n- `Sentencecase` returns a derived signal with first letter capitalized\n- `TitleCase` returns a derived signal with each word capitalized\n- `UPPERCASE` returns a derived signal for the uppercase version"
@@ -926,6 +957,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Combined non-mutating methods for string signals.",
             "summary": "Combined non-mutating methods for string signals.\n\nCombines intrinsic and custom non-mutating methods into a single type.",
             "remarks": [],
             "examples": [],
@@ -948,6 +980,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Source signal for strings with non-mutating methods.",
             "summary": "Source signal for strings with non-mutating methods.\n\nString source signals include non-mutating methods that return derived signals.",
             "remarks": [],
             "examples": [],
@@ -972,6 +1005,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Intrinsic non-mutating methods for number signals.",
             "summary": "Intrinsic non-mutating methods for number signals.\n\nThese methods mirror JavaScript Number non-mutating methods but return\nderived signals instead of plain values.",
             "remarks": [
               "- All methods return derived signals\n- Methods are reactive and update when the source number changes\n- Works with both source and derived signals"
@@ -996,6 +1030,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Custom non-mutating methods for number signals.",
             "summary": "Custom non-mutating methods for number signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic number methods.",
             "remarks": [
               "- `toConfined` confines the number within a range"
@@ -1020,6 +1055,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Combined non-mutating methods for number signals.",
             "summary": "Combined non-mutating methods for number signals.\n\nCombines intrinsic and custom non-mutating methods into a single type.",
             "remarks": [],
             "examples": [],
@@ -1042,6 +1078,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Source signal for numbers with non-mutating methods.",
             "summary": "Source signal for numbers with non-mutating methods.\n\nNumber source signals include non-mutating methods that return derived signals.",
             "remarks": [],
             "examples": [],
@@ -1066,6 +1103,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Mutating methods for boolean signals.",
             "summary": "Mutating methods for boolean signals.",
             "remarks": [
               "- `toggle()` flips the boolean value\n- Triggers effects synchronously"
@@ -1090,6 +1128,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Custom non-mutating methods for boolean signals.",
             "summary": "Custom non-mutating methods for boolean signals.\n\nThese are library-specific methods that provide additional functionality\nfor boolean values.",
             "remarks": [
               "- `negated` returns the negated boolean value"
@@ -1136,6 +1175,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Source signal for booleans with non-mutating methods.",
             "summary": "Source signal for booleans with non-mutating methods.\n\nBoolean source signals include non-mutating methods that return derived signals.",
             "remarks": [],
             "examples": [],
@@ -1160,6 +1200,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "A mutable source signal created from plain JavaScript data.",
             "summary": "A mutable source signal created from plain JavaScript data.\n\nSource signals can notify dependent computations when their value changes.\nThe specific type (array, object, string, number, or boolean) determines which\nadditional methods are available.",
             "remarks": [
               "- For arrays: includes array mutation methods (push, pop, splice, etc.)\n- For plain objects: includes `set()` method for partial updates\n- For strings: includes string methods (toLowerCase, toUpperCase, etc.)\n- For numbers: includes number methods (toFixed, toPrecision, etc.)\n- For booleans: includes boolean methods (not, toString)\n- For other primitives: only the base signal interface"
@@ -1197,6 +1238,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "The expressions allowed inside the template placeholders.",
             "summary": "The expressions allowed inside the template placeholders.",
             "remarks": [
               "- `Signal<any>` is accepted directly\n- `DerivedValueGetterWithSignals<any>` is accepted as a deferred expression\n- Plain values are accepted as-is"
@@ -1221,6 +1263,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Base operation result getters.",
             "summary": "Base operation result getters.\n\nThese getters provide the final derived signal results of composed operations.",
             "remarks": [],
             "examples": [],
@@ -1243,6 +1286,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Generic operation with logical operations available for all types.",
             "summary": "Generic operation with logical operations available for all types.",
             "remarks": [],
             "examples": [],
@@ -1265,6 +1309,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Number operation with math operations and comparisons.",
             "summary": "Number operation with math operations and comparisons.\n\nExtends `GenericOperation` with number-specific operations.",
             "remarks": [],
             "examples": [],
@@ -1287,6 +1332,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "String and array operation with length-based operations.",
             "summary": "String and array operation with length-based operations.\n\nExtends `GenericOperation` with length-specific operations for strings and arrays.",
             "remarks": [],
             "examples": [],
@@ -1309,6 +1355,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Union type for all operation types, determined by the value type.",
             "summary": "Union type for all operation types, determined by the value type.",
             "remarks": [
               "- Number values map to `NumberOperation`\n- String or array values map to `StringAndArrayOperation`\n- Other types map to `GenericOperation`"
@@ -1345,6 +1392,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Registers a function to run whenever its accessed signals change.",
             "summary": "Registers a function to run whenever its accessed signals change.\n\nThe function runs immediately when `effect()` is called, and re-runs\nsynchronously whenever any tracked signal's value changes. Dependencies\nare established by accessing `.value` on signals during execution.",
             "remarks": [
               "- The function runs immediately when `effect()` is called\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Effects run synchronously when dependencies change\n- Disposal is lazy - effects are removed on the next signal update, not immediately"
@@ -1382,6 +1430,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Disposes multiple derived signals and/or effects at once.",
             "summary": "Disposes multiple derived signals and/or effects at once.\n\nThis utility function calls `.dispose()` on each argument, stopping\ndependency tracking for derived signals and marking effects for disposal.",
             "remarks": [
               "- Empty argument list is valid (no-op)\n- Can mix derived signals and effects in the same call\n- Disposing the same effect multiple times is safe (idempotent)\n- For derived signals: stops dependency tracking\n- For effects: marks for disposal (removed on next signal update)"
@@ -1416,6 +1465,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Checks whether a value is a source signal.",
             "summary": "Checks whether a value is a source signal.",
             "remarks": [
               "- Returns false for derived signals, non-signals, and plain values\n- Returns false for `null` and `undefined`"
@@ -1451,6 +1501,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Checks whether a value is a derived signal.",
             "summary": "Checks whether a value is a derived signal.",
             "remarks": [
               "- Returns false for source signals, non-signals, and plain values\n- Returns false for `null` and `undefined`"
@@ -1486,6 +1537,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Checks whether a value is any signal (source or derived).",
             "summary": "Checks whether a value is any signal (source or derived).",
             "remarks": [
               "- Returns true for both source and derived signals\n- Returns false for non-signals and plain values\n- Returns false for `null` and `undefined`"
@@ -1521,6 +1573,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Checks whether a value is a non-signal object, optionally matching specific types.",
             "summary": "Checks whether a value is a non-signal object, optionally matching specific types.",
             "remarks": [
               "- Empty types array is treated as no type restriction\n- Returns false for `null` and `undefined`"
@@ -1561,6 +1614,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Checks whether a value is a signal or non-signal object.",
             "summary": "Checks whether a value is a signal or non-signal object.",
             "remarks": [
               "- Returns true for source signals, derived signals, and non-signal objects\n- Returns false for plain values\n- Returns false for `null` and `undefined`"
@@ -1596,6 +1650,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Checks whether a value is a non-signal of type string.",
             "summary": "Checks whether a value is a non-signal of type string.",
             "remarks": [
               "- Returns false for plain strings (not wrapped in non-signal)"
@@ -1630,6 +1685,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Checks whether a value is a non-signal of type string array.",
             "summary": "Checks whether a value is a non-signal of type string array.",
             "remarks": [
               "- Checks that all array elements are strings\n- Returns false for empty arrays\n- Returns false for arrays with non-string elements"
@@ -1664,6 +1720,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Checks whether a value, after unwrapping, is a string or array.",
             "summary": "Checks whether a value, after unwrapping, is a string or array.",
             "remarks": [
               "- Unwraps signals and non-signals to get the plain value\n- Returns true if the plain value is a string or array\n- Returns false for other types\n- Returns false for `null` and `undefined`"
@@ -1698,6 +1755,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Extracts the plain value from a signal, non-signal, or plain value.",
             "summary": "Extracts the plain value from a signal, non-signal, or plain value.\n\nThis utility function unwraps signalified objects to get their underlying\nplain values. If the input is already a plain value, it returns it as-is.",
             "remarks": [
               "- Does not trigger dependency tracking\n- Works with `null` and `undefined`\n- Works with nested structures"
@@ -1739,6 +1797,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Converts signalified method parameters to plain values.",
             "summary": "Converts signalified method parameters to plain values.\n\nThis helper function is used by trap methods to unwrap parameters that may be\nsignals, plain values, or non-signals into their plain values before passing\nthem to the underlying JavaScript methods (e.g., string methods, array methods).\n\nThis allows trap methods to accept signalified parameters while still being\nable to call standard JavaScript methods that expect plain values.",
             "remarks": [],
             "examples": [
@@ -1774,6 +1833,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates a read-only derived signal computed from other signals.",
             "summary": "Creates a read-only derived signal computed from other signals.\n\nThe derived signal's value is computed by the provided function, which\nshould access `.value` on signals to establish dependencies. The value\nis recomputed whenever any tracked dependency changes.",
             "remarks": [
               "- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- The previous value is undefined on the first computation\n- Derived signals can depend on other derived signals (chaining)"
@@ -1816,6 +1876,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Wraps a plain value in a NonSignal object for runtime type discrimination.",
             "summary": "Wraps a plain value in a NonSignal object for runtime type discrimination.\n\nThis function is useful when you need to explicitly mark a value as a\nnon-signal for runtime type checking in complex type scenarios.",
             "remarks": [
               "- Used for runtime type checking in complex type scenarios\n- Enables distinguishing between plain values and signalified objects\n- The wrapped value can be any JavaScript type"
@@ -1857,6 +1918,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Sets the currently executing effect.",
             "summary": "Sets the currently executing effect.\n\nCalled by the effect function before running the user's function to enable\nautomatic dependency tracking. After the effect completes, this is set to null.",
             "remarks": [],
             "examples": [],
@@ -1884,6 +1946,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates a mutable source signal from any JavaScript value.",
             "summary": "Creates a mutable source signal from any JavaScript value.\n\nA signal is a reactive data unit that automatically notifies dependent\ncomputations when its value changes. Signals use a global variable-based\ndependency tracking system to establish relationships with effects.",
             "remarks": [
               "- Setting the same value does not trigger effects\n- Effects are triggered synchronously and immediately upon value change\n- Signal values are stored immutably via `@cyftec/immut`\n- Object `set()` performs a shallow merge\n- Array mutation methods create new arrays internally"
@@ -1925,6 +1988,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates intrinsic mutating methods for array signals.",
             "summary": "Creates intrinsic mutating methods for array signals.\n\nThese methods mirror JavaScript Array mutating methods but internally create\nnew immutable arrays and trigger effects.",
             "remarks": [
               "- All methods create new arrays internally using `Array.from()`\n- Effects are triggered synchronously\n- Methods expose a mutable-style API while maintaining immutability"
@@ -1961,6 +2025,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates custom mutating methods for array signals.",
             "summary": "Creates custom mutating methods for array signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic array methods.",
             "remarks": [
               "- `keep()` is the inverse of `filter()` - keeps items matching the predicate\n- `remove()` deletes items matching the predicate"
@@ -1997,6 +2062,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates combined mutating methods for array signals.",
             "summary": "Creates combined mutating methods for array signals.\n\nCombines intrinsic and custom mutating methods into a single object.",
             "remarks": [],
             "examples": [],
@@ -2031,6 +2097,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates intrinsic non-mutating methods for array signals.",
             "summary": "Creates intrinsic non-mutating methods for array signals.\n\nThese methods mirror JavaScript Array non-mutating methods but return\nderived signals instead of plain values.",
             "remarks": [
               "- All methods return derived signals\n- Methods are reactive and update when the source array changes\n- Works with both source and derived signals"
@@ -2067,6 +2134,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates custom non-mutating methods for array signals.",
             "summary": "Creates custom non-mutating methods for array signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic array methods.",
             "remarks": [
               "- `lastItem` returns a derived signal for the last array element\n- `partition` splits an array into two derived signals based on a predicate"
@@ -2103,6 +2171,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates combined non-mutating methods for array signals.",
             "summary": "Creates combined non-mutating methods for array signals.\n\nCombines intrinsic and custom non-mutating methods into a single object.",
             "remarks": [
               "- All methods return derived signals\n- Works with both source and derived signals\n- Methods are reactive and update when the source array changes"
@@ -2139,6 +2208,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates combined methods for array source signals.",
             "summary": "Creates combined methods for array source signals.\n\nCombines mutating and non-mutating methods for array source signals.",
             "remarks": [
               "- Non-mutating methods return derived signals\n- Mutating methods create new arrays internally but feel mutable"
@@ -2179,6 +2249,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates intrinsic non-mutating methods for string signals.",
             "summary": "Creates intrinsic non-mutating methods for string signals.\n\nThese methods mirror JavaScript String non-mutating methods but return\nderived signals instead of plain values.",
             "remarks": [
               "- All methods return derived signals\n- Methods are reactive and update when the source string changes\n- Works with both source and derived signals\n- Methods are lazy - derived signals are only created when accessed"
@@ -2210,6 +2281,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates custom non-mutating methods for string signals.",
             "summary": "Creates custom non-mutating methods for string signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic string methods.",
             "remarks": [
               "- `lowercase` returns a derived signal for the lowercase version\n- `Sentencecase` returns a derived signal with first letter capitalized\n- `TitleCase` returns a derived signal with each word capitalized\n- `UPPERCASE` returns a derived signal for the uppercase version\n- Methods are lazy - derived signals are only created when accessed"
@@ -2241,6 +2313,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates combined non-mutating methods for string signals.",
             "summary": "Creates combined non-mutating methods for string signals.\n\nCombines intrinsic and custom non-mutating methods into a single object.",
             "remarks": [
               "- All methods return derived signals\n- Works with both source and derived signals\n- Methods are reactive and update when the source string changes\n- Methods are lazy - derived signals are only created when accessed"
@@ -2272,6 +2345,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "",
             "summary": "",
             "remarks": [],
             "examples": [],
@@ -2294,6 +2368,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates non-mutating methods for boolean signals.",
             "summary": "Creates non-mutating methods for boolean signals.\n\nThese are library-specific methods that provide additional functionality\nfor boolean values.",
             "remarks": [
               "- `not` returns the negated boolean value\n- `toString` returns the string representation\n- All methods return derived signals\n- Methods are reactive and update when the source boolean changes\n- Works with both source and derived signals"
@@ -2325,6 +2400,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates non-mutating methods for boolean signals.",
             "summary": "Creates non-mutating methods for boolean signals.\n\nThese are library-specific methods that provide additional functionality\nfor boolean values.",
             "remarks": [
               "- `not` returns the negated boolean value\n- `toString` returns the string representation\n- All methods return derived signals\n- Methods are reactive and update when the source boolean changes\n- Works with both source and derived signals"
@@ -2356,6 +2432,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates intrinsic non-mutating methods for number signals.",
             "summary": "Creates intrinsic non-mutating methods for number signals.\n\nThese methods mirror JavaScript Number non-mutating methods but return\nderived signals instead of plain values.",
             "remarks": [
               "- All methods return derived signals\n- Methods are reactive and update when the source number changes\n- Works with both source and derived signals"
@@ -2387,6 +2464,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates custom non-mutating methods for number signals.",
             "summary": "Creates custom non-mutating methods for number signals.\n\nThese are library-specific methods that provide additional functionality\nbeyond JavaScript's intrinsic number methods.",
             "remarks": [
               "- `toConfined` confines the number within a range [start, end]"
@@ -2418,6 +2496,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates combined non-mutating methods for number signals.",
             "summary": "Creates combined non-mutating methods for number signals.\n\nCombines intrinsic and custom non-mutating methods into a single object.",
             "remarks": [
               "- All methods return derived signals\n- Works with both source and derived signals\n- Methods are reactive and update when the source number changes"
@@ -2449,6 +2528,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Returns an object with methods to update the source signal's value.",
             "summary": "Returns an object with methods to update the source signal's value.",
             "remarks": [
               "- `set()` performs a shallow merge with the current value\n- Works with both source and derived signals"
@@ -2485,6 +2565,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates the object trap for signalified plain objects.",
             "summary": "Creates the object trap for signalified plain objects.",
             "remarks": [
               "- Throws if the input is not a plain object after unwrapping\n- Property accessors are derived signals"
@@ -2521,6 +2602,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Returns an object with methods to update the source signal's value.",
             "summary": "Returns an object with methods to update the source signal's value.",
             "remarks": [
               "- `set()` performs a shallow merge with the current value\n- Works with both source and derived signals"
@@ -2562,6 +2644,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates a derived signal from a function with signalified arguments.",
             "summary": "Creates a derived signal from a function with signalified arguments.\n\nThis is a convenience wrapper around `derive` that automatically unwraps\nsignal arguments before passing them to the function. The derived signal\nrecomputes whenever any of the signalified arguments changes.",
             "remarks": [
               "- Works with functions of any arity\n- Can mix signals and plain values in arguments\n- Plain value arguments do not trigger recomputation\n- Arguments are unwrapped using the `value()` helper"
@@ -2607,6 +2690,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Tagged template function for string interpolation with signals.",
             "summary": "Tagged template function for string interpolation with signals.\n\nCreates a derived signal of the interpolated string that recomputes whenever\nany tracked expression changes.",
             "remarks": [
               "- Expressions can be signals, derived expression functions, or plain values\n- `null` and `undefined` become empty strings\n- Values are converted to strings via `.toString()`\n- Works with any combination of supported expression types"
@@ -2647,6 +2731,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates promise state signals for async operations.",
             "summary": "Creates promise state signals for async operations.\n\nThis function returns a tuple containing a promise runner function and three\nderived signals that track the promise's state: result, error, and running status.",
             "remarks": [
               "- On success: `result` is updated and `error` is cleared\n- On failure: `error` is updated and `result` preserves the previous successful result\n- The `ultimately` callback runs in the finally block\n- The promise can be run multiple times\n- If no initial value is provided, the result signal starts as `undefined`\n- If the promise fails multiple times, the last successful result is preserved"
@@ -2703,6 +2788,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates the string/array-specific operation chain for a value.",
             "summary": "Creates the string/array-specific operation chain for a value.",
             "remarks": [
               "- Used when the evaluated value is a string or array\n- Methods return new operation objects for chaining"
@@ -2739,6 +2825,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates the generic operation chain for a value.",
             "summary": "Creates the generic operation chain for a value.",
             "remarks": [
               "- Used for non-numeric and non-string-or-array inputs\n- Methods return new operation objects for chaining"
@@ -2775,6 +2862,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates the number-specific operation chain for a value.",
             "summary": "Creates the number-specific operation chain for a value.",
             "remarks": [
               "- Used when the evaluated value is a number\n- Methods return new operation objects for chaining"
@@ -2811,6 +2899,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Creates an operation object for composing logical and mathematical operations.",
             "summary": "Creates an operation object for composing logical and mathematical operations.\n\nThis function evaluates the input and dispatches to the appropriate operation\nimplementation based on the evaluated type:\n- Number values → numberOp (provides math operations: add, sub, mul, div, etc.)\n- String or Array values → stringAndArrayOp (provides length-based operations)\n- Other types → genericOp (provides logical operations: or, and, equals, etc.)",
             "remarks": [
               "- The operation type is determined by the runtime type of the evaluated value\n- If input is a function, it is called to get the value\n- Type changes in the input signal are not reflected in the operation type\n- Methods return new operation objects for chaining\n- Final results are obtained via getters such as `truthy`, `falsy`, and `result`"
@@ -2852,6 +2941,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Connects multiple transmitter signals to a single receiver signal.",
             "summary": "Connects multiple transmitter signals to a single receiver signal.\n\nWhenever any transmitter changes, the receiver is updated to match that\ntransmitter's current value. If more than one transmitter changes in the same\npropagation chain, the final receiver value follows effect execution order.",
             "remarks": [
               "- Each transmitter gets its own effect that updates the receiver\n- Transmitters can be source or derived signals\n- Receiver must be a source signal\n- Passing no transmitters returns an empty effects array\n- The receiver remains independently mutable"
@@ -2897,6 +2987,7 @@
           "parameters": [],
           "typeParameters": [],
           "tsdoc": {
+            "title": "Broadcasts changes from one transmitter signal to multiple receiver signals.",
             "summary": "Broadcasts changes from one transmitter signal to multiple receiver signals.\n\nWhen the transmitter changes, all receivers are updated synchronously to the\nsame value. Each receiver remains independently mutable.",
             "remarks": [
               "- A single effect manages all receiver updates\n- Transmitter can be source or derived signal\n- Receivers must be source signals\n- Passing no receivers creates a no-op effect\n- The order of receiver updates is not guaranteed"
