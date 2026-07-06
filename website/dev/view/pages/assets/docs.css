@@ -236,7 +236,8 @@ pre {
   border-radius: 8px;
   text-decoration: none;
   margin: 0 0 8px;
-  background: #fff
+  background: #fff;
+  cursor: pointer;
 }
 
 .nav-link span {
