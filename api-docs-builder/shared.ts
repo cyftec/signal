@@ -7,6 +7,7 @@ export type TSDocTag = {
 };
 
 export type TSDoc = {
+  title: string;
   summary: string;
   remarks: string[];
   examples: string[];
@@ -58,7 +59,10 @@ export type ApiMeta = {
 
 export const repoRoot = path.join(process.cwd(), "..");
 export const srcDir = path.join(repoRoot, "signal/src");
-export const outputDir = path.join(process.cwd(), "./website/dev/assets");
+export const outputDir = path.join(
+  process.cwd(),
+  "./website/dev/view/pages/assets",
+);
 
 export function readText(filePath: string) {
   return fs.readFileSync(filePath, "utf8");

@@ -32,6 +32,7 @@ const exportMap = new Map<string, ExportEntry>();
 
 function defaultTSDoc(): TSDoc {
   return {
+    title: "",
     summary: "",
     remarks: [],
     examples: [],
@@ -78,6 +79,8 @@ function parseTSDoc(comment: string): TSDoc {
     if (block.tag === null) summaryLines.push(...block.lines);
     else break;
   }
+
+  doc.title = summaryLines[1];
   doc.summary = cleanTagText(summaryLines.join("\n"));
 
   for (const block of blocks) {
