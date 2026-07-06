@@ -21,14 +21,14 @@ export default HtmlPage({
         }),
         m.Section({
           children: [
-            m.H2({ children: "1. Install" }),
+            m.H2({ children: "1. Import" }),
             m.Pre({
               children: CodeBlock({
                 blocks: [
                   ["kw", "import"],
                   ["str", " { signal, derive, effect } "],
                   ["kw", "from"],
-                  ["str", ' "@cyftech/signal";'],
+                  ["str", ' "@cyftec/signal";'],
                 ],
               }),
             }),

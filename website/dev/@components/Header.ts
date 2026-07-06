@@ -12,7 +12,7 @@ export const Header = () =>
             src: "/assets/images/signal-logo.svg",
             alt: "Cyftec Signal Logo",
           }),
-          m.Span({ children: "Signal" }),
+          m.Span({ children: "" }),
         ],
       }),
       m.Div({

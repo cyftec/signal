@@ -13,7 +13,7 @@ export default HtmlPage({
           m.Div({
             class: "brand",
             children: [
-              m.Div({ class: "brand-kicker", children: "Cyftech Signal" }),
+              m.Div({ class: "brand-kicker", children: "Cyftec Signal" }),
               m.Div({ class: "brand-title", children: "API Docs" }),
             ],
           }),

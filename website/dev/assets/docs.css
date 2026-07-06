@@ -21,6 +21,12 @@ body {
   font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
 }
 
+h1 {
+  line-height: 1;
+  font-size: 4rem;
+  margin: 0 0 1rem;
+}
+
 a {
   color: inherit
 }
@@ -62,8 +68,7 @@ pre {
 .header {
   display: flex;
   justify-content: space-between;
-  gap: 1.125rem;
-  margin: 1rem 2rem;
+  margin: 1rem;
 }
 
 .header a {
@@ -85,12 +90,16 @@ pre {
 
 .header-brand img {
   height: 2.5rem;
-  margin-right: 6px;
+  margin-right: 0.75rem;
+}
+
+.header-brand span::after {
+  content: "Signal";
 }
 
 .header-links {
   display: flex;
-  gap: 18px;
+  gap: 1rem;
   align-items: center;
 }
 
@@ -298,11 +307,7 @@ pre {
 }
 
 .code-block pre {
-  margin: 0;
-  padding: 20px;
-  overflow: auto;
-  background: #fff;
-  max-width: 100%
+  overflow-x: auto
 }
 
 .copy-button {
@@ -418,6 +423,11 @@ pre {
   max-width: 58ch;
   font-size: 18px;
   color: #666
+}
+
+.showcase-code {
+  margin: 0 -12rem 0 0;
+  width: 100%;
 }
 
 .showcase-demo {
@@ -567,7 +577,7 @@ pre {
 
   0%,
   33% {
-    background: var(--accent);
+    background: red;
     opacity: 1
   }
 
@@ -588,7 +598,7 @@ pre {
 
   33.1%,
   66% {
-    background: var(--accent);
+    background: #FFBF00;
     opacity: 1
   }
 
@@ -609,7 +619,7 @@ pre {
 
   66.1%,
   100% {
-    background: var(--accent);
+    background: green;
     opacity: 1
   }
 }
@@ -619,7 +629,7 @@ pre {
   0%,
   33% {
     color: #fff;
-    background: var(--accent)
+    background: red
   }
 
   33.1%,
@@ -640,7 +650,7 @@ pre {
   33.1%,
   66% {
     color: #fff;
-    background: var(--accent)
+    background: #FFBF00
   }
 
   66.1%,
@@ -661,7 +671,7 @@ pre {
   66.1%,
   100% {
     color: #fff;
-    background: var(--accent)
+    background: green
   }
 }
 
@@ -784,6 +794,10 @@ pre {
 }
 
 @media (max-width: 980px) {
+  h1 {
+    font-size: 3.5rem;
+  }
+
   .app-shell {
     grid-template-columns: 1fr
   }
@@ -854,6 +868,23 @@ pre {
     font-size: 15px
   }
 
+  .header a {
+    font-size: 1rem;
+  }
+
+  .header-brand img {
+    height: 2rem;
+    margin-right: 0.25rem;
+  }
+
+  .header-brand span::after {
+    content: "";
+  }
+
+  .header-links {
+    gap: 0.75rem;
+  }
+
   .landing {
     padding: 14px 12px 36px
   }
@@ -872,7 +903,8 @@ pre {
   }
 
   .showcase-copy h1 {
-    font-size: 34px
+    font-size: 34px;
+    line-height: 1;
   }
 
   .showcase-copy p {
@@ -957,13 +989,8 @@ pre {
     padding-left: 18px
   }
 
-  .code-block pre {
-    padding: 14px
-  }
-
   .copy-button {
     position: static;
-    margin: 10px 0 0 10px;
     padding: 6px 10px
   }
 

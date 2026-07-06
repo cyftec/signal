@@ -10,9 +10,8 @@ export default HtmlPage({
         class: "showcase",
         children: [
           m.Div({
-            class: "showcase-copy",
+            class: "showcase-code",
             children: [
-              m.Div({ class: "eyebrow", children: "@cyftec/signal" }),
               m.H1({
                 children: "Signals you can read in the code and see in the UI.",
               }),
@@ -26,7 +25,7 @@ export default HtmlPage({
                   ["kw", "import"],
                   ["str", " { signal, effect } "],
                   ["kw", "from"],
-                  ["str", ' "@cyftech/signal";'],
+                  ["str", ' "@cyftec/signal";'],
                   ["kw", "\n\ntype "],
                   ["str", 'LightState = "red" | "amber" | "green";'],
                   ["kw", "\n\nconst "],

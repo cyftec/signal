@@ -13,7 +13,7 @@ export const HtmlPage = component<HtmlPageProps>(({ title, children }) =>
       m.Head({
         children: [
           m.Title(
-            `${title?.value ? `${title.value} | ` : ""}Cyftech Signal Docs`,
+            `${title?.value ? `${title.value} | ` : ""}Cyftec Signal Docs`,
           ),
           m.Meta({ charset: "UTF-8" }),
           m.Meta({
