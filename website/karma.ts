@@ -8,7 +8,7 @@ const files = {
     manifestFile: "manifest.ts",
   },
   static: {
-    publishDir: "../docz",
+    publishDir: "../docs",
     dsStoreDir: ".DS_Store",
     karmaTypesFile: "karma-types.ts",
     gitIgnoreFile: ".gitignore",
