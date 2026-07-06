@@ -19,12 +19,12 @@ export type TSDoc = {
 
 export type ExportSymbol = {
   name: string;
-  kind: "const" | "type" | "interface" | "function";
+  kind: "const" | "type";
   filePath: string;
   sourcePath: string;
   isExported: boolean;
   exportKind: "named" | "default" | "reexport";
-  category: string;
+  category: "core" | "api";
   subcategory?: string;
   signature?: string;
   type?: string;
@@ -34,9 +34,26 @@ export type ExportSymbol = {
 };
 
 export type ApiMeta = {
-  generatedAt: string;
-  symbols: Record<string, ExportSymbol>;
-  categories: Record<string, { description: string; symbols: string[] }>;
+  type: {
+    core: {
+      description: string;
+      symbols: ExportSymbol[];
+    };
+    api: {
+      description: string;
+      symbols: ExportSymbol[];
+    };
+  };
+  const: {
+    core: {
+      description: string;
+      symbols: ExportSymbol[];
+    };
+    api: {
+      description: string;
+      symbols: ExportSymbol[];
+    };
+  };
 };
 
 export const repoRoot = path.join(process.cwd(), "..");

@@ -20,7 +20,7 @@ type ExportEntry = {
   filePath: string;
   isExported: boolean;
   exportKind: ExportSymbol["exportKind"];
-  category: string;
+  category: ExportSymbol["category"];
   signature?: string;
   type?: string;
   parameters?: Array<{ name: string; type: string; optional: boolean }>;
@@ -224,14 +224,13 @@ function main() {
   walk(srcDir);
 
   const meta: ApiMeta = {
-    generatedAt: new Date().toISOString(),
-    symbols: {},
-    categories: {
-      core: {
-        description: "Core reactive primitives and utilities",
-        symbols: [],
-      },
-      api: { description: "Higher-level convenience APIs", symbols: [] },
+    type: {
+      core: { description: "Core Types", symbols: [] },
+      api: { description: "API Types", symbols: [] },
+    },
+    const: {
+      core: { description: "Core Constants", symbols: [] },
+      api: { description: "API Constants", symbols: [] },
     },
   };
 
@@ -240,17 +239,16 @@ function main() {
       ...entry,
       sourcePath: relSource(entry.filePath),
     };
-    meta.symbols[key] = symbol;
-    meta.categories[symbol.category].symbols.push(symbol.name);
+    meta[symbol.kind][symbol.category].symbols.push(symbol);
   }
+
+  const symbolsCount = Array.from(exportMap.values()).length;
 
   writeText(
     path.join(outputDir, "_meta.json"),
     JSON.stringify(meta, null, 2) + "\n",
   );
-  console.log(
-    `Generated _meta.json with ${Object.keys(meta.symbols).length} symbols.`,
-  );
+  console.log(`Generated _meta.json with ${symbolsCount} symbols.`);
 }
 
 main();
