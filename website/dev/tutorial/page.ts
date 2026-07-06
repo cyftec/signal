@@ -1,6 +1,5 @@
 import { m } from "@cyftec/maya";
-import { HtmlPage } from "../@components";
-import { CodeBlock } from "../@components/CodeBlock";
+import { CodeBlock, HtmlPage } from "../@components";
 
 export default HtmlPage({
   title: "Tutorial",

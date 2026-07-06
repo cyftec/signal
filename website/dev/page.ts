@@ -1,6 +1,5 @@
 import { m } from "@cyftec/maya";
-import { HtmlPage } from "./@components/index.js";
-import { CodeBlock } from "./@components/CodeBlock.js";
+import { HtmlPage, CodeBlock } from "./@components";
 
 export default HtmlPage({
   children: m.Main({
@@ -12,13 +11,12 @@ export default HtmlPage({
           m.Div({
             class: "showcase-code",
             children: [
-              m.H1({
-                children: "Signals you can read in the code and see in the UI.",
-              }),
-              m.P({
-                children:
-                  "A source signal owns the state. An effect observes that state. When the value changes, the UI follows synchronously.",
-              }),
+              m.H1(
+                "Signals you can wire in the code, watch the effects in the UI.",
+              ),
+              m.P(
+                "A source signal owns the state. An effect observes that state. When the value changes, the UI follows synchronously.",
+              ),
               CodeBlock({
                 noCopy: true,
                 blocks: [
@@ -29,11 +27,11 @@ export default HtmlPage({
                   ["kw", "\n\ntype "],
                   ["str", 'LightState = "red" | "amber" | "green";'],
                   ["kw", "\n\nconst "],
+                  ["str", 'order: LightState[] = ["red", "amber", "green"];'],
+                  ["kw", "\nconst "],
                   ["str", "light = "],
                   ["fn", "signal"],
                   ["str", '<LightState>("red");'],
-                  ["kw", "\nconst "],
-                  ["str", 'order: LightState[] = ["red", "amber", "green"];'],
                   ["fn", "\n\neffect"],
                   [
                     "str",
