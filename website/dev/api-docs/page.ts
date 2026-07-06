@@ -43,41 +43,35 @@ export default HtmlPage({
           class: "doc",
           children: [
             m.Header({
-              class: "hero",
+              class: "card deep mb2",
               children: [
                 m.Div({ class: "eyebrow", children: "Reference" }),
-                m.H1({ children: "API Docs" }),
-                m.P({
-                  children:
-                    "Complete reference generated from the source tree and validated markdown.",
-                }),
+                m.H1("API Docs"),
+                m.P(
+                  "Complete reference generated from the source tree and validated markdown.",
+                ),
                 m.Div({
                   class: "stats",
-                  children: [
-                    m.Div({
-                      children: [
-                        m.Strong({ children: "Loading..." }),
-                        m.Span({ children: "core symbols" }),
-                      ],
-                    }),
-                    m.Div({
-                      children: [
-                        m.Strong({ children: "Loading..." }),
-                        m.Span({ children: "api symbols" }),
-                      ],
-                    }),
-                  ],
+                  children: m.For({
+                    subject: ["core", "api"],
+                    map: (item) =>
+                      m.Div({
+                        children: [
+                          m.Strong({ children: "Loading..." }),
+                          m.Span({ children: `${item} symbols` }),
+                        ],
+                      }),
+                  }),
                 }),
               ],
             }),
             m.Section({
               class: "panel",
               children: [
-                m.H2({ children: "Start here" }),
-                m.P({
-                  children:
-                    "Select a symbol from the navigation. Search filters both the nav and page content.",
-                }),
+                m.H2("Start here"),
+                m.P(
+                  "Select a symbol from the navigation. Search filters both the nav and page content.",
+                ),
               ],
             }),
           ],

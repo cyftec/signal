@@ -5,4 +5,4 @@ bun.lockb
 .vscode
 node_modules
 package.json
-../stage
+stage

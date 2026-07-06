@@ -9,7 +9,7 @@ export default HtmlPage({
       class: "doc",
       children: [
         m.Header({
-          class: "hero",
+          class: "card deep mb2",
           children: [
             m.Div({ class: "eyebrow", children: "Architecture" }),
             m.H1({ children: "Architecture" }),
@@ -22,37 +22,37 @@ export default HtmlPage({
           children: [
             m.H2({ children: "1. Core Runtime" }),
             m.Div({
-              class: "diagram-block",
+              class: "card diagram-block",
               children: m.Div({
                 class: "diagram-svg",
                 children: [
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "signal(input)" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "immutable value storage" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "value getter" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "register current effect" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "value setter / mutation" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({
                       children: "run dependent effects synchronously",
                     }),
@@ -82,27 +82,27 @@ export default HtmlPage({
           children: [
             m.H2({ children: "2. Dependency Tracking" }),
             m.Div({
-              class: "diagram-block",
+              class: "card diagram-block",
               children: m.Div({
                 class: "diagram-svg",
                 children: [
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "effect(fn)" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "_currentSignalEffect" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "signal.value getter" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "signal._effects" }),
                   }),
                 ],
@@ -133,34 +133,34 @@ export default HtmlPage({
           children: [
             m.H2({ children: "3. Derived Signal Model" }),
             m.Div({
-              class: "diagram-block",
+              class: "card diagram-block",
               children: m.Div({
                 class: "diagram-svg",
                 children: [
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "derive(fn)" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({
                       children: "internal derived source signal",
                     }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "internal updater effect" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "computed value" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({
                       children: "internal derived source signal",
                     }),
@@ -190,29 +190,29 @@ export default HtmlPage({
           children: [
             m.H2({ children: "4. Disposal" }),
             m.Div({
-              class: "diagram-block",
+              class: "card diagram-block",
               children: m.Div({
                 class: "diagram-svg",
                 children: [
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "dispose() called" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "canDisposeNow = true" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({
                       children: "cleanup on next signal update",
                     }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({
                       children: "removed from signal._effects",
                     }),
@@ -241,27 +241,27 @@ export default HtmlPage({
           children: [
             m.H2({ children: "5. Data Flow" }),
             m.Div({
-              class: "diagram-block",
+              class: "card diagram-block",
               children: m.Div({
                 class: "diagram-svg",
                 children: [
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "source signal" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "derived signal" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "effect" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
-                    class: "diagram-node",
+                    class: "card shallow diagram-node",
                     children: m.Span({ children: "side effects" }),
                   }),
                 ],

@@ -1,7 +1,7 @@
 :root {
   --bg: #fff;
   --fg: #666;
-  --muted: #666;
+  --muted: #888;
   --accent: #ee4440;
   --line: #666;
   --soft: #f5f5f5
@@ -30,10 +30,39 @@ pre {
   font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace
 }
 
+.relative {
+  position: relative
+}
+
+.mb1 {
+  margin-bottom: 1rem
+}
+
+.mb2 {
+  margin-bottom: 2rem
+}
+
+.card {
+  background: #fff;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--line);
+  box-shadow: 0.4rem 0.4rem 0 0 var(--line)
+}
+
+.deep {
+  border: 1px solid var(--muted);
+  box-shadow: 0.5rem 0.5rem 0 0 var(--line)
+}
+
+.shallow {
+  box-shadow: 0.2rem 0.2rem 0 0 var(--line)
+}
+
 .header {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
+  gap: 1.125rem;
   margin: 1rem 2rem;
 }
 
@@ -162,12 +191,6 @@ pre {
   background: #fff
 }
 
-.nav-link:hover,
-.nav-link.active {
-  border-color: var(--line);
-  box-shadow: 3px 3px 0 0 var(--line)
-}
-
 .nav-link span {
   display: block;
   font-weight: 700
@@ -189,35 +212,11 @@ pre {
   margin: 0 auto
 }
 
-.hero {
-  padding: 28px 28px 22px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: linear-gradient(135deg, #fff 0%, #fbfbfb 100%);
-  box-shadow: 8px 8px 0 0 var(--line);
-  margin-bottom: 24px
-}
-
 .eyebrow {
   font-size: 12px;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 12px
-}
-
-.hero h1 {
-  margin: 0 0 12px;
-  font-size: 56px;
-  line-height: 1;
-  color: #666;
-  overflow-wrap: anywhere
-}
-
-.hero p {
-  margin: 0 0 16px;
-  max-width: 60ch;
-  font-size: 18px;
-  color: #666
 }
 
 .stats {
@@ -294,12 +293,8 @@ pre {
 }
 
 .code-block {
-  position: relative;
-  border: 1px solid var(--line);
-  border-radius: 8px;
   overflow: hidden;
-  background: #fff;
-  box-shadow: 6px 6px 0 0 var(--line)
+  position: relative;
 }
 
 .code-block pre {
@@ -425,32 +420,10 @@ pre {
   color: #666
 }
 
-.showcase-code {
-  border: 1px solid var(--line);
-  box-shadow: 6px 6px 0 0 var(--line);
-  background: #fff;
-  overflow: auto;
-  max-width: 100%
-}
-
-.showcase-code pre {
-  margin: 0;
-  padding: 20px;
-  background: #fff
-}
-
-.showcase-code code {
-  font-size: 13px;
-  color: #666
-}
-
 .showcase-demo {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line);
-  box-shadow: 8px 8px 0 0 var(--line);
-  background: #fff;
   min-height: 520px
 }
 
@@ -499,11 +472,8 @@ pre {
 .traffic-light {
   width: 156px;
   padding: 18px;
-  border: 1px solid var(--line);
   display: grid;
   gap: 14px;
-  background: #fff;
-  box-shadow: 6px 6px 0 0 var(--line)
 }
 
 .lamp {
@@ -574,12 +544,8 @@ pre {
 
 .landing-card {
   display: block;
-  padding: 22px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
   text-decoration: none;
-  background: #fff;
-  box-shadow: 6px 6px 0 0 var(--line)
+  padding: 22px;
 }
 
 .landing-card span {
@@ -769,11 +735,6 @@ pre {
 }
 
 .diagram-block {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 6px 6px 0 0 var(--line);
-  padding: 18px;
-  background: #fff;
   margin: 0 0 16px;
   overflow: hidden
 }
@@ -787,12 +748,7 @@ pre {
 }
 
 .diagram-node {
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #fff;
   color: #666;
-  box-shadow: 4px 4px 0 0 var(--line)
 }
 
 .diagram-node span {
@@ -827,14 +783,6 @@ pre {
   margin-top: 10px
 }
 
-.doc .callout {
-  padding: 18px 20px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 6px 6px 0 0 var(--line)
-}
-
 @media (max-width: 980px) {
   .app-shell {
     grid-template-columns: 1fr
@@ -864,16 +812,6 @@ pre {
 
   .doc {
     max-width: none
-  }
-
-  .hero {
-    box-shadow: 5px 5px 0 0 var(--line);
-    padding: 20px 18px 16px
-  }
-
-  .hero h1 {
-    font-size: 40px;
-    line-height: 1.02
   }
 
   .panel {
@@ -942,18 +880,8 @@ pre {
     margin-bottom: 18px
   }
 
-  .showcase-code pre {
-    padding: 14px
-  }
-
-  .showcase-code code {
-    font-size: 12px;
-    line-height: 1.5
-  }
-
   .showcase-demo {
     min-height: 270px;
-    box-shadow: 5px 5px 0 0 var(--line)
   }
 
   .traffic-scene {
@@ -977,7 +905,6 @@ pre {
     width: 116px;
     padding: 12px;
     gap: 10px;
-    box-shadow: 5px 5px 0 0 var(--line)
   }
 
   .traffic-timeline {
@@ -996,7 +923,6 @@ pre {
 
   .landing-card {
     padding: 16px;
-    box-shadow: 4px 4px 0 0 var(--line)
   }
 
   .main {
@@ -1020,19 +946,6 @@ pre {
     font-size: 20px
   }
 
-  .hero {
-    padding: 16px 14px;
-    box-shadow: 4px 4px 0 0 var(--line)
-  }
-
-  .hero h1 {
-    font-size: 32px
-  }
-
-  .hero p {
-    font-size: 16px
-  }
-
   .doc p,
   .doc ul,
   .doc blockquote,
@@ -1042,10 +955,6 @@ pre {
 
   .doc ul {
     padding-left: 18px
-  }
-
-  .code-block {
-    box-shadow: 4px 4px 0 0 var(--line)
   }
 
   .code-block pre {
@@ -1060,7 +969,6 @@ pre {
 
   .diagram-block {
     padding: 12px;
-    box-shadow: 4px 4px 0 0 var(--line)
   }
 
   .diagram-svg {
@@ -1077,6 +985,5 @@ pre {
 
   .diagram-node {
     width: 100%;
-    box-shadow: 3px 3px 0 0 var(--line)
   }
 }
