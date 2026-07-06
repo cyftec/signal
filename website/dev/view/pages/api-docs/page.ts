@@ -1,7 +1,7 @@
 import { m } from "@cyftec/maya";
 import { derive, signal, tmpl } from "@cyftec/maya/signal";
 import { updateSearchParamWithoutReload } from "../../../controller";
-import { ApiMeta } from "../../../models";
+import { ApiMeta, ExportSymbol } from "../../../models";
 import { HtmlPage, Tabs } from "../../components";
 import { HeaderCard } from "./@components";
 
@@ -47,6 +47,16 @@ const symbolsDetails = derive(() => {
 const onTabChange = (index: number) => {
   selectedTabIndex.value = index;
   updateSearchParamWithoutReload({ tabIndex: `${index}` });
+};
+
+const onSymbolTap = (symbol: ExportSymbol) => {
+  const { kind, category, name } = symbol;
+  updateSearchParamWithoutReload({
+    kind,
+    category,
+    name,
+  });
+  selectedSymbolName.value = name;
 };
 
 const loadApiDocs = async () => {
@@ -110,21 +120,14 @@ export default HtmlPage({
                 class: "nav-group",
                 children: m.For({
                   subject: filteredSymbols,
-                  map: ({ category, kind, name, tsdoc }) =>
+                  map: (symbol) =>
                     m.A({
-                      class: tmpl`nav-link ${() => (selectedSymbolName.value === name ? "active" : "")}`,
-                      onclick: () => {
-                        updateSearchParamWithoutReload({
-                          kind,
-                          category,
-                          name,
-                        });
-                        selectedSymbolName.value = name;
-                      },
+                      class: tmpl`nav-link ${() => (selectedSymbolName.value === symbol.name ? "active" : "")}`,
+                      onclick: () => onSymbolTap(symbol),
                       children: [
-                        m.Small({ children: category.toUpperCase() }),
-                        m.Span({ children: name }),
-                        m.Small({ children: tsdoc.title }),
+                        m.Small({ children: symbol.category.toUpperCase() }),
+                        m.Span({ children: symbol.name }),
+                        m.Small({ children: symbol.tsdoc.title }),
                       ],
                     }),
                 }),
