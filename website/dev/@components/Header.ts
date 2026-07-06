@@ -1,7 +1,18 @@
-import { m } from "@cyftec/maya";
+import { m, MHtmlElement } from "@cyftec/maya";
+import { derive, signal } from "@cyftec/maya/signal";
+
+const locationPath = signal("/");
+
+const selectedCss = (path: string = "/") => {
+  return derive(() => (locationPath.value === path ? "selected" : ""));
+};
 
 export const Header = () =>
   m.Nav({
+    onmount: (el: MHtmlElement) => {
+      locationPath.value = window?.location?.pathname || "/";
+      console.log(locationPath.value);
+    },
     class: "header",
     children: [
       m.A({
@@ -18,9 +29,21 @@ export const Header = () =>
       m.Div({
         class: "header-links",
         children: [
-          m.A({ href: "/api-docs/", children: "API Docs" }),
-          m.A({ href: "/tutorial/", children: "Tutorial" }),
-          m.A({ href: "/architecture/", children: "Architecture" }),
+          m.A({
+            class: selectedCss("/api-docs/"),
+            href: "/api-docs/",
+            children: "API Docs",
+          }),
+          m.A({
+            class: selectedCss("/tutorial/"),
+            href: "/tutorial/",
+            children: "Tutorial",
+          }),
+          m.A({
+            class: selectedCss("/architecture/"),
+            href: "/architecture/",
+            children: "Architecture",
+          }),
         ],
       }),
     ],

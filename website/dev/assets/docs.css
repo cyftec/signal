@@ -48,6 +48,37 @@ pre {
   margin-bottom: 2rem
 }
 
+.tabs {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 0 0 18px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.tab {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.active-tab {
+  background: var(--accent);
+  color: #fff;
+}
+
+.inactive-tab {
+  background: #fff;
+  color: var(--fg);
+}
+
 .card {
   background: #fff;
   padding: 1rem 1.25rem;
@@ -101,6 +132,14 @@ pre {
   display: flex;
   gap: 1rem;
   align-items: center;
+}
+
+.header-links a.selected {
+  color: var(--accent);
+  font-weight: 700;
+  border: 1px solid var(--accent);
+  padding: 6px 10px;
+  border-radius: 8px;
 }
 
 .app-shell {

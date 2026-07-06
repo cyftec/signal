@@ -1,4 +1,4 @@
-import { component, m } from "@cyftec/maya";
+import { component, m, MHtmlElement } from "@cyftec/maya";
 import { signal } from "@cyftec/maya/signal";
 
 type CodeblockProps = {
@@ -8,11 +8,11 @@ type CodeblockProps = {
 
 export const CodeBlock = component<CodeblockProps>(({ noCopy, blocks }) => {
   const buttonLabel = signal("Copy");
-  let codeBlock: HTMLElement;
+  let codeBlock: MHtmlElement | null = null;
 
   const copyCode = async () => {
     if (!codeBlock) return;
-    await navigator.clipboard.writeText(codeBlock.textContent);
+    await (navigator as any).clipboard.writeText(codeBlock.textContent ?? "");
     buttonLabel.value = "Copied";
     setTimeout(() => (buttonLabel.value = "Copy"), 1200);
   };
@@ -32,7 +32,7 @@ export const CodeBlock = component<CodeblockProps>(({ noCopy, blocks }) => {
       }),
       m.Pre({
         children: m.Code({
-          onmount: (el: HTMLElement) => (codeBlock = el),
+          onmount: (el: MHtmlElement) => (codeBlock = el),
           "data-lang": "ts",
           children: m.For({
             subject: blocks,
