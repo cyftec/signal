@@ -3,7 +3,7 @@ import { derive, signal, tmpl } from "@cyftec/maya/signal";
 import { updateSearchParamWithoutReload } from "../../../controller";
 import { ApiMeta, ExportSymbol } from "../../../models";
 import { HtmlPage, Tabs } from "../../components";
-import { HeaderCard } from "./@components";
+import { SymbolDetails, SymbolsOverview } from "./@components";
 
 const selectedSymbolName = signal("");
 const symbolKindTabs = ["const", "all", "type"];
@@ -30,6 +30,35 @@ const filteredSymbols = derive(() => {
   }
   return symbols;
 });
+const selectedSymbol = derive(() => {
+  console.log(selectedSymbolName.value);
+  let sym: ExportSymbol = {
+    name: "",
+    kind: "const",
+    filePath: "",
+    sourcePath: "",
+    isExported: false,
+    exportKind: "default",
+    category: "core",
+    tsdoc: {
+      title: "",
+      summary: "",
+      remarks: [],
+      examples: [],
+      params: [],
+      returns: [],
+      see: [],
+      template: [],
+      deprecated: [],
+    },
+  };
+  sym =
+    filteredSymbols.value.find(
+      (fs) => selectedSymbolName.value && selectedSymbolName.value === fs.name,
+    ) || sym;
+
+  return sym;
+}, {});
 const symbolsDetails = derive(() => {
   const coreCount =
     (meta.value?.const.core.symbols.length || 0) +
@@ -49,14 +78,9 @@ const onTabChange = (index: number) => {
   updateSearchParamWithoutReload({ tabIndex: `${index}` });
 };
 
-const onSymbolTap = (symbol: ExportSymbol) => {
-  const { kind, category, name } = symbol;
-  updateSearchParamWithoutReload({
-    kind,
-    category,
-    name,
-  });
-  selectedSymbolName.value = name;
+const onSymbolSelect = (symbolName: string) => {
+  updateSearchParamWithoutReload({ name: symbolName });
+  selectedSymbolName.value = symbolName;
 };
 
 const loadApiDocs = async () => {
@@ -74,7 +98,7 @@ const onPageMount = () => {
   );
   if (params.name) selectedSymbolName.value = params.name;
 
-  console.log(params);
+  // console.log(params);
   if (params.tabIndex !== undefined) selectedTabIndex.value = +params.tabIndex;
   else
     updateSearchParamWithoutReload({ tabIndex: `${selectedTabIndex.value}` });
@@ -120,14 +144,14 @@ export default HtmlPage({
                 class: "nav-group",
                 children: m.For({
                   subject: filteredSymbols,
-                  map: (symbol) =>
+                  map: ({ name, category, tsdoc }) =>
                     m.A({
-                      class: tmpl`nav-link ${() => (selectedSymbolName.value === symbol.name ? "active" : "")}`,
-                      onclick: () => onSymbolTap(symbol),
+                      class: tmpl`nav-link ${() => (selectedSymbolName.value === name ? "active" : "")}`,
+                      onclick: () => onSymbolSelect(name),
                       children: [
-                        m.Small({ children: symbol.category.toUpperCase() }),
-                        m.Span({ children: symbol.name }),
-                        m.Small({ children: symbol.tsdoc.title }),
+                        m.Small({ children: category.toUpperCase() }),
+                        m.Span({ children: name }),
+                        m.Small({ children: tsdoc.title }),
                       ],
                     }),
                 }),
@@ -138,42 +162,11 @@ export default HtmlPage({
       }),
       m.Main({
         class: "main",
-        children: m.Article({
-          class: "doc",
-          children: [
-            HeaderCard({
-              eyebrow: "Reference",
-              title: "API Docs",
-              description:
-                "Complete reference generated from the source tree and validated markdown.",
-              children: m.If({
-                subject: symbolsDetails,
-                isTruthy: () =>
-                  m.Div({
-                    class: "stats",
-                    children: m.For({
-                      subject: symbolsDetails,
-                      map: (symbol) =>
-                        m.Div({
-                          children: [
-                            m.Strong({ children: symbol.label }),
-                            m.Span({ children: `${symbol.type} symbols` }),
-                          ],
-                        }),
-                    }),
-                  }),
-              }),
-            }),
-            m.Section({
-              class: "panel",
-              children: [
-                m.H2("Start here"),
-                m.P(
-                  "Select a symbol from the navigation. Search filters both the nav and page content.",
-                ),
-              ],
-            }),
-          ],
+        children: m.If({
+          subject: selectedSymbol.prop("name"),
+          isTruthy: () =>
+            SymbolDetails({ symbol: selectedSymbol, onSymbolSelect }),
+          isFalsy: () => SymbolsOverview({ symbolsDetails }),
         }),
       }),
     ],

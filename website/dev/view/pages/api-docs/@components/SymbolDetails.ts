@@ -1,0 +1,105 @@
+import { component, m } from "@cyftec/maya";
+import { compute, derive, tmpl } from "@cyftec/maya/signal";
+import { extractCodeTokens } from "../../../../controller";
+import { ExportSymbol } from "../../../../models";
+import { CodeBlock, Paragraph } from "../../../components";
+import { HeaderCard } from "./HeaderCard";
+
+type SymbolDetailsProps = {
+  symbol: ExportSymbol;
+  onSymbolSelect: (symbolName: string) => void;
+};
+
+export const SymbolDetails = component<SymbolDetailsProps>(
+  ({ symbol, onSymbolSelect }) => {
+    const derivedSym = derive(() => symbol.value);
+    const { kind, category, name, sourcePath, signature, tsdoc } =
+      derivedSym.props();
+    const nonNullSignature = derive(() => signature?.value || "");
+    const { title, summary, returns, remarks, params, examples, see } =
+      tsdoc.props();
+    const remarkLines = derive(() => {
+      let onlyRem = remarks.value[0] || "";
+      if (onlyRem.startsWith("-")) onlyRem = onlyRem.slice(1).trim();
+      return onlyRem.split("\n-");
+    });
+    console.log(derivedSym.value);
+    const eyebrowLabel = tmpl`${category} / ${kind}`;
+
+    return m.Article({
+      class: "doc",
+      children: [
+        HeaderCard({
+          eyebrow: eyebrowLabel,
+          title: name,
+          description: title,
+          children: m.Div({
+            class: "meta",
+            children: ["Source: ", m.Code(sourcePath)],
+          }),
+        }),
+        Paragraph({ text: summary }),
+        m.Br(),
+        m.H2("Signature"),
+        CodeBlock({
+          tokens: compute(extractCodeTokens, nonNullSignature, "ts"),
+        }),
+        m.Br(),
+        m.H2("Parameters"),
+        m.Ul(
+          m.For({
+            subject: params,
+            map: (prm) =>
+              m.Li([m.Code(prm.name), m.Span(": "), m.Span(prm.description)]),
+          }),
+        ),
+        m.Br(),
+        m.H2("Returns"),
+        m.Div(m.For({ subject: returns, map: (ret) => m.P(ret) })),
+        m.Br(),
+        m.If({
+          subject: remarkLines.length(),
+          isTruthy: () => m.H2("Remarks"),
+        }),
+        m.Ul(m.For({ subject: remarkLines, map: (rem) => m.Li(rem) })),
+        m.Br(),
+        m.H2("Examples"),
+        m.Div(
+          m.For({
+            subject: examples,
+            map: (ex) => {
+              let example = ex.replaceAll("```", "");
+              if (example.startsWith("typescript"))
+                example = example.replace("typescript", "");
+              if (example.startsWith("\n")) example = example.replace("\n", "");
+
+              return CodeBlock({
+                tokens: compute(extractCodeTokens, example, "ts"),
+              });
+            },
+          }),
+        ),
+        m.Br(),
+        m.If({ subject: see.length(), isTruthy: () => m.H2("See also") }),
+        m.Ul(
+          m.For({
+            subject: see,
+            map: (s) => {
+              const [linkStr, description] = s.split("}");
+              const symbolName = linkStr.split(" ").pop() || "";
+              if (!symbolName) return m.Span({ style: "display: none;" });
+
+              return m.Li([
+                m.A({
+                  onclick: () => onSymbolSelect(symbolName),
+                  children: symbolName,
+                }),
+                m.Span(description),
+              ]);
+            },
+          }),
+        ),
+      ],
+    });
+  },
+);
