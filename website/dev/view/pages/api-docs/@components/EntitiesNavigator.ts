@@ -16,10 +16,9 @@ export const EntitiesNavigator = component<EntitiesNavigatorProps>(
     let searchBox: MHtmlElement<HTMLInputElement>;
     const isMobile = signal(false);
     const searchInput = signal("");
-    const newExpandedState = derive<boolean>((prevState) => {
-      const mobileView = isMobile.value;
+    const newExpandedState = derive<boolean>(() => {
       const searching = !!searchInput.value;
-      return searching ? true : mobileView ? false : !prevState;
+      return searching ? true : !isMobile.value;
     });
 
     const filteredEntitiesMeta = derive(() => {
