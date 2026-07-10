@@ -16,7 +16,7 @@ import {
 
 describe("value utility", () => {
   it("should return plain value from source signal", () => {
-    const count = signal(42);
+    const count = signal(43);
     expect(count).toMatchObject({ type: "source-signal" });
     expect(value(count)).toBe(43);
   });
