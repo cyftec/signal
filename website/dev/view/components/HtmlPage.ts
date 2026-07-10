@@ -21,6 +21,11 @@ export const HtmlPage = component<HtmlPageProps>(({ title, children }) =>
             content: "width=device-width, initial-scale=1",
           }),
           m.Link({ rel: "stylesheet", href: "/assets/docs.css" }),
+          m.Link({
+            rel: "icon",
+            type: "image/x-icon",
+            href: "/assets/images/favicon.ico",
+          }),
         ],
       }),
       m.Body({
