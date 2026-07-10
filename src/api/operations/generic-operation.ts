@@ -1,4 +1,4 @@
-import { derive, type MaybeSignalValue, value } from "../../_core";
+import { derive, type MaybeSignal, value } from "../../_core";
 import type { GenericOperation, OperationResult } from "./types";
 
 /**
@@ -13,12 +13,12 @@ import type { GenericOperation, OperationResult } from "./types";
  * - Methods return new operation objects for chaining
  */
 export const genericOp = <T>(
-  input: MaybeSignalValue<T> | (() => T)
+  input: MaybeSignal<T> | (() => T),
 ): GenericOperation => {
   const evaluator: () => T =
     typeof input === "function"
       ? (input as () => T)
-      : (): T => value(input as MaybeSignalValue<T>);
+      : (): T => value(input as MaybeSignal<T>);
 
   const opResultGetters: OperationResult = {
     get truthy() {
@@ -35,8 +35,8 @@ export const genericOp = <T>(
       });
     },
     ternary: <Tr, Fl>(
-      valueIfTruthy: MaybeSignalValue<Tr>,
-      valueIfFalsy: MaybeSignalValue<Fl>
+      valueIfTruthy: MaybeSignal<Tr>,
+      valueIfFalsy: MaybeSignal<Fl>,
     ) =>
       derive(() => {
         const val = evaluator();
@@ -46,39 +46,39 @@ export const genericOp = <T>(
 
   return {
     ...opResultGetters,
-    or: (checkValue: MaybeSignalValue<any>) =>
+    or: (checkValue: MaybeSignal<any>) =>
       genericOp(() => {
         const val = evaluator();
         return !!(val || value(checkValue));
       }),
-    orNot: (checkValue: MaybeSignalValue<any>) =>
+    orNot: (checkValue: MaybeSignal<any>) =>
       genericOp(() => {
         const val = evaluator();
         return !!(val || !value(checkValue));
       }),
-    and: (checkValue: MaybeSignalValue<any>) =>
+    and: (checkValue: MaybeSignal<any>) =>
       genericOp(() => {
         const val = evaluator();
         return !!(val && value(checkValue));
       }),
-    andNot: (checkValue: MaybeSignalValue<any>) =>
+    andNot: (checkValue: MaybeSignal<any>) =>
       genericOp(() => {
         const val = evaluator();
         return !!(val && !value(checkValue));
       }),
-    equals: (compareValue: MaybeSignalValue<any>) =>
+    equals: (compareValue: MaybeSignal<any>) =>
       genericOp(() => {
         const val = evaluator();
         return val === value(compareValue);
       }),
-    notEquals: (compareValue: MaybeSignalValue<any>) =>
+    notEquals: (compareValue: MaybeSignal<any>) =>
       genericOp(() => {
         const val = evaluator();
         return val !== value(compareValue);
       }),
     orBothEqual: (
-      subjectValue: MaybeSignalValue<any>,
-      compareValue: MaybeSignalValue<any>
+      subjectValue: MaybeSignal<any>,
+      compareValue: MaybeSignal<any>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -86,8 +86,8 @@ export const genericOp = <T>(
         return !!(val || comparisonResult);
       }),
     orBothUnequal: (
-      subjectValue: MaybeSignalValue<any>,
-      compareValue: MaybeSignalValue<any>
+      subjectValue: MaybeSignal<any>,
+      compareValue: MaybeSignal<any>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -95,8 +95,8 @@ export const genericOp = <T>(
         return !!(val || comparisonResult);
       }),
     andBothEqual: (
-      subjectValue: MaybeSignalValue<any>,
-      compareValue: MaybeSignalValue<any>
+      subjectValue: MaybeSignal<any>,
+      compareValue: MaybeSignal<any>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -104,8 +104,8 @@ export const genericOp = <T>(
         return !!(val && comparisonResult);
       }),
     andBothUnequal: (
-      subjectValue: MaybeSignalValue<any>,
-      compareValue: MaybeSignalValue<any>
+      subjectValue: MaybeSignal<any>,
+      compareValue: MaybeSignal<any>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -113,8 +113,8 @@ export const genericOp = <T>(
         return !!(val && comparisonResult);
       }),
     orThisIsLT: (
-      subjectValue: MaybeSignalValue<number>,
-      compareValue: MaybeSignalValue<number>
+      subjectValue: MaybeSignal<number>,
+      compareValue: MaybeSignal<number>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -122,8 +122,8 @@ export const genericOp = <T>(
         return !!(val || comparisonResult);
       }),
     orThisIsLTE: (
-      subjectValue: MaybeSignalValue<number>,
-      compareValue: MaybeSignalValue<number>
+      subjectValue: MaybeSignal<number>,
+      compareValue: MaybeSignal<number>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -131,8 +131,8 @@ export const genericOp = <T>(
         return !!(val || comparisonResult);
       }),
     orThisIsGT: (
-      subjectValue: MaybeSignalValue<number>,
-      compareValue: MaybeSignalValue<number>
+      subjectValue: MaybeSignal<number>,
+      compareValue: MaybeSignal<number>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -140,8 +140,8 @@ export const genericOp = <T>(
         return !!(val || comparisonResult);
       }),
     orThisIsGTE: (
-      subjectValue: MaybeSignalValue<number>,
-      compareValue: MaybeSignalValue<number>
+      subjectValue: MaybeSignal<number>,
+      compareValue: MaybeSignal<number>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -149,8 +149,8 @@ export const genericOp = <T>(
         return !!(val || comparisonResult);
       }),
     andThisIsLT: (
-      subjectValue: MaybeSignalValue<number>,
-      compareValue: MaybeSignalValue<number>
+      subjectValue: MaybeSignal<number>,
+      compareValue: MaybeSignal<number>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -158,8 +158,8 @@ export const genericOp = <T>(
         return !!(val && comparisonResult);
       }),
     andThisIsLTE: (
-      subjectValue: MaybeSignalValue<number>,
-      compareValue: MaybeSignalValue<number>
+      subjectValue: MaybeSignal<number>,
+      compareValue: MaybeSignal<number>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -167,8 +167,8 @@ export const genericOp = <T>(
         return !!(val && comparisonResult);
       }),
     andThisIsGT: (
-      subjectValue: MaybeSignalValue<number>,
-      compareValue: MaybeSignalValue<number>
+      subjectValue: MaybeSignal<number>,
+      compareValue: MaybeSignal<number>,
     ) =>
       genericOp(() => {
         const val = evaluator();
@@ -176,8 +176,8 @@ export const genericOp = <T>(
         return !!(val && comparisonResult);
       }),
     andThisIsGTE: (
-      subjectValue: MaybeSignalValue<number>,
-      compareValue: MaybeSignalValue<number>
+      subjectValue: MaybeSignal<number>,
+      compareValue: MaybeSignal<number>,
     ) =>
       genericOp(() => {
         const val = evaluator();

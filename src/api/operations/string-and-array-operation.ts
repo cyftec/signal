@@ -1,4 +1,4 @@
-import { type MaybeSignalValue, value } from "../../_core";
+import { type MaybeSignal, value } from "../../_core";
 import { genericOp } from "./generic-operation";
 import type { StringAndArrayOperation } from "./types";
 
@@ -14,20 +14,20 @@ import type { StringAndArrayOperation } from "./types";
  * - Methods return new operation objects for chaining
  */
 export const stringAndArrayOp = <T extends string | unknown[]>(
-  input: MaybeSignalValue<T> | (() => T)
+  input: MaybeSignal<T> | (() => T),
 ): StringAndArrayOperation => {
   const evaluate: () => T =
     typeof input === "function"
       ? (input as () => T)
-      : (): T => value(input as MaybeSignalValue<T>);
+      : (): T => value(input as MaybeSignal<T>);
 
   return {
     ...genericOp(input),
     lengthBetween: (
-      lowerValue: MaybeSignalValue<number>,
-      upperValue: MaybeSignalValue<number>,
+      lowerValue: MaybeSignal<number>,
+      upperValue: MaybeSignal<number>,
       touchingLower = true,
-      touchingUpper = true
+      touchingUpper = true,
     ) =>
       genericOp(() => {
         const val = evaluate();
@@ -38,32 +38,32 @@ export const stringAndArrayOp = <T extends string | unknown[]>(
         const upperCheckPass = touchingUpper ? len <= upperVal : len < upperVal;
         return lowerCheckPass && upperCheckPass;
       }),
-    lengthEquals: (compareValue: MaybeSignalValue<number>) =>
+    lengthEquals: (compareValue: MaybeSignal<number>) =>
       genericOp(() => {
         const val = evaluate();
         return val.length === value(compareValue);
       }),
-    lengthNotEquals: (compareValue: MaybeSignalValue<number>) =>
+    lengthNotEquals: (compareValue: MaybeSignal<number>) =>
       genericOp(() => {
         const val = evaluate();
         return val.length !== value(compareValue);
       }),
-    lengthLT: (compareValue: MaybeSignalValue<number>) =>
+    lengthLT: (compareValue: MaybeSignal<number>) =>
       genericOp(() => {
         const val = evaluate();
         return val.length < value(compareValue);
       }),
-    lengthLTE: (compareValue: MaybeSignalValue<number>) =>
+    lengthLTE: (compareValue: MaybeSignal<number>) =>
       genericOp(() => {
         const val = evaluate();
         return val.length <= value(compareValue);
       }),
-    lengthGT: (compareValue: MaybeSignalValue<number>) =>
+    lengthGT: (compareValue: MaybeSignal<number>) =>
       genericOp(() => {
         const val = evaluate();
         return val.length > value(compareValue);
       }),
-    lengthGTE: (compareValue: MaybeSignalValue<number>) =>
+    lengthGTE: (compareValue: MaybeSignal<number>) =>
       genericOp(() => {
         const val = evaluate();
         return val.length >= value(compareValue);

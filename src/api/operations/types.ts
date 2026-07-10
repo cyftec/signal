@@ -5,22 +5,20 @@
  * creating intermediate signals.
  */
 
-import type { DerivedSignal, MaybeSignalValue } from "../../_core";
+import type { DerivedSignal, MaybeSignal } from "../../_core";
 
 /** Type for logical operations that return a `GenericOperation` for chaining. */
-type LogicalOperation<T> = (
-  checkValue: MaybeSignalValue<T>
-) => GenericOperation;
+type LogicalOperation<T> = (checkValue: MaybeSignal<T>) => GenericOperation;
 
 /** Type for comparison operations that return a `GenericOperation` for chaining. */
 type ComparisonOperation<T> = (
-  compareValue: MaybeSignalValue<T>
+  compareValue: MaybeSignal<T>,
 ) => GenericOperation;
 
 /** Type for operations combining logic with comparisons on two values. */
 type LogicWithComparisonOperation<T> = (
-  subjectValue: MaybeSignalValue<T>,
-  compareValue: MaybeSignalValue<T>
+  subjectValue: MaybeSignal<T>,
+  compareValue: MaybeSignal<T>,
 ) => GenericOperation;
 
 /**
@@ -37,8 +35,8 @@ export type OperationResult = {
   get truthyFalsyPair(): DerivedSignal<readonly [boolean, boolean]>;
   /** Returns `valueIfTruthy` if truthy, otherwise `valueIfFalsy`. */
   ternary: <Tr, Fl>(
-    valueIfTruthy: MaybeSignalValue<Tr>,
-    valueIfFalsy: MaybeSignalValue<Fl>
+    valueIfTruthy: MaybeSignal<Tr>,
+    valueIfFalsy: MaybeSignal<Fl>,
   ) => DerivedSignal<Tr | Fl>;
 };
 
@@ -86,14 +84,14 @@ export type GenericOperation = OperationResult & {
 
 /** Type for confinement/range check operations. */
 type ConfinementCheckOperation = (
-  lowerValue: MaybeSignalValue<number>,
-  upperValue: MaybeSignalValue<number>,
+  lowerValue: MaybeSignal<number>,
+  upperValue: MaybeSignal<number>,
   touchingLower?: boolean,
-  touchingUpper?: boolean
+  touchingUpper?: boolean,
 ) => GenericOperation;
 
 /** Type for math operations that return `NumberOperation` for chaining. */
-type MathOperation = (num: MaybeSignalValue<number>) => NumberOperation;
+type MathOperation = (num: MaybeSignal<number>) => NumberOperation;
 
 /**
  * Number operation with math operations and comparisons.
@@ -158,9 +156,9 @@ export type StringAndArrayOperation = GenericOperation & {
  * - Number values map to `NumberOperation`
  * - String or array values map to `StringAndArrayOperation`
  * - Other types map to `GenericOperation`
-*/
+ */
 export type Operation<T> = T extends number
   ? NumberOperation
   : T extends string | unknown[]
-  ? StringAndArrayOperation
-  : GenericOperation;
+    ? StringAndArrayOperation
+    : GenericOperation;

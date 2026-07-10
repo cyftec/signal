@@ -150,7 +150,7 @@ export const valueIsNonSignalStringArray = (input: any): boolean =>
  * - Returns false for other types
  * - Returns false for `null` and `undefined`
  *
- * @see {@link MaybeSignalValue} - For the input type
+ * @see {@link MaybeSignal} - For the input type
  * @see {@link value} - For unwrapping signalified objects
  */
 export const valueIsMaybeSignalValueOfStringOrArray = (input: any): boolean =>

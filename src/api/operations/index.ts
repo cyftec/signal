@@ -1,4 +1,4 @@
-import { type MaybeSignalValue, value } from "../../_core";
+import { type MaybeSignal, value } from "../../_core";
 import { genericOp } from "./generic-operation";
 import { numberOp } from "./number-operation";
 import { stringAndArrayOp } from "./string-and-array-operation";
@@ -39,24 +39,24 @@ import type { Operation } from "./types";
  * - Final results are obtained via getters such as `truthy`, `falsy`, and `result`
  *
  * @see {@link Operation} - For the operation type union
- * @see {@link MaybeSignalValue} - For the input type
+ * @see {@link MaybeSignal} - For the input type
  */
-export const op = <T>(input: MaybeSignalValue<T> | (() => T)): Operation<T> => {
+export const op = <T>(input: MaybeSignal<T> | (() => T)): Operation<T> => {
   const evaluator: () => T =
     typeof input === "function"
       ? (input as () => T)
-      : (): T => value(input as MaybeSignalValue<T>);
+      : (): T => value(input as MaybeSignal<T>);
   const val = evaluator();
 
   return (
     typeof val === "number"
-      ? numberOp(input as MaybeSignalValue<number> | (() => number))
+      ? numberOp(input as MaybeSignal<number> | (() => number))
       : typeof val === "string" || Array.isArray(val)
-      ? stringAndArrayOp(
-          input as
-            | MaybeSignalValue<string | unknown[]>
-            | (() => string | unknown[])
-        )
-      : genericOp(input)
+        ? stringAndArrayOp(
+            input as
+              | MaybeSignal<string | unknown[]>
+              | (() => string | unknown[]),
+          )
+        : genericOp(input)
   ) as Operation<T>;
 };

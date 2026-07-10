@@ -1,4 +1,4 @@
-import type { SignalifiedObject, MaybeSignalValue } from "../types";
+import type { SignalifiedObject, MaybeSignal } from "../types";
 import { valueIsSignalifiedObject } from "./type-checkers";
 
 /**
@@ -26,10 +26,10 @@ import { valueIsSignalifiedObject } from "./type-checkers";
  * - Works with `null` and `undefined`
  * - Works with nested structures
  *
- * @see {@link MaybeSignalValue} - For the input type
+ * @see {@link MaybeSignal} - For the input type
  * @see {@link SignalifiedObject} - For signalified object types
  */
-export const value = <T>(input: MaybeSignalValue<T>): T =>
+export const value = <T>(input: MaybeSignal<T>): T =>
   valueIsSignalifiedObject(input)
     ? ((input as SignalifiedObject<T>).value as T)
     : (input as T);

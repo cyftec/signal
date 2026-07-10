@@ -22,18 +22,6 @@ export type Signal<T> = SourceSignal<T> | DerivedSignal<T>;
 export type MaybeNonSignal<T> = T | NonSignal<T>;
 
 /**
- * A union type representing a signal or a plain value.
- *
- * This is commonly used for function parameters that can accept either
- * a signal or a plain value of the same type.
- *
- * @template T - The type of value
- *
- * @see {@link Signal} - For signal types
- */
-export type MaybeSignal<T> = T | Signal<T>;
-
-/**
  * A union type representing a source signal or a plain value.
  *
  * @template T - The type of value
@@ -70,7 +58,7 @@ export type SignalifiedObject<T> = NonSignal<T> | Signal<T>;
  *
  * @see {@link SignalifiedObject} - For signalified objects
  */
-export type MaybeSignalValue<T> = T | NonSignal<T> | Signal<T>;
+export type MaybeSignal<T> = T | NonSignal<T> | Signal<T>;
 
 /**
  * A utility type that removes `null` and `undefined` from signal realm types.
@@ -82,27 +70,41 @@ export type MaybeSignalValue<T> = T | NonSignal<T> | Signal<T>;
 export type NonNullSignalValue<S> = S extends null | undefined
   ? never
   : S extends SourceSignal<infer SS | null | undefined>
-  ? SourceSignal<SS>
-  : S extends DerivedSignal<infer DS | null | undefined>
-  ? DerivedSignal<DS>
-  : S extends NonSignal<infer NS | null | undefined>
-  ? NonSignal<NS>
-  : S;
+    ? SourceSignal<SS>
+    : S extends DerivedSignal<infer DS | null | undefined>
+      ? DerivedSignal<DS>
+      : S extends NonSignal<infer NS | null | undefined>
+        ? NonSignal<NS>
+        : S;
 
 /**
- * Converts a tuple type to a tuple of `MaybeSignalValue` types.
+ * Converts a tuple type to a tuple of `MaybeSignal` types.
  *
- * Functions are left as-is, while other values are converted to MaybeSignalValue.
+ * Functions are left as-is, while other values are converted to MaybeSignal.
  *
  * @template T - The tuple type to convert
  *
- * @see {@link MaybeSignalValue} - For the MaybeSignalValue type
+ * @see {@link MaybeSignal} - For the MaybeSignal type
  */
 export type MaybeSignalValues<T extends any[]> = {
   [K in keyof T]: T[K] extends (...args: any[]) => any
     ? T[K]
-    : MaybeSignalValue<T[K]>;
+    : MaybeSignal<T[K]>;
 };
+
+/**
+ * Extracts a plain value from a `MaybeSignal`.
+ *
+ * If the input is a signalified object, returns the wrapped value.
+ * Otherwise, returns the input as-is.
+ *
+ * @template I - The MaybeSignal type
+ *
+ * @see {@link MaybeSignal} - For the MaybeSignal type
+ * @see {@link SignalifiedObject} - For signalified objects
+ */
+export type PlainValue<I extends MaybeSignal<unknown>> =
+  I extends SignalifiedObject<infer T> ? T : I;
 
 /**
  * Extracts plain values from a `MaybeSignalValues` tuple.
@@ -115,19 +117,5 @@ export type MaybeSignalValues<T extends any[]> = {
  * @see {@link MaybeSignalValues} - For the MaybeSignalValues type
  */
 export type PlainValues<T extends MaybeSignalValues<any[]>> = {
-  [K in keyof T]: T[K] extends MaybeSignalValue<infer V> ? V : never;
+  [K in keyof T]: T[K] extends MaybeSignal<infer V> ? V : never;
 };
-
-/**
- * Extracts a plain value from a `MaybeSignalValue`.
- *
- * If the input is a signalified object, returns the wrapped value.
- * Otherwise, returns the input as-is.
- *
- * @template I - The MaybeSignalValue type
- *
- * @see {@link MaybeSignalValue} - For the MaybeSignalValue type
- * @see {@link SignalifiedObject} - For signalified objects
- */
-export type PlainValue<I extends MaybeSignalValue<unknown>> =
-  I extends SignalifiedObject<infer T> ? T : I;

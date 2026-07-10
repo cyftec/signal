@@ -1,4 +1,4 @@
-import { derive, type MaybeSignalValue, value } from "../../_core";
+import { derive, type MaybeSignal, value } from "../../_core";
 import { genericOp } from "./generic-operation";
 import type { NumberOperation } from "./types";
 
@@ -14,53 +14,53 @@ import type { NumberOperation } from "./types";
  * - Methods return new operation objects for chaining
  */
 export const numberOp = (
-  input: MaybeSignalValue<number> | (() => number)
+  input: MaybeSignal<number> | (() => number),
 ): NumberOperation => {
   const evaluate: () => number =
     typeof input === "function"
       ? (input as () => number)
-      : (): number => value(input as MaybeSignalValue<number>);
+      : (): number => value(input as MaybeSignal<number>);
 
   return {
     ...genericOp(input),
     get result() {
       return derive(evaluate);
     },
-    add: (num: MaybeSignalValue<number>) =>
+    add: (num: MaybeSignal<number>) =>
       numberOp(() => {
         const val = evaluate();
         return val + value(num);
       }),
-    sub: (num: MaybeSignalValue<number>) =>
+    sub: (num: MaybeSignal<number>) =>
       numberOp(() => {
         const val = evaluate();
         return val - value(num);
       }),
-    mul: (num: MaybeSignalValue<number>) =>
+    mul: (num: MaybeSignal<number>) =>
       numberOp(() => {
         const val = evaluate();
         return val * value(num);
       }),
-    div: (num: MaybeSignalValue<number>) =>
+    div: (num: MaybeSignal<number>) =>
       numberOp(() => {
         const val = evaluate();
         return val / value(num);
       }),
-    mod: (num: MaybeSignalValue<number>) =>
+    mod: (num: MaybeSignal<number>) =>
       numberOp(() => {
         const val = evaluate();
         return val % value(num);
       }),
-    pow: (num: MaybeSignalValue<number>) =>
+    pow: (num: MaybeSignal<number>) =>
       numberOp(() => {
         const val = evaluate();
         return val ** value(num);
       }),
     isBetween: (
-      lowerValue: MaybeSignalValue<number>,
-      upperValue: MaybeSignalValue<number>,
+      lowerValue: MaybeSignal<number>,
+      upperValue: MaybeSignal<number>,
       touchingLower = true,
-      touchingUpper = true
+      touchingUpper = true,
     ) =>
       genericOp(() => {
         const val = evaluate();
@@ -70,13 +70,13 @@ export const numberOp = (
         const upperCheckPass = touchingUpper ? val <= upperVal : val < upperVal;
         return lowerCheckPass && upperCheckPass;
       }),
-    isLT: (compareValue: MaybeSignalValue<number>) =>
+    isLT: (compareValue: MaybeSignal<number>) =>
       genericOp(() => evaluate() < value(compareValue)),
-    isLTE: (compareValue: MaybeSignalValue<number>) =>
+    isLTE: (compareValue: MaybeSignal<number>) =>
       genericOp(() => evaluate() <= value(compareValue)),
-    isGT: (compareValue: MaybeSignalValue<number>) =>
+    isGT: (compareValue: MaybeSignal<number>) =>
       genericOp(() => evaluate() > value(compareValue)),
-    isGTE: (compareValue: MaybeSignalValue<number>) =>
+    isGTE: (compareValue: MaybeSignal<number>) =>
       genericOp(() => evaluate() >= value(compareValue)),
   };
 };
