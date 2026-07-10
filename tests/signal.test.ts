@@ -724,17 +724,6 @@ describe("derive - number signals", () => {
   });
 });
 
-describe("derive - boolean signals", () => {
-  it("should have 'negated' method on derived boolean signal", () => {
-    const bool = signal(true);
-    const derived = derive(() => bool.value);
-    const neg = derived.negated();
-    expect(neg.value).toBe(false);
-    bool.value = false;
-    expect(neg.value).toBe(true);
-  });
-});
-
 describe("dispose utility", () => {
   it("should dispose single derived signal", () => {
     const count = signal(1);
@@ -1163,15 +1152,6 @@ describe("signal - boolean values", () => {
     bool.toggle();
     expect(bool.value).toBe(true);
   });
-
-  // Custom non-mutating methods
-  it("should have 'negated' getter returning derived signal", () => {
-    const bool = signal(true);
-    const neg = bool.negated();
-    expect(neg.value).toBe(false);
-    bool.value = false;
-    expect(neg.value).toBe(true);
-  });
 });
 
 describe("signal - nullable types", () => {
@@ -1214,15 +1194,11 @@ describe("signal - nullable types", () => {
   it("should handle boolean | undefined with undefined initial value", () => {
     const bool = signal<boolean | undefined>(undefined, false);
     expect(bool.value).toBeUndefined();
-    // Check if methods are available even when value is undefined
-    expect(typeof (bool as Signal<boolean>).negated).toBe("function");
   });
 
   it("should handle boolean | null with null initial value", () => {
     const bool = signal<boolean | null>(null, false);
     expect(bool.value).toBeNull();
-    // Check if methods are available even when value is null
-    expect(typeof (bool as Signal<boolean>).negated).toBe("function");
   });
 
   it("should handle array | undefined with undefined initial value", () => {
@@ -1282,10 +1258,7 @@ describe("signal - nullable types", () => {
   it("should handle boolean | undefined transitioning from undefined to boolean", () => {
     const bool = signal<boolean | undefined>(undefined, false);
     expect(bool.value).toBeUndefined();
-    const neg = (bool as Signal<boolean>).negated();
-    expect(neg.value).toBe(true);
     bool.value = true;
     expect(bool.value).toBe(true);
-    expect(neg.value).toBe(false);
   });
 });

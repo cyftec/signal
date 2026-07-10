@@ -1,9 +1,7 @@
 import { isPlainObject } from "@cyftec/immut";
 import {
   ArraySignalNonMutatingMethodsObject,
-  BooleanSignalNonMutatingMethodsObject,
   getArraySignalNonMutatingMethodsObject,
-  getBooleanSignalNonMutatingMethodsObject,
   getNumberSignalMethodsObject,
   getObjectSignalNonMutatingMethodsObject,
   getStringSignalMethodsObject,
@@ -45,9 +43,7 @@ export type NonSignal<T> = BaseNonSignal<T> &
         ? StringSignalNonMutatingMethodsObject
         : T extends number
           ? NumberSignalNonMutatingMethodsObject
-          : T extends boolean
-            ? BooleanSignalNonMutatingMethodsObject
-            : {});
+          : {});
 
 /**
  * Wraps a plain value in a NonSignal object for runtime type discrimination.
@@ -110,15 +106,6 @@ export const getNonSignalObject = <T>(input: T): NonSignal<T> => {
     return Object.assign(
       baseNonSignal,
       getNumberSignalMethodsObject(baseNonSignal as BaseNonSignal<number>),
-    ) as any;
-  }
-
-  if (typeof input === "boolean") {
-    return Object.assign(
-      baseNonSignal,
-      getBooleanSignalNonMutatingMethodsObject(
-        baseNonSignal as BaseNonSignal<boolean>,
-      ),
     ) as any;
   }
 

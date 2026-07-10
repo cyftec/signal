@@ -1,5 +1,10 @@
 import { newVal } from "@cyftec/immut";
-import { derive, type BaseSignalifiedObject } from "../signals";
+import {
+  derive,
+  MaybeSignal,
+  MaybeSignalValues,
+  type BaseSignalifiedObject,
+} from "../signals";
 import {
   ArraySignalCustomMutatingMethodsObject,
   ArraySignalCustomNonMutatingMethodsObject,
@@ -9,6 +14,7 @@ import {
   ArraySignalNonMutatingMethodsObject,
   ArraySourceSignalMethodsObject,
 } from "./types";
+import { getDesignalifiedMethodParams, value } from "../../utils";
 
 /**
  * Creates intrinsic mutating methods for array signals.
@@ -36,24 +42,52 @@ export const getArraySignalIntrinsicMutatingMethodsObject = <T extends any[]>(
     });
 
   return {
-    copyWithin: (...args: Parameters<Array<T[number]>["copyWithin"]>) =>
-      signalUpdator((newValue) => newValue.copyWithin(...args)),
-    fill: (...args: Parameters<Array<T[number]>["fill"]>) =>
-      signalUpdator((newValue) => newValue.fill(...args)),
-    pop: (...args: Parameters<Array<T[number]>["pop"]>) =>
-      signalUpdator((newValue) => newValue.pop(...args)),
-    push: (...args: Parameters<Array<T[number]>["push"]>) =>
-      signalUpdator((newValue) => newValue.push(...args)),
-    reverse: (...args: Parameters<Array<T[number]>["reverse"]>) =>
-      signalUpdator((newValue) => newValue.reverse(...args)),
-    shift: (...args: Parameters<Array<T[number]>["shift"]>) =>
-      signalUpdator((newValue) => newValue.shift(...args)),
-    sort: (...args: Parameters<Array<T[number]>["sort"]>) =>
-      signalUpdator((newValue) => newValue.sort(...args)),
-    splice: (...args: Parameters<Array<T[number]>["splice"]>) =>
-      signalUpdator((newValue) => newValue.splice(...args)),
-    unshift: (...args: Parameters<Array<T[number]>["unshift"]>) =>
-      signalUpdator((newValue) => newValue.unshift(...args)),
+    copyWithin: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["copyWithin"]>>
+    ) =>
+      signalUpdator((newValue) =>
+        newValue.copyWithin(...getDesignalifiedMethodParams(...args)),
+      ),
+    fill: (...args: MaybeSignalValues<Parameters<Array<T[number]>["fill"]>>) =>
+      signalUpdator((newValue) =>
+        newValue.fill(...getDesignalifiedMethodParams(...args)),
+      ),
+    pop: (...args: MaybeSignalValues<Parameters<Array<T[number]>["pop"]>>) =>
+      signalUpdator((newValue) =>
+        newValue.pop(...getDesignalifiedMethodParams(...args)),
+      ),
+    push: (...args: MaybeSignalValues<Parameters<Array<T[number]>["push"]>>) =>
+      signalUpdator((newValue) =>
+        newValue.push(...getDesignalifiedMethodParams(...args)),
+      ),
+    reverse: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["reverse"]>>
+    ) =>
+      signalUpdator((newValue) =>
+        newValue.reverse(...getDesignalifiedMethodParams(...args)),
+      ),
+    shift: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["shift"]>>
+    ) =>
+      signalUpdator((newValue) =>
+        newValue.shift(...getDesignalifiedMethodParams(...args)),
+      ),
+    sort: (...args: MaybeSignalValues<Parameters<Array<T[number]>["sort"]>>) =>
+      signalUpdator((newValue) =>
+        newValue.sort(...getDesignalifiedMethodParams(...args)),
+      ),
+    splice: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["splice"]>>
+    ) =>
+      signalUpdator((newValue) =>
+        newValue.splice(...getDesignalifiedMethodParams(...args)),
+      ),
+    unshift: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["unshift"]>>
+    ) =>
+      signalUpdator((newValue) =>
+        newValue.unshift(...getDesignalifiedMethodParams(...args)),
+      ),
   };
 };
 
@@ -75,19 +109,21 @@ export const getArraySignalCustomMutatingMethodsObject = <T extends any[]>(
   valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
 ): ArraySignalCustomMutatingMethodsObject<T> => ({
   /** Keeps items where the predicate returns true. */
-  keep: (...args: Parameters<Array<T[number]>["filter"]>) =>
+  keep: (...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>) =>
     valueSetter((oldValue: T) => {
-      return oldValue.filter(...args) as T;
+      return oldValue.filter(...getDesignalifiedMethodParams(...args)) as T;
     }),
   /** Removes items where the predicate returns true. */
-  remove: (...args: Parameters<Array<T[number]>["filter"]>) => {
+  remove: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
+  ) => {
     const predicate = args[0];
     const negativeLogicPredicate = (
       ...predicateArgs: Parameters<typeof predicate>
     ) => !predicate(...predicateArgs);
     args[0] = negativeLogicPredicate;
     valueSetter((oldValue: T) => {
-      return oldValue.filter(...args) as T;
+      return oldValue.filter(...getDesignalifiedMethodParams(...args)) as T;
     });
   },
 });
@@ -129,29 +165,66 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
   baseSignalifiedArrayObject: BaseSignalifiedObject<T>,
 ): ArraySignalIntrinsicNonMutatingMethodsObject<T> => {
   return {
-    at: (...args: Parameters<Array<T[number]>["at"]>) =>
-      derive(() => baseSignalifiedArrayObject.value.at(...args)),
-    concat: (...args: Parameters<Array<T[number]>["concat"]>) =>
-      derive(
-        () =>
-          baseSignalifiedArrayObject.value.concat(
-            ...(args as any),
-          ) as T[number][],
+    at: (...args: MaybeSignalValues<Parameters<Array<T[number]>["at"]>>) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.at(
+          ...getDesignalifiedMethodParams(...args),
+        ),
       ),
-    every: (...args: Parameters<Array<T[number]>["every"]>) =>
-      derive(() => baseSignalifiedArrayObject.value.every(...args)),
-    filter: (...args: Parameters<Array<T[number]>["filter"]>) =>
-      derive(
-        () => baseSignalifiedArrayObject.value.filter(...args) as T[number][],
+    concat: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["concat"]>>
+    ) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.concat(
+          ...getDesignalifiedMethodParams(...args),
+        ),
       ),
-    find: (...args: Parameters<Array<T[number]>["find"]>) =>
-      derive(() => baseSignalifiedArrayObject.value.find(...args)),
-    findIndex: (...args: Parameters<Array<T[number]>["findIndex"]>) =>
-      derive(() => baseSignalifiedArrayObject.value.findIndex(...args)),
-    findLast: (...args: Parameters<Array<T[number]>["findLast"]>) =>
-      derive(() => baseSignalifiedArrayObject.value.findLast(...args)),
-    findLastIndex: (...args: Parameters<Array<T[number]>["findLastIndex"]>) =>
-      derive(() => baseSignalifiedArrayObject.value.findLastIndex(...args)),
+    every: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["every"]>>
+    ) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.every(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
+    filter: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
+    ) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.filter(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
+    find: (...args: MaybeSignalValues<Parameters<Array<T[number]>["find"]>>) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.find(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
+    findIndex: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["findIndex"]>>
+    ) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.findIndex(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
+    findLast: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["findLast"]>>
+    ) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.findLast(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
+    findLastIndex: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["findLastIndex"]>>
+    ) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.findLastIndex(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
     length: () => derive(() => baseSignalifiedArrayObject.value.length),
     map: <U>(mapFn: (item: T[number], index: number, array: T) => U) =>
       derive(() => baseSignalifiedArrayObject.value.map(mapFn as any) as U[]),
@@ -162,13 +235,13 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
         currentIndex: number,
         array: T,
       ) => U,
-      initialValue: U,
+      initialValue: MaybeSignal<U>,
     ) =>
       derive(
         () =>
           baseSignalifiedArrayObject.value.reduce(
             reducerFn as any,
-            initialValue,
+            value(initialValue),
           ) as U,
       ),
     reduceRight: <U>(
@@ -178,30 +251,44 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
         currentIndex: number,
         array: T,
       ) => U,
-      initialValue: U,
+      initialValue: MaybeSignal<U>,
     ) =>
       derive(
         () =>
           baseSignalifiedArrayObject.value.reduceRight(
             reducerFn as any,
-            initialValue,
+            value(initialValue),
           ) as U,
       ),
-    some: (...args: Parameters<Array<T[number]>["some"]>) =>
-      derive(() => baseSignalifiedArrayObject.value.some(...args)),
-    toReversed: (...args: Parameters<Array<T[number]>["toReversed"]>) =>
-      derive(
-        () =>
-          baseSignalifiedArrayObject.value.toReversed(...args) as T[number][],
+    some: (...args: MaybeSignalValues<Parameters<Array<T[number]>["some"]>>) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.some(
+          ...getDesignalifiedMethodParams(...args),
+        ),
       ),
-    toSorted: (...args: Parameters<Array<T[number]>["toSorted"]>) =>
-      derive(
-        () => baseSignalifiedArrayObject.value.toSorted(...args) as T[number][],
+    toReversed: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["toReversed"]>>
+    ) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.toReversed(
+          ...getDesignalifiedMethodParams(...args),
+        ),
       ),
-    toSpliced: (...args: Parameters<Array<T[number]>["toSpliced"]>) =>
-      derive(
-        () =>
-          baseSignalifiedArrayObject.value.toSpliced(...args) as T[number][],
+    toSorted: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSorted"]>>
+    ) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.toSorted(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
+    toSpliced: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSpliced"]>>
+    ) =>
+      derive(() =>
+        baseSignalifiedArrayObject.value.toSpliced(
+          ...getDesignalifiedMethodParams(...args),
+        ),
       ),
   };
 };
@@ -231,9 +318,14 @@ export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
         return returnVal;
       });
     },
-    partition: (...args: Parameters<Array<T[number]>["filter"]>) => {
+    partition: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
+    ) => {
       const conditionPassArray = derive(
-        () => baseSignalifiedArrayObject.value.filter(...args) as T,
+        () =>
+          baseSignalifiedArrayObject.value.filter(
+            ...getDesignalifiedMethodParams(...args),
+          ) as T,
       );
       const conditionFailArray = derive(
         () =>

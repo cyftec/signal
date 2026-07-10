@@ -2,13 +2,11 @@ import { isPlainObject } from "@cyftec/immut";
 import { effect } from "../effect";
 import {
   getArraySignalNonMutatingMethodsObject,
-  getBooleanSignalNonMutatingMethodsObject,
   getNumberSignalMethodsObject,
   getObjectSignalNonMutatingMethodsObject,
   getStringSignalMethodsObject,
   ObjectSignalNonMutatingMethodsObject,
   type ArraySignalNonMutatingMethodsObject,
-  type BooleanSignalNonMutatingMethodsObject,
   type NumberSignalNonMutatingMethodsObject,
   type StringSignalNonMutatingMethodsObject,
 } from "../data-specific-methods";
@@ -47,9 +45,7 @@ export type DerivedSignal<T> = BaseDerivedSignal<T> &
         ? StringSignalNonMutatingMethodsObject
         : T extends number
           ? NumberSignalNonMutatingMethodsObject
-          : T extends boolean
-            ? BooleanSignalNonMutatingMethodsObject
-            : {});
+          : {});
 
 /**
  * A function that computes a derived signal's value.
@@ -171,15 +167,6 @@ export const derive = <T>(
       baseDerivedSignal,
       getNumberSignalMethodsObject(
         baseDerivedSignal as BaseDerivedSignal<number>,
-      ),
-    ) as any;
-  }
-
-  if (typeof derivedSource.value === "boolean") {
-    return Object.assign(
-      baseDerivedSignal,
-      getBooleanSignalNonMutatingMethodsObject(
-        baseDerivedSignal as BaseDerivedSignal<boolean>,
       ),
     ) as any;
   }

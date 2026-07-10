@@ -256,12 +256,10 @@ export const signal = <T>(
             : typeof nonNullableInitial === "boolean"
               ? Object.assign(
                   baseSourceSignal,
-                  getBooleanSignalMethodsObject(
-                    (mutatorMethod) =>
-                      setValueAndRunEffects(
-                        mutatorMethod(_value as boolean) as T,
-                      ),
-                    baseSourceSignal as BaseSourceSignal<boolean>,
+                  getBooleanSignalMethodsObject((mutatorMethod) =>
+                    setValueAndRunEffects(
+                      mutatorMethod(_value as boolean) as T,
+                    ),
                   ),
                 )
               : baseSourceSignal

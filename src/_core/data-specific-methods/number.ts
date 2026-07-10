@@ -1,4 +1,10 @@
-import { type BaseSignalifiedObject, derive } from "../signals";
+import { getDesignalifiedMethodParams, value } from "../../utils";
+import {
+  type BaseSignalifiedObject,
+  derive,
+  MaybeSignal,
+  MaybeSignalValues,
+} from "../signals";
 import {
   NumberSignalCustomNonMutatingMethodsObject,
   NumberSignalIntrinsicNonMutatingMethodsObject,
@@ -23,18 +29,37 @@ export const getNumberSignalIntrinsicNonMutatingMethodsObject = (
   baseNumberSignalifiedObject: BaseSignalifiedObject<number>,
 ): NumberSignalIntrinsicNonMutatingMethodsObject => {
   return {
-    toExponential: (...args: Parameters<number["toExponential"]>) =>
-      derive(() => baseNumberSignalifiedObject.value.toExponential(...args)),
-    toFixed: (...args: Parameters<number["toFixed"]>) =>
-      derive(() => baseNumberSignalifiedObject.value.toFixed(...args)),
-    toPrecision: (...args: Parameters<number["toPrecision"]>) =>
-      derive(() => baseNumberSignalifiedObject.value.toPrecision(...args)),
-    toLocaleString: (
-      locales?: string | string[] | undefined,
-      options?: Intl.NumberFormatOptions,
+    toExponential: (
+      ...args: MaybeSignalValues<Parameters<number["toExponential"]>>
     ) =>
       derive(() =>
-        baseNumberSignalifiedObject.value.toLocaleString(locales, options),
+        baseNumberSignalifiedObject.value.toExponential(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
+    toFixed: (...args: MaybeSignalValues<Parameters<number["toFixed"]>>) =>
+      derive(() =>
+        baseNumberSignalifiedObject.value.toFixed(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
+    toPrecision: (
+      ...args: MaybeSignalValues<Parameters<number["toPrecision"]>>
+    ) =>
+      derive(() =>
+        baseNumberSignalifiedObject.value.toPrecision(
+          ...getDesignalifiedMethodParams(...args),
+        ),
+      ),
+    toLocaleString: (
+      locales?: MaybeSignal<string | string[] | undefined>,
+      options?: MaybeSignal<Intl.NumberFormatOptions>,
+    ) =>
+      derive(() =>
+        baseNumberSignalifiedObject.value.toLocaleString(
+          value(locales),
+          value(options),
+        ),
       ),
   };
 };
@@ -55,14 +80,16 @@ export const getNumberSignalCustomNonMutatingMethodsObject = (
   baseNumberSignalifiedObject: BaseSignalifiedObject<number>,
 ): NumberSignalCustomNonMutatingMethodsObject => {
   return {
-    toConfined: (start: number, end: number) =>
-      derive(() =>
-        baseNumberSignalifiedObject.value < start
-          ? start
-          : baseNumberSignalifiedObject.value > end
-            ? end
-            : baseNumberSignalifiedObject.value,
-      ),
+    toConfined: (start: MaybeSignal<number>, end: MaybeSignal<number>) =>
+      derive(() => {
+        const startValue = value(start);
+        const endValue = value(end);
+        return baseNumberSignalifiedObject.value < startValue
+          ? startValue
+          : baseNumberSignalifiedObject.value > endValue
+            ? endValue
+            : baseNumberSignalifiedObject.value;
+      }),
   };
 };
 
