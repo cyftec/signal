@@ -356,7 +356,7 @@
             "`true` if the unwrapped value is a string or array, `false` otherwise"
           ],
           "see": [
-            "{@link MaybeSignalValue} - For the input type",
+            "{@link MaybeSignal} - For the input type",
             "{@link value} - For unwrapping signalified objects"
           ],
           "template": [],
@@ -371,7 +371,7 @@
         "isExported": true,
         "exportKind": "named",
         "category": "core",
-        "signature": "export const value = <T>(input: MaybeSignalValue<T>): T =>\n  valueIsSignalifiedObject(input)\n    ? ((input as SignalifiedObject<T>).value as T)\n    : (input as T);",
+        "signature": "export const value = <T>(input: MaybeSignal<T>): T =>\n  valueIsSignalifiedObject(input)\n    ? ((input as SignalifiedObject<T>).value as T)\n    : (input as T);",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
@@ -393,7 +393,7 @@
             "The unwrapped plain value"
           ],
           "see": [
-            "{@link MaybeSignalValue} - For the input type",
+            "{@link MaybeSignal} - For the input type",
             "{@link SignalifiedObject} - For signalified object types"
           ],
           "template": [
@@ -1401,7 +1401,7 @@
         "isExported": true,
         "exportKind": "named",
         "category": "api",
-        "signature": "export const stringAndArrayOp = <T extends string | unknown[]>(\n  input: MaybeSignalValue<T> | (() => T)\n): StringAndArrayOperation => {\n  const evaluate: () => T =\n    typeof input === \"function\"\n      ? (input as () => T)\n      : (): T => value(input as MaybeSignalValue<T>);\n\n  return {\n    ...genericOp(input),\n    lengthBetween: (\n      lowerValue: MaybeSignalValue<number>,\n      upperValue: MaybeSignalValue<number>,\n      touchingLower = true,\n      touchingUpper = true\n    ) =>\n      genericOp(() => {\n        const val = evaluate();\n        const len = val.length;\n        const lowerVal = value(lowerValue);\n        const upperVal = value(upperValue);\n        const lowerCheckPass = touchingLower ? len >= lowerVal : len > lowerVal;\n        const upperCheckPass = touchingUpper ? len <= upperVal : len < upperVal;\n        return lowerCheckPass && upperCheckPass;\n      }),\n    lengthEquals: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length === value(compareValue);\n      }),\n    lengthNotEquals: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length !== value(compareValue);\n      }),\n    lengthLT: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length < value(compareValue);\n      }),\n    lengthLTE: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length <= value(compareValue);\n      }),\n    lengthGT: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length > value(compareValue);\n      }),\n    lengthGTE: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length >= value(compareValue);\n      }),\n  };\n};",
+        "signature": "export const stringAndArrayOp = <T extends string | unknown[]>(\n  input: MaybeSignal<T> | (() => T),\n): StringAndArrayOperation => {\n  const evaluate: () => T =\n    typeof input === \"function\"\n      ? (input as () => T)\n      : (): T => value(input as MaybeSignal<T>);\n\n  return {\n    ...genericOp(input),\n    lengthBetween: (\n      lowerValue: MaybeSignal<number>,\n      upperValue: MaybeSignal<number>,\n      touchingLower = true,\n      touchingUpper = true,\n    ) =>\n      genericOp(() => {\n        const val = evaluate();\n        const len = val.length;\n        const lowerVal = value(lowerValue);\n        const upperVal = value(upperValue);\n        const lowerCheckPass = touchingLower ? len >= lowerVal : len > lowerVal;\n        const upperCheckPass = touchingUpper ? len <= upperVal : len < upperVal;\n        return lowerCheckPass && upperCheckPass;\n      }),\n    lengthEquals: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length === value(compareValue);\n      }),\n    lengthNotEquals: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length !== value(compareValue);\n      }),\n    lengthLT: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length < value(compareValue);\n      }),\n    lengthLTE: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length <= value(compareValue);\n      }),\n    lengthGT: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length > value(compareValue);\n      }),\n    lengthGTE: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => {\n        const val = evaluate();\n        return val.length >= value(compareValue);\n      }),\n  };\n};",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
@@ -1438,7 +1438,7 @@
         "isExported": true,
         "exportKind": "named",
         "category": "api",
-        "signature": "export const genericOp = <T>(\n  input: MaybeSignalValue<T> | (() => T)\n): GenericOperation => {\n  const evaluator: () => T =\n    typeof input === \"function\"\n      ? (input as () => T)\n      : (): T => value(input as MaybeSignalValue<T>);\n\n  const opResultGetters: OperationResult = {\n    get truthy() {\n      return derive(() => !!evaluator());\n    },\n    get falsy() {\n      return derive(() => !evaluator());\n    },\n    get truthyFalsyPair() {\n      return derive(() => {\n        const truthyVal = !!evaluator();\n        const pair = [truthyVal, !truthyVal] as const;\n        return pair;\n      });\n    },\n    ternary: <Tr, Fl>(\n      valueIfTruthy: MaybeSignalValue<Tr>,\n      valueIfFalsy: MaybeSignalValue<Fl>\n    ) =>\n      derive(() => {\n        const val = evaluator();\n        return !!val ? value(valueIfTruthy) : value(valueIfFalsy);\n      }),\n  };\n\n  return {\n    ...opResultGetters,\n    or: (checkValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val || value(checkValue));\n      }),\n    orNot: (checkValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val || !value(checkValue));\n      }),\n    and: (checkValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val && value(checkValue));\n      }),\n    andNot: (checkValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val && !value(checkValue));\n      }),\n    equals: (compareValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return val === value(compareValue);\n      }),\n    notEquals: (compareValue: MaybeSignalValue<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return val !== value(compareValue);\n      }),\n    orBothEqual: (\n      subjectValue: MaybeSignalValue<any>,\n      compareValue: MaybeSignalValue<any>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) === value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orBothUnequal: (\n      subjectValue: MaybeSignalValue<any>,\n      compareValue: MaybeSignalValue<any>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) !== value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    andBothEqual: (\n      subjectValue: MaybeSignalValue<any>,\n      compareValue: MaybeSignalValue<any>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) === value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andBothUnequal: (\n      subjectValue: MaybeSignalValue<any>,\n      compareValue: MaybeSignalValue<any>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) !== value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    orThisIsLT: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) < value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orThisIsLTE: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) <= value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orThisIsGT: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) > value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orThisIsGTE: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) >= value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    andThisIsLT: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) < value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andThisIsLTE: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) <= value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andThisIsGT: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) > value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andThisIsGTE: (\n      subjectValue: MaybeSignalValue<number>,\n      compareValue: MaybeSignalValue<number>\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) >= value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n  };\n};",
+        "signature": "export const genericOp = <T>(\n  input: MaybeSignal<T> | (() => T),\n): GenericOperation => {\n  const evaluator: () => T =\n    typeof input === \"function\"\n      ? (input as () => T)\n      : (): T => value(input as MaybeSignal<T>);\n\n  const opResultGetters: OperationResult = {\n    get truthy() {\n      return derive(() => !!evaluator());\n    },\n    get falsy() {\n      return derive(() => !evaluator());\n    },\n    get truthyFalsyPair() {\n      return derive(() => {\n        const truthyVal = !!evaluator();\n        const pair = [truthyVal, !truthyVal] as const;\n        return pair;\n      });\n    },\n    ternary: <Tr, Fl>(\n      valueIfTruthy: MaybeSignal<Tr>,\n      valueIfFalsy: MaybeSignal<Fl>,\n    ) =>\n      derive(() => {\n        const val = evaluator();\n        return !!val ? value(valueIfTruthy) : value(valueIfFalsy);\n      }),\n  };\n\n  return {\n    ...opResultGetters,\n    or: (checkValue: MaybeSignal<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val || value(checkValue));\n      }),\n    orNot: (checkValue: MaybeSignal<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val || !value(checkValue));\n      }),\n    and: (checkValue: MaybeSignal<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val && value(checkValue));\n      }),\n    andNot: (checkValue: MaybeSignal<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return !!(val && !value(checkValue));\n      }),\n    equals: (compareValue: MaybeSignal<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return val === value(compareValue);\n      }),\n    notEquals: (compareValue: MaybeSignal<any>) =>\n      genericOp(() => {\n        const val = evaluator();\n        return val !== value(compareValue);\n      }),\n    orBothEqual: (\n      subjectValue: MaybeSignal<any>,\n      compareValue: MaybeSignal<any>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) === value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orBothUnequal: (\n      subjectValue: MaybeSignal<any>,\n      compareValue: MaybeSignal<any>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) !== value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    andBothEqual: (\n      subjectValue: MaybeSignal<any>,\n      compareValue: MaybeSignal<any>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) === value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andBothUnequal: (\n      subjectValue: MaybeSignal<any>,\n      compareValue: MaybeSignal<any>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) !== value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    orThisIsLT: (\n      subjectValue: MaybeSignal<number>,\n      compareValue: MaybeSignal<number>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) < value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orThisIsLTE: (\n      subjectValue: MaybeSignal<number>,\n      compareValue: MaybeSignal<number>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) <= value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orThisIsGT: (\n      subjectValue: MaybeSignal<number>,\n      compareValue: MaybeSignal<number>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) > value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    orThisIsGTE: (\n      subjectValue: MaybeSignal<number>,\n      compareValue: MaybeSignal<number>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) >= value(compareValue);\n        return !!(val || comparisonResult);\n      }),\n    andThisIsLT: (\n      subjectValue: MaybeSignal<number>,\n      compareValue: MaybeSignal<number>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) < value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andThisIsLTE: (\n      subjectValue: MaybeSignal<number>,\n      compareValue: MaybeSignal<number>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) <= value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andThisIsGT: (\n      subjectValue: MaybeSignal<number>,\n      compareValue: MaybeSignal<number>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) > value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n    andThisIsGTE: (\n      subjectValue: MaybeSignal<number>,\n      compareValue: MaybeSignal<number>,\n    ) =>\n      genericOp(() => {\n        const val = evaluator();\n        const comparisonResult = value(subjectValue) >= value(compareValue);\n        return !!(val && comparisonResult);\n      }),\n  };\n};",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
@@ -1475,7 +1475,7 @@
         "isExported": true,
         "exportKind": "named",
         "category": "api",
-        "signature": "export const numberOp = (\n  input: MaybeSignalValue<number> | (() => number)\n): NumberOperation => {\n  const evaluate: () => number =\n    typeof input === \"function\"\n      ? (input as () => number)\n      : (): number => value(input as MaybeSignalValue<number>);\n\n  return {\n    ...genericOp(input),\n    get result() {\n      return derive(evaluate);\n    },\n    add: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val + value(num);\n      }),\n    sub: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val - value(num);\n      }),\n    mul: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val * value(num);\n      }),\n    div: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val / value(num);\n      }),\n    mod: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val % value(num);\n      }),\n    pow: (num: MaybeSignalValue<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val ** value(num);\n      }),\n    isBetween: (\n      lowerValue: MaybeSignalValue<number>,\n      upperValue: MaybeSignalValue<number>,\n      touchingLower = true,\n      touchingUpper = true\n    ) =>\n      genericOp(() => {\n        const val = evaluate();\n        const lowerVal = value(lowerValue);\n        const upperVal = value(upperValue);\n        const lowerCheckPass = touchingLower ? val >= lowerVal : val > lowerVal;\n        const upperCheckPass = touchingUpper ? val <= upperVal : val < upperVal;\n        return lowerCheckPass && upperCheckPass;\n      }),\n    isLT: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => evaluate() < value(compareValue)),\n    isLTE: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => evaluate() <= value(compareValue)),\n    isGT: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => evaluate() > value(compareValue)),\n    isGTE: (compareValue: MaybeSignalValue<number>) =>\n      genericOp(() => evaluate() >= value(compareValue)),\n  };\n};",
+        "signature": "export const numberOp = (\n  input: MaybeSignal<number> | (() => number),\n): NumberOperation => {\n  const evaluate: () => number =\n    typeof input === \"function\"\n      ? (input as () => number)\n      : (): number => value(input as MaybeSignal<number>);\n\n  return {\n    ...genericOp(input),\n    get result() {\n      return derive(evaluate);\n    },\n    add: (num: MaybeSignal<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val + value(num);\n      }),\n    sub: (num: MaybeSignal<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val - value(num);\n      }),\n    mul: (num: MaybeSignal<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val * value(num);\n      }),\n    div: (num: MaybeSignal<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val / value(num);\n      }),\n    mod: (num: MaybeSignal<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val % value(num);\n      }),\n    pow: (num: MaybeSignal<number>) =>\n      numberOp(() => {\n        const val = evaluate();\n        return val ** value(num);\n      }),\n    isBetween: (\n      lowerValue: MaybeSignal<number>,\n      upperValue: MaybeSignal<number>,\n      touchingLower = true,\n      touchingUpper = true,\n    ) =>\n      genericOp(() => {\n        const val = evaluate();\n        const lowerVal = value(lowerValue);\n        const upperVal = value(upperValue);\n        const lowerCheckPass = touchingLower ? val >= lowerVal : val > lowerVal;\n        const upperCheckPass = touchingUpper ? val <= upperVal : val < upperVal;\n        return lowerCheckPass && upperCheckPass;\n      }),\n    isLT: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => evaluate() < value(compareValue)),\n    isLTE: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => evaluate() <= value(compareValue)),\n    isGT: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => evaluate() > value(compareValue)),\n    isGTE: (compareValue: MaybeSignal<number>) =>\n      genericOp(() => evaluate() >= value(compareValue)),\n  };\n};",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
@@ -1512,7 +1512,7 @@
         "isExported": true,
         "exportKind": "named",
         "category": "api",
-        "signature": "export const op = <T>(input: MaybeSignalValue<T> | (() => T)): Operation<T> => {\n  const evaluator: () => T =\n    typeof input === \"function\"\n      ? (input as () => T)\n      : (): T => value(input as MaybeSignalValue<T>);\n  const val = evaluator();\n\n  return (\n    typeof val === \"number\"\n      ? numberOp(input as MaybeSignalValue<number> | (() => number))\n      : typeof val === \"string\" || Array.isArray(val)\n      ? stringAndArrayOp(\n          input as\n            | MaybeSignalValue<string | unknown[]>\n            | (() => string | unknown[])\n        )\n      : genericOp(input)\n  ) as Operation<T>;\n};",
+        "signature": "export const op = <T>(input: MaybeSignal<T> | (() => T)): Operation<T> => {\n  const evaluator: () => T =\n    typeof input === \"function\"\n      ? (input as () => T)\n      : (): T => value(input as MaybeSignal<T>);\n  const val = evaluator();\n\n  return (\n    typeof val === \"number\"\n      ? numberOp(input as MaybeSignal<number> | (() => number))\n      : typeof val === \"string\" || Array.isArray(val)\n        ? stringAndArrayOp(\n            input as\n              | MaybeSignal<string | unknown[]>\n              | (() => string | unknown[]),\n          )\n        : genericOp(input)\n  ) as Operation<T>;\n};",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
@@ -1535,7 +1535,7 @@
           ],
           "see": [
             "{@link Operation} - For the operation type union",
-            "{@link MaybeSignalValue} - For the input type"
+            "{@link MaybeSignal} - For the input type"
           ],
           "template": [
             {
@@ -1705,36 +1705,6 @@
         "sourcePath": "src/_core/types.ts"
       },
       {
-        "name": "MaybeSignal",
-        "kind": "type",
-        "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-        "isExported": true,
-        "exportKind": "named",
-        "category": "core",
-        "signature": "export type MaybeSignal<T> = T | Signal<T>;",
-        "parameters": [],
-        "typeParameters": [],
-        "tsdoc": {
-          "title": "A union type representing a signal or a plain value.",
-          "summary": "A union type representing a signal or a plain value.\n\nThis is commonly used for function parameters that can accept either\na signal or a plain value of the same type.",
-          "remarks": [],
-          "examples": [],
-          "params": [],
-          "returns": [],
-          "see": [
-            "{@link Signal} - For signal types"
-          ],
-          "template": [
-            {
-              "name": "T",
-              "description": "The type of value"
-            }
-          ],
-          "deprecated": []
-        },
-        "sourcePath": "src/_core/types.ts"
-      },
-      {
         "name": "MaybeSourceSignal",
         "kind": "type",
         "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
@@ -1826,13 +1796,13 @@
         "sourcePath": "src/_core/types.ts"
       },
       {
-        "name": "MaybeSignalValue",
+        "name": "MaybeSignal",
         "kind": "type",
         "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
         "isExported": true,
         "exportKind": "named",
         "category": "core",
-        "signature": "export type MaybeSignalValue<T> = T | NonSignal<T> | Signal<T>;",
+        "signature": "export type MaybeSignal<T> = T | NonSignal<T> | Signal<T>;",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
@@ -1862,7 +1832,7 @@
         "isExported": true,
         "exportKind": "named",
         "category": "core",
-        "signature": "export type NonNullSignalValue<S> = S extends null | undefined\n  ? never\n  : S extends SourceSignal<infer SS | null | undefined>\n  ? SourceSignal<SS>\n  : S extends DerivedSignal<infer DS | null | undefined>\n  ? DerivedSignal<DS>\n  : S extends NonSignal<infer NS | null | undefined>\n  ? NonSignal<NS>\n  : S;",
+        "signature": "export type NonNullSignalValue<S> = S extends null | undefined\n  ? never\n  : S extends SourceSignal<infer SS | null | undefined>\n    ? SourceSignal<SS>\n    : S extends DerivedSignal<infer DS | null | undefined>\n      ? DerivedSignal<DS>\n      : S extends NonSignal<infer NS | null | undefined>\n        ? NonSignal<NS>\n        : S;",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
@@ -1890,23 +1860,54 @@
         "isExported": true,
         "exportKind": "named",
         "category": "core",
-        "signature": "export type MaybeSignalValues<T extends any[]> = {\n  [K in keyof T]: T[K] extends (...args: any[]) => any\n    ? T[K]\n    : MaybeSignalValue<T[K]>;\n};",
+        "signature": "export type MaybeSignalValues<T extends any[]> = {\n  [K in keyof T]: T[K] extends (...args: any[]) => any\n    ? T[K]\n    : MaybeSignal<T[K]>;\n};",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
-          "title": "Converts a tuple type to a tuple of `MaybeSignalValue` types.",
-          "summary": "Converts a tuple type to a tuple of `MaybeSignalValue` types.\n\nFunctions are left as-is, while other values are converted to MaybeSignalValue.",
+          "title": "Converts a tuple type to a tuple of `MaybeSignal` types.",
+          "summary": "Converts a tuple type to a tuple of `MaybeSignal` types.\n\nFunctions are left as-is, while other values are converted to MaybeSignal.",
           "remarks": [],
           "examples": [],
           "params": [],
           "returns": [],
           "see": [
-            "{@link MaybeSignalValue} - For the MaybeSignalValue type"
+            "{@link MaybeSignal} - For the MaybeSignal type"
           ],
           "template": [
             {
               "name": "T",
               "description": "The tuple type to convert"
+            }
+          ],
+          "deprecated": []
+        },
+        "sourcePath": "src/_core/types.ts"
+      },
+      {
+        "name": "PlainValue",
+        "kind": "type",
+        "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
+        "isExported": true,
+        "exportKind": "named",
+        "category": "core",
+        "signature": "export type PlainValue<I extends MaybeSignal<unknown>> =\n  I extends SignalifiedObject<infer T> ? T : I;",
+        "parameters": [],
+        "typeParameters": [],
+        "tsdoc": {
+          "title": "Extracts a plain value from a `MaybeSignal`.",
+          "summary": "Extracts a plain value from a `MaybeSignal`.\n\nIf the input is a signalified object, returns the wrapped value.\nOtherwise, returns the input as-is.",
+          "remarks": [],
+          "examples": [],
+          "params": [],
+          "returns": [],
+          "see": [
+            "{@link MaybeSignal} - For the MaybeSignal type",
+            "{@link SignalifiedObject} - For signalified objects"
+          ],
+          "template": [
+            {
+              "name": "I",
+              "description": "The MaybeSignal type"
             }
           ],
           "deprecated": []
@@ -1920,7 +1921,7 @@
         "isExported": true,
         "exportKind": "named",
         "category": "core",
-        "signature": "export type PlainValues<T extends MaybeSignalValues<any[]>> = {\n  [K in keyof T]: T[K] extends MaybeSignalValue<infer V> ? V : never;\n};",
+        "signature": "export type PlainValues<T extends MaybeSignalValues<any[]>> = {\n  [K in keyof T]: T[K] extends MaybeSignal<infer V> ? V : never;\n};",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
@@ -1937,37 +1938,6 @@
             {
               "name": "T",
               "description": "The MaybeSignalValues tuple to extract from"
-            }
-          ],
-          "deprecated": []
-        },
-        "sourcePath": "src/_core/types.ts"
-      },
-      {
-        "name": "PlainValue",
-        "kind": "type",
-        "filePath": "/Users/ck/Desktop/packages/signal/src/_core/types.ts",
-        "isExported": true,
-        "exportKind": "named",
-        "category": "core",
-        "signature": "export type PlainValue<I extends MaybeSignalValue<unknown>> =\n  I extends SignalifiedObject<infer T> ? T : I;",
-        "parameters": [],
-        "typeParameters": [],
-        "tsdoc": {
-          "title": "Extracts a plain value from a `MaybeSignalValue`.",
-          "summary": "Extracts a plain value from a `MaybeSignalValue`.\n\nIf the input is a signalified object, returns the wrapped value.\nOtherwise, returns the input as-is.",
-          "remarks": [],
-          "examples": [],
-          "params": [],
-          "returns": [],
-          "see": [
-            "{@link MaybeSignalValue} - For the MaybeSignalValue type",
-            "{@link SignalifiedObject} - For signalified objects"
-          ],
-          "template": [
-            {
-              "name": "I",
-              "description": "The MaybeSignalValue type"
             }
           ],
           "deprecated": []
@@ -2896,7 +2866,7 @@
         "isExported": true,
         "exportKind": "named",
         "category": "api",
-        "signature": "export type OperationResult = {\n  /** Derived signal of whether the value is truthy */\n  get truthy(): DerivedSignal<boolean>;\n  /** Derived signal of whether the value is falsy */\n  get falsy(): DerivedSignal<boolean>;\n  /** Derived signal of the `[isTruthy, isFalsy]` pair. */\n  get truthyFalsyPair(): DerivedSignal<readonly [boolean, boolean]>;\n  /** Returns `valueIfTruthy` if truthy, otherwise `valueIfFalsy`. */\n  ternary: <Tr, Fl>(\n    valueIfTruthy: MaybeSignalValue<Tr>,\n    valueIfFalsy: MaybeSignalValue<Fl>\n  ) => DerivedSignal<Tr | Fl>;\n};",
+        "signature": "export type OperationResult = {\n  /** Derived signal of whether the value is truthy */\n  get truthy(): DerivedSignal<boolean>;\n  /** Derived signal of whether the value is falsy */\n  get falsy(): DerivedSignal<boolean>;\n  /** Derived signal of the `[isTruthy, isFalsy]` pair. */\n  get truthyFalsyPair(): DerivedSignal<readonly [boolean, boolean]>;\n  /** Returns `valueIfTruthy` if truthy, otherwise `valueIfFalsy`. */\n  ternary: <Tr, Fl>(\n    valueIfTruthy: MaybeSignal<Tr>,\n    valueIfFalsy: MaybeSignal<Fl>,\n  ) => DerivedSignal<Tr | Fl>;\n};",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
@@ -2988,7 +2958,7 @@
         "isExported": true,
         "exportKind": "named",
         "category": "api",
-        "signature": "export type Operation<T> = T extends number\n  ? NumberOperation\n  : T extends string | unknown[]\n  ? StringAndArrayOperation\n  : GenericOperation;",
+        "signature": "export type Operation<T> = T extends number\n  ? NumberOperation\n  : T extends string | unknown[]\n    ? StringAndArrayOperation\n    : GenericOperation;",
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
