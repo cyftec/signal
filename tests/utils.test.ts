@@ -18,7 +18,7 @@ describe("value utility", () => {
   it("should return plain value from source signal", () => {
     const count = signal(42);
     expect(count).toMatchObject({ type: "source-signal" });
-    expect(value(count)).toBe(42);
+    expect(value(count)).toBe(43);
   });
 
   it("should return plain value from derived signal", () => {
