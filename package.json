@@ -23,6 +23,7 @@
   "scripts": {
     "build:meta": "bun run ./api-meta-builder/generate-meta.ts",
     "build:validate": "bun run ./api-meta-builder/validate-meta.ts",
-    "docs": "bun run build:meta && bun run build:validate && cd website && brahma p"
+    "docs": "bun run build:meta && bun run build:validate && cd website && brahma p",
+    "setup:hooks": "git config core.hooksPath .githooks"
   }
 }

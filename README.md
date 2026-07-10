@@ -17,6 +17,16 @@ Currently, only TypeScript and Bun version of the library is completed.
 <br>
 `bun add @cyftech/signal`
 
+## Development Setup
+
+After cloning the repository, set up the git hooks:
+
+```bash
+bun run setup:hooks
+```
+
+This configures git to use the pre-commit hook in `.githooks/` which runs tests before allowing commits.
+
 ## Usage
 
 ```ts
