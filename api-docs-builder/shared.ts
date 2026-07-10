@@ -18,7 +18,7 @@ export type TSDoc = {
   deprecated: string[];
 };
 
-export type ExportSymbol = {
+export type CodeEntity = {
   name: string;
   kind: "const" | "type";
   filePath: string;
@@ -34,26 +34,14 @@ export type ExportSymbol = {
   tsdoc: TSDoc;
 };
 
-export type ApiMeta = {
-  type: {
-    core: {
-      description: string;
-      symbols: ExportSymbol[];
-    };
-    api: {
-      description: string;
-      symbols: ExportSymbol[];
-    };
-  };
+export type CodeEntitiesMeta = {
   const: {
-    core: {
-      description: string;
-      symbols: ExportSymbol[];
-    };
-    api: {
-      description: string;
-      symbols: ExportSymbol[];
-    };
+    core: CodeEntity[];
+    api: CodeEntity[];
+  };
+  type: {
+    core: CodeEntity[];
+    api: CodeEntity[];
   };
 };
 

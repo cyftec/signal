@@ -7,8 +7,8 @@ import {
   readText,
   relSource,
   stripIndent,
-  type ApiMeta,
-  type ExportSymbol,
+  type CodeEntitiesMeta,
+  type CodeEntity,
   type TSDoc,
   writeText,
   srcDir,
@@ -16,11 +16,11 @@ import {
 
 type ExportEntry = {
   name: string;
-  kind: ExportSymbol["kind"];
+  kind: CodeEntity["kind"];
   filePath: string;
   isExported: boolean;
-  exportKind: ExportSymbol["exportKind"];
-  category: ExportSymbol["category"];
+  exportKind: CodeEntity["exportKind"];
+  category: CodeEntity["category"];
   signature?: string;
   type?: string;
   parameters?: Array<{ name: string; type: string; optional: boolean }>;
@@ -200,7 +200,7 @@ function parseFile(filePath: string) {
     const signature = extractSignature(content, match.index);
     record({
       name,
-      kind: declaration as ExportSymbol["kind"],
+      kind: declaration as CodeEntity["kind"],
       filePath,
       isExported: true,
       exportKind: "named",
@@ -226,32 +226,34 @@ function walk(dir: string) {
 function main() {
   walk(srcDir);
 
-  const meta: ApiMeta = {
-    type: {
-      core: { description: "Core Types", symbols: [] },
-      api: { description: "API Types", symbols: [] },
-    },
+  const meta: CodeEntitiesMeta = {
     const: {
-      core: { description: "Core Constants", symbols: [] },
-      api: { description: "API Constants", symbols: [] },
+      core: [],
+      api: [],
+    },
+    type: {
+      core: [],
+      api: [],
     },
   };
 
   for (const [key, entry] of exportMap.entries()) {
-    const symbol: ExportSymbol = {
+    const entity: CodeEntity = {
       ...entry,
       sourcePath: relSource(entry.filePath),
     };
-    meta[symbol.kind][symbol.category].symbols.push(symbol);
+    meta[entity.kind][entity.category].push(entity);
   }
 
-  const symbolsCount = Array.from(exportMap.values()).length;
+  const entitiesCount = Array.from(exportMap.values()).length;
 
   writeText(
-    path.join(outputDir, "_meta.json"),
+    path.join(outputDir, "_code_entities_meta.json"),
     JSON.stringify(meta, null, 2) + "\n",
   );
-  console.log(`Generated _meta.json with ${symbolsCount} symbols.`);
+  console.log(
+    `Generated _code_entities_meta.json with ${entitiesCount} entities.`,
+  );
 }
 
 main();
