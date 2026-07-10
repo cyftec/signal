@@ -1,5 +1,5 @@
-import type { DerivedSignal } from "./derive";
-import type { SignalsEffect } from "./signal";
+import { SignalsEffect } from "./effect";
+import type { DerivedSignal } from "./signals";
 
 /**
  * Disposes multiple derived signals and/or effects at once.

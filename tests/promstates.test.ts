@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { promstates } from "../src/index";
+import { promstates } from "../src";
 
 describe("promstates", () => {
   it("should create promise state signals", () => {

@@ -1,4 +1,4 @@
-import { MaybeSignalValues, PlainValues } from "../types";
+import { MaybeSignalValues, PlainValues } from "../_core/signals/types";
 import { value } from "./value-getter";
 
 /**

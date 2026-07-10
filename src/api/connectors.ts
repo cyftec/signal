@@ -1,8 +1,8 @@
 import {
   effect,
-  type Signal,
-  type SignalsEffect,
-  type SourceSignal,
+  SignalifiedObject,
+  SignalsEffect,
+  SourceSignal,
 } from "../_core";
 
 /**
@@ -50,10 +50,10 @@ import {
  */
 export const receive = <T>(
   receiver: SourceSignal<T>,
-  ...transmittors: Signal<T>[]
+  ...transmittors: SignalifiedObject<T>[]
 ): SignalsEffect[] => {
   const effects = transmittors.map((transmittor) =>
-    effect(() => (receiver.value = transmittor.value))
+    effect(() => (receiver.value = transmittor.value)),
   );
   return effects;
 };
@@ -101,7 +101,7 @@ export const receive = <T>(
  * @see {@link effect} - For the underlying effect primitive
  */
 export const transmit = <T>(
-  transmittor: Signal<T>,
+  transmittor: SignalifiedObject<T>,
   ...receivers: SourceSignal<T>[]
 ): SignalsEffect =>
   effect(() => {

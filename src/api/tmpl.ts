@@ -2,10 +2,10 @@ import {
   derive,
   type DerivedSignal,
   type DerivedValueGetterWithSignals,
-  type SignalifiedObject,
   type Signal,
-  valueIsSignalifiedObject,
+  type SignalifiedObject,
 } from "../_core";
+import { valueIsSignalifiedObject } from "../utils";
 
 /**
  * The expressions allowed inside the template placeholders.

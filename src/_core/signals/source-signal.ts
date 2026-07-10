@@ -1,35 +1,106 @@
 import { immut, isPlainObject, newVal } from "@cyftec/immut";
 import {
+  ArraySourceSignalMethodsObject,
+  BooleanSourceSignalMethodsObject,
   getArraySourceSignalMethodsObject,
   getBooleanSignalMethodsObject,
   getNumberSignalMethodsObject,
   getObjectSourceSignalMethodsObject,
   getStringSignalMethodsObject,
-} from "./signal-methods-objects";
-import { BaseSourceSignal, SignalsEffect, SourceSignal } from "./types";
+  NumberSignalNonMutatingMethodsObject,
+  ObjectSourceSignalMethodsObject,
+  StringSignalNonMutatingMethodsObject,
+} from "../data-specific-methods";
+import { BaseSourceSignal } from "./types";
+import { getCurrentEffect, SignalsEffect } from "../effect";
 
 /**
- * Global variable that tracks the currently executing effect.
+ * Source signal for arrays with mutation and non-mutating methods.
  *
- * This is used for automatic dependency tracking: when a signal's value is accessed
- * during effect execution, the signal registers this effect as a dependency.
- * The effect function sets this variable before running the user's function,
- * and clears it after.
+ * Array source signals include both mutating methods (push, pop, splice, etc.)
+ * and non-mutating methods (map, filter, etc.) that return derived signals.
  *
- * @see effect function in effect.ts
+ * @template T - The array type
+ *
+ * @see {@link ArraySourceSignalMethodsObject} - For array methods
  */
-let _currentSignalEffect: SignalsEffect | null = null;
+export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &
+  ArraySourceSignalMethodsObject<T>;
 
 /**
- * Sets the currently executing effect.
+ * Source signal for plain objects with partial update method.
  *
- * Called by the effect function before running the user's function to enable
- * automatic dependency tracking. After the effect completes, this is set to null.
+ * Object source signals include the `set()` method for partial updates and
+ * non-mutating methods for accessing properties as derived signals.
  *
- * @param effect - The effect to set as current, or `null` to clear tracking
+ * @template T - The object type
+ *
+ * @see {@link ObjectSourceSignalMethodsObject} - For object methods
  */
-export const setCurrentEffect = (effect: SignalsEffect | null) =>
-  (_currentSignalEffect = effect);
+export type ObjectSourceSignal<T extends Record<string, any>> =
+  BaseSourceSignal<T> & ObjectSourceSignalMethodsObject<T>;
+
+/**
+ * Source signal for strings with non-mutating methods.
+ *
+ * String source signals include non-mutating methods that return derived signals.
+ *
+ * @see {@link StringSignalNonMutatingMethodsObject} - For string methods
+ */
+export type StringSourceSignal = BaseSourceSignal<string> &
+  StringSignalNonMutatingMethodsObject;
+
+/**
+ * Source signal for numbers with non-mutating methods.
+ *
+ * Number source signals include non-mutating methods that return derived signals.
+ *
+ * @see {@link NumberSignalNonMutatingMethodsObject} - For number methods
+ */
+export type NumberSourceSignal = BaseSourceSignal<number> &
+  NumberSignalNonMutatingMethodsObject;
+
+/**
+ * Source signal for booleans with non-mutating methods.
+ *
+ * Boolean source signals include non-mutating methods that return derived signals.
+ *
+ * @see {@link BooleanSignalNonMutatingMethodsObject} - For boolean methods
+ */
+export type BooleanSourceSignal = BaseSourceSignal<boolean> &
+  BooleanSourceSignalMethodsObject;
+
+/**
+ * A mutable source signal created from plain JavaScript data.
+ *
+ * Source signals can notify dependent computations when their value changes.
+ * The specific type (array, object, string, number, or boolean) determines which
+ * additional methods are available.
+ *
+ * @template T - The type of value the signal holds
+ *
+ * @remarks
+ * - For arrays: includes array mutation methods (push, pop, splice, etc.)
+ * - For plain objects: includes `set()` method for partial updates
+ * - For strings: includes string methods (toLowerCase, toUpperCase, etc.)
+ * - For numbers: includes number methods (toFixed, toPrecision, etc.)
+ * - For booleans: includes boolean methods (not, toString)
+ * - For other primitives: only the base signal interface
+ *
+ * @see {@link signal} - For creating source signals
+ * @see {@link DerivedSignal} - For read-only derived signals
+ */
+export type SourceSignal<T> = T extends any[]
+  ? ArraySourceSignal<T>
+  : T extends Record<string, any>
+    ? ObjectSourceSignal<T>
+    : T extends string
+      ? StringSourceSignal
+      : T extends number
+        ? NumberSourceSignal
+        : T extends boolean
+          ? BooleanSourceSignal
+          : BaseSourceSignal<T>;
 
 /**
  * Creates a mutable source signal from any JavaScript value.
@@ -117,7 +188,8 @@ export const signal = <T>(
     get value() {
       // Automatic dependency tracking: if an effect is currently executing,
       // register this effect as a dependency of this signal
-      if (_currentSignalEffect) _effects.add(_currentSignalEffect);
+      const currentRegisteredEffect = getCurrentEffect();
+      if (currentRegisteredEffect) _effects.add(currentRegisteredEffect);
       // Return a fresh copy of the immutable value
       return newVal(_value);
     },

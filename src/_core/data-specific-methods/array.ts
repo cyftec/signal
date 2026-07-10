@@ -1,5 +1,5 @@
 import { newVal } from "@cyftec/immut";
-import { derive } from "../../derive";
+import { derive, type BaseSignalifiedObject } from "../signals";
 import {
   ArraySignalCustomMutatingMethodsObject,
   ArraySignalCustomNonMutatingMethodsObject,
@@ -8,8 +8,7 @@ import {
   ArraySignalMutatingMethodsObject,
   ArraySignalNonMutatingMethodsObject,
   ArraySourceSignalMethodsObject,
-  BaseSignal,
-} from "../types";
+} from "./types";
 
 /**
  * Creates intrinsic mutating methods for array signals.
@@ -116,7 +115,7 @@ export const getArraySignalMutatingMethodsObject = <T extends any[]>(
  * derived signals instead of plain values.
  *
  * @template T - The array type
- * @param baseArraySignal - The base array signal to access values from
+ * @param baseSignalifiedArrayObject - The base array signal to access values from
  * @returns Intrinsic non-mutating methods for array signals
  *
  * @remarks
@@ -127,30 +126,35 @@ export const getArraySignalMutatingMethodsObject = <T extends any[]>(
 export const getArraySignalIntrinsicNonMutatingMethodsObject = <
   T extends any[],
 >(
-  baseArraySignal: BaseSignal<T>,
+  baseSignalifiedArrayObject: BaseSignalifiedObject<T>,
 ): ArraySignalIntrinsicNonMutatingMethodsObject<T> => {
   return {
     at: (...args: Parameters<Array<T[number]>["at"]>) =>
-      derive(() => baseArraySignal.value.at(...args)),
+      derive(() => baseSignalifiedArrayObject.value.at(...args)),
     concat: (...args: Parameters<Array<T[number]>["concat"]>) =>
       derive(
-        () => baseArraySignal.value.concat(...(args as any)) as T[number][],
+        () =>
+          baseSignalifiedArrayObject.value.concat(
+            ...(args as any),
+          ) as T[number][],
       ),
     every: (...args: Parameters<Array<T[number]>["every"]>) =>
-      derive(() => baseArraySignal.value.every(...args)),
+      derive(() => baseSignalifiedArrayObject.value.every(...args)),
     filter: (...args: Parameters<Array<T[number]>["filter"]>) =>
-      derive(() => baseArraySignal.value.filter(...args) as T[number][]),
+      derive(
+        () => baseSignalifiedArrayObject.value.filter(...args) as T[number][],
+      ),
     find: (...args: Parameters<Array<T[number]>["find"]>) =>
-      derive(() => baseArraySignal.value.find(...args)),
+      derive(() => baseSignalifiedArrayObject.value.find(...args)),
     findIndex: (...args: Parameters<Array<T[number]>["findIndex"]>) =>
-      derive(() => baseArraySignal.value.findIndex(...args)),
+      derive(() => baseSignalifiedArrayObject.value.findIndex(...args)),
     findLast: (...args: Parameters<Array<T[number]>["findLast"]>) =>
-      derive(() => baseArraySignal.value.findLast(...args)),
+      derive(() => baseSignalifiedArrayObject.value.findLast(...args)),
     findLastIndex: (...args: Parameters<Array<T[number]>["findLastIndex"]>) =>
-      derive(() => baseArraySignal.value.findLastIndex(...args)),
-    length: () => derive(() => baseArraySignal.value.length),
+      derive(() => baseSignalifiedArrayObject.value.findLastIndex(...args)),
+    length: () => derive(() => baseSignalifiedArrayObject.value.length),
     map: <U>(mapFn: (item: T[number], index: number, array: T) => U) =>
-      derive(() => baseArraySignal.value.map(mapFn as any) as U[]),
+      derive(() => baseSignalifiedArrayObject.value.map(mapFn as any) as U[]),
     reduce: <U>(
       reducerFn: (
         previousValue: U,
@@ -161,7 +165,11 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
       initialValue: U,
     ) =>
       derive(
-        () => baseArraySignal.value.reduce(reducerFn as any, initialValue) as U,
+        () =>
+          baseSignalifiedArrayObject.value.reduce(
+            reducerFn as any,
+            initialValue,
+          ) as U,
       ),
     reduceRight: <U>(
       reducerFn: (
@@ -174,19 +182,27 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
     ) =>
       derive(
         () =>
-          baseArraySignal.value.reduceRight(
+          baseSignalifiedArrayObject.value.reduceRight(
             reducerFn as any,
             initialValue,
           ) as U,
       ),
     some: (...args: Parameters<Array<T[number]>["some"]>) =>
-      derive(() => baseArraySignal.value.some(...args)),
+      derive(() => baseSignalifiedArrayObject.value.some(...args)),
     toReversed: (...args: Parameters<Array<T[number]>["toReversed"]>) =>
-      derive(() => baseArraySignal.value.toReversed(...args) as T[number][]),
+      derive(
+        () =>
+          baseSignalifiedArrayObject.value.toReversed(...args) as T[number][],
+      ),
     toSorted: (...args: Parameters<Array<T[number]>["toSorted"]>) =>
-      derive(() => baseArraySignal.value.toSorted(...args) as T[number][]),
+      derive(
+        () => baseSignalifiedArrayObject.value.toSorted(...args) as T[number][],
+      ),
     toSpliced: (...args: Parameters<Array<T[number]>["toSpliced"]>) =>
-      derive(() => baseArraySignal.value.toSpliced(...args) as T[number][]),
+      derive(
+        () =>
+          baseSignalifiedArrayObject.value.toSpliced(...args) as T[number][],
+      ),
   };
 };
 
@@ -197,7 +213,7 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
  * beyond JavaScript's intrinsic array methods.
  *
  * @template T - The array type
- * @param baseArraySignal - The base array signal to access values from
+ * @param baseSignalifiedArrayObject - The base array signal to access values from
  * @returns Custom non-mutating methods for array signals
  *
  * @remarks
@@ -205,23 +221,23 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
  * - `partition` splits an array into two derived signals based on a predicate
  */
 export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
-  baseArraySignal: BaseSignal<T>,
+  baseSignalifiedArrayObject: BaseSignalifiedObject<T>,
 ): ArraySignalCustomNonMutatingMethodsObject<T> => {
   return {
     lastItem: () => {
       return derive(() => {
-        const updatedArr = newVal(baseArraySignal.value);
+        const updatedArr = newVal(baseSignalifiedArrayObject.value);
         const returnVal = updatedArr.pop();
         return returnVal;
       });
     },
     partition: (...args: Parameters<Array<T[number]>["filter"]>) => {
       const conditionPassArray = derive(
-        () => baseArraySignal.value.filter(...args) as T,
+        () => baseSignalifiedArrayObject.value.filter(...args) as T,
       );
       const conditionFailArray = derive(
         () =>
-          baseArraySignal.value.filter(
+          baseSignalifiedArrayObject.value.filter(
             (item, index, array) => !args[0](item, index, array),
           ) as T,
       );
@@ -236,7 +252,7 @@ export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
  * Combines intrinsic and custom non-mutating methods into a single object.
  *
  * @template T - The array type
- * @param baseArraySignal - The base array signal to access values from
+ * @param baseSignalifiedArrayObject - The base array signal to access values from
  * @returns Combined non-mutating methods for array signals
  *
  * @remarks
@@ -245,10 +261,12 @@ export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
  * - Methods are reactive and update when the source array changes
  */
 export const getArraySignalNonMutatingMethodsObject = <T extends any[]>(
-  baseArraySignal: BaseSignal<T>,
+  baseSignalifiedArrayObject: BaseSignalifiedObject<T>,
 ): ArraySignalNonMutatingMethodsObject<T> => ({
-  ...getArraySignalIntrinsicNonMutatingMethodsObject(baseArraySignal),
-  ...getArraySignalCustomNonMutatingMethodsObject(baseArraySignal),
+  ...getArraySignalIntrinsicNonMutatingMethodsObject(
+    baseSignalifiedArrayObject,
+  ),
+  ...getArraySignalCustomNonMutatingMethodsObject(baseSignalifiedArrayObject),
 });
 
 /**
@@ -258,7 +276,7 @@ export const getArraySignalNonMutatingMethodsObject = <T extends any[]>(
  *
  * @template T - The array type
  * @param valueSetter - Updates the signal value and triggers effects
- * @param baseArraySignal - The base array signal to access values from
+ * @param baseSignalifiedArrayObject - The base array signal to access values from
  * @returns Combined methods for array source signals
  *
  * @remarks
@@ -267,8 +285,8 @@ export const getArraySignalNonMutatingMethodsObject = <T extends any[]>(
  */
 export const getArraySourceSignalMethodsObject = <T extends any[]>(
   valueSetter: (method: (oldValue: T) => T) => void,
-  baseArraySignal: BaseSignal<T>,
+  baseArraySifiedignalObject: BaseSignalifiedObject<T>,
 ): ArraySourceSignalMethodsObject<T> => ({
   ...getArraySignalMutatingMethodsObject(valueSetter),
-  ...getArraySignalNonMutatingMethodsObject(baseArraySignal),
+  ...getArraySignalNonMutatingMethodsObject(baseArraySifiedignalObject),
 });

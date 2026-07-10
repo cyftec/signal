@@ -1,10 +1,3 @@
-/**
- * Operation types.
- *
- * Operation objects compose multiple logical or mathematical transforms without
- * creating intermediate signals.
- */
-
 import type { DerivedSignal, MaybeSignal } from "../../_core";
 
 /** Type for logical operations that return a `GenericOperation` for chaining. */

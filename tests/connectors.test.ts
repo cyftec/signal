@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { derive, effect, receive, signal, transmit } from "../src/index";
+import { derive, effect, receive, signal, transmit } from "../src";
 
 describe("receive", () => {
   it("should connect multiple transmitters to a receiver", () => {
@@ -176,14 +176,14 @@ describe("transmit", () => {
     const transmitter = signal("Hello");
     const receiver1 = signal("");
     const receiver2 = signal("");
-    
+
     transmit(transmitter, receiver1, receiver2);
     expect(receiver1.value).toBe("Hello");
     expect(receiver2.value).toBe("Hello");
-    
+
     receiver1.value = "Manual update 1";
     receiver2.value = "Manual update 2";
-    
+
     expect(receiver1.value).toBe("Manual update 1");
     expect(receiver2.value).toBe("Manual update 2");
 

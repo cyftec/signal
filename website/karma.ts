@@ -61,7 +61,7 @@ export const karma: Karma = {
         [files.disposable.bunLockFile]: true,
         [files.disposable.bunLockBFile]: true,
         [files.disposable.dotVscodeDir]: true,
-        [files.disposable.nodeModulesDir]: true,
+        [files.disposable.nodeModulesDir]: false,
         [files.disposable.packageJsonFile]: true,
       },
     },

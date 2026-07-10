@@ -12,9 +12,8 @@ type EntityDetailsProps = {
 
 export const EntityDetails = component<EntityDetailsProps>(
   ({ codeEntity, onEntitySelect }) => {
-    const derivedEntity = derive(() => codeEntity.value);
     const { kind, category, name, sourcePath, signature, tsdoc } =
-      derivedEntity.props();
+      codeEntity.props();
     const nonNullSignature = derive(() => signature?.value || "");
     const { title, summary, returns, remarks, params, examples, see } =
       tsdoc.props();

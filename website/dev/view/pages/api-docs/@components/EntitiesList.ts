@@ -15,14 +15,12 @@ export type EntitiesListProps = {
 
 export const EntitiesList = component<EntitiesListProps>(
   ({ expanded, filteredEntitiesMeta, selectedEntityName, onEntitySelect }) => {
-    const codeEntitiesMeta = derive(() => filteredEntitiesMeta.value);
-
     return m.Div({
       children: m.For({
         subject: ["const", "type"] as CodeEntityKind[],
         map: (codeEntityKind) => {
           const codeEntitiesGroup = derive(
-            () => codeEntitiesMeta.value[codeEntityKind],
+            () => filteredEntitiesMeta.value[codeEntityKind],
           );
 
           return Collapsible({

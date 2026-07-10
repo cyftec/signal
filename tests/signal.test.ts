@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { derive, dispose, effect, Signal, signal } from "../src/index";
+import { derive, dispose, effect, Signal, signal } from "../src";
 
 describe("signal - primitive values", () => {
   it("should create a signal with initial value", () => {

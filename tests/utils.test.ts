@@ -12,7 +12,7 @@ import {
   getNonSignalObject,
   signal,
   derive,
-} from "../src/index";
+} from "../src";
 
 describe("value utility", () => {
   it("should return plain value from source signal", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { op, signal } from "../src/index";
+import { op, signal } from "../src";
 
 describe("op - generic operations", () => {
   it("should create operation for boolean values", () => {

@@ -1,10 +1,9 @@
-import { derive } from "../../derive";
+import { type BaseSignalifiedObject, derive } from "../signals";
 import {
-  BaseSignal,
-  BooleanSignalMethodsObject,
   BooleanSignalMutatingMethodsObject,
   BooleanSignalNonMutatingMethodsObject,
-} from "../types";
+  BooleanSourceSignalMethodsObject,
+} from "./types";
 
 export const getBooleanSignalMutatingMethodsObject = (
   valueSetter: (mutatorMethod: (oldValue: boolean) => boolean) => void,
@@ -18,7 +17,7 @@ export const getBooleanSignalMutatingMethodsObject = (
  * These are library-specific methods that provide additional functionality
  * for boolean values.
  *
- * @param baseBooleanSignal - The base boolean signal to access values from
+ * @param baseBooleanSignalifiedObject - The base boolean signal to access values from
  * @returns Non-mutating methods for boolean signals
  *
  * @remarks
@@ -29,15 +28,15 @@ export const getBooleanSignalMutatingMethodsObject = (
  * - Works with both source and derived signals
  */
 export const getBooleanSignalNonMutatingMethodsObject = (
-  baseBooleanSignal: BaseSignal<boolean>,
+  baseBooleanSignalifiedObject: BaseSignalifiedObject<boolean>,
 ): BooleanSignalNonMutatingMethodsObject => ({
-  negated: () => derive(() => !baseBooleanSignal.value),
+  negated: () => derive(() => !baseBooleanSignalifiedObject.value),
 });
 
 export const getBooleanSignalMethodsObject = (
   valueSetter: (mutatorMethod: (oldValue: boolean) => boolean) => void,
-  baseBooleanSignal: BaseSignal<boolean>,
-): BooleanSignalMethodsObject => ({
+  baseBooleanSignalifiedObject: BaseSignalifiedObject<boolean>,
+): BooleanSourceSignalMethodsObject => ({
   ...getBooleanSignalMutatingMethodsObject(valueSetter),
-  ...getBooleanSignalNonMutatingMethodsObject(baseBooleanSignal),
+  ...getBooleanSignalNonMutatingMethodsObject(baseBooleanSignalifiedObject),
 });

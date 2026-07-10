@@ -1,4 +1,58 @@
-import { setCurrentEffect, type SignalsEffect } from "./signal";
+/**
+ * Global variable that tracks the currently executing effect.
+ *
+ * This is used for automatic dependency tracking: when a signal's value is accessed
+ * during effect execution, the signal registers this effect as a dependency.
+ * The effect function sets this variable before running the user's function,
+ * and clears it after.
+ *
+ * @see effect function in effect.ts
+ */
+let _currentSignalEffect: SignalsEffect | null = null;
+
+/**
+ * Gets the currently executing effect.
+ *
+ * Called by the source signal function to extract current registered effect.
+ *
+ * @returns currently registred effect, or null if cleared
+ */
+export const getCurrentEffect = (): SignalsEffect | null =>
+  _currentSignalEffect;
+
+/**
+ * Sets the currently executing effect.
+ *
+ * Called by the effect function before running the user's function to enable
+ * automatic dependency tracking. After the effect completes, this is set to null.
+ *
+ * @param effect - The effect to set as current, or `null` to clear tracking
+ */
+export const setCurrentEffect = (effect: SignalsEffect | null) =>
+  (_currentSignalEffect = effect);
+
+/**
+ * A function that can be registered to run when signal values change.
+ *
+ * Effects are created by the `effect()` function and track dependencies
+ * by accessing `.value` on signals during execution.
+ *
+ * @remarks
+ * - The effect function runs immediately when created
+ * - It re-runs whenever any tracked signal's value changes
+ * - The `canDisposeNow` flag marks the effect for disposal
+ * - Calling `dispose()` sets `canDisposeNow` to true
+ *
+ * @see {@link effect} - For creating effects
+ */
+export type SignalsEffect = {
+  /** The effect function body */
+  (): void;
+  /** Flag indicating whether the effect is marked for disposal */
+  canDisposeNow: boolean;
+  /** Marks the effect for disposal */
+  dispose(): void;
+};
 
 /**
  * Registers a function to run whenever its accessed signals change.

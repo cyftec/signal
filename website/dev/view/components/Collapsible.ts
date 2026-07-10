@@ -1,5 +1,5 @@
-import { m, component, Children } from "@cyftec/maya";
-import { derive, effect, receive, signal, tmpl } from "@cyftec/maya/signal";
+import { Children, component, m } from "@cyftec/maya";
+import { derive, receive, signal, tmpl } from "@cyftec/maya/signal";
 
 type CollapsibleProps = {
   title: string;

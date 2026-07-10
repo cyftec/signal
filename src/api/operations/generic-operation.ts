@@ -1,4 +1,5 @@
-import { derive, type MaybeSignal, value } from "../../_core";
+import { derive, type MaybeSignal } from "../../_core";
+import { value } from "../../utils";
 import type { GenericOperation, OperationResult } from "./types";
 
 /**

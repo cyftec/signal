@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { compute, signal, derive } from "../src/index";
+import { compute, signal, derive } from "../src";
 
 describe("compute", () => {
   it("should create derived signal from function with signal arguments", () => {

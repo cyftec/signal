@@ -1,4 +1,5 @@
-import { type MaybeSignal, value } from "../../_core";
+import { type MaybeSignal } from "../../_core";
+import { value } from "../../utils";
 import { genericOp } from "./generic-operation";
 import type { StringAndArrayOperation } from "./types";
 

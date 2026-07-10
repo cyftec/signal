@@ -1,79 +1,4 @@
-import type { DerivedSignal } from "../derive";
-
-/**
- * Base source signal type with value getter/setter.
- *
- * @template T - The type of value the signal holds
- */
-export type BaseSourceSignal<T> = {
-  /** Runtime type discriminator for source signals */
-  type: "source-signal";
-  /** Getter/setter for the signal's value */
-  value: T;
-};
-
-/**
- * Base derived signal type with read-only value access.
- *
- * Derived signals are computed from other signals and automatically update
- * when their dependencies change.
- *
- * @template T - The type of value the signal holds
- *
- * @remarks
- * - Value is read-only (computed from dependencies)
- * - The `prevValue` getter provides access to the previous computed value
- * - Calling `dispose()` stops the signal from tracking its dependencies
- */
-export type BaseDerivedSignal<T> = {
-  /** Runtime type discriminator for derived signals */
-  type: "derived-signal";
-  /** The previous computed value (undefined on first computation) */
-  get prevValue(): T | undefined;
-  /** The current computed value */
-  get value(): T;
-  /**
-   * Stops the derived signal from tracking its dependencies.
-   *
-   * After calling dispose(), the derived signal's value remains accessible
-   * but will no longer update when its dependencies change.
-   */
-  dispose: () => void;
-};
-
-/**
- * Base signal type union for both source and derived signals.
- *
- * @template T - The type of value the signal holds
- *
- * @remarks
- * - Source signals have mutable values via the setter
- * - Derived signals have read-only values computed from dependencies
- */
-export type BaseSignal<T> = BaseSourceSignal<T> | BaseDerivedSignal<T>;
-
-/**
- * A function that can be registered to run when signal values change.
- *
- * Effects are created by the `effect()` function and track dependencies
- * by accessing `.value` on signals during execution.
- *
- * @remarks
- * - The effect function runs immediately when created
- * - It re-runs whenever any tracked signal's value changes
- * - The `canDisposeNow` flag marks the effect for disposal
- * - Calling `dispose()` sets `canDisposeNow` to true
- *
- * @see {@link effect} - For creating effects
- */
-export type SignalsEffect = {
-  /** The effect function body */
-  (): void;
-  /** Flag indicating whether the effect is marked for disposal */
-  canDisposeNow: boolean;
-  /** Marks the effect for disposal */
-  dispose(): void;
-};
+import type { DerivedSignal } from "../signals";
 
 /**
  * Intrinsic mutating methods for array signals.
@@ -252,19 +177,6 @@ export type ArraySourceSignalMethodsObject<T extends any[]> =
   ArraySignalMutatingMethodsObject<T> & ArraySignalNonMutatingMethodsObject<T>;
 
 /**
- * Source signal for arrays with mutation and non-mutating methods.
- *
- * Array source signals include both mutating methods (push, pop, splice, etc.)
- * and non-mutating methods (map, filter, etc.) that return derived signals.
- *
- * @template T - The array type
- *
- * @see {@link ArraySourceSignalMethodsObject} - For array methods
- */
-export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &
-  ArraySourceSignalMethodsObject<T>;
-
-/**
  * Mutating methods for object signals.
  *
  * @template T - The object type
@@ -298,19 +210,6 @@ export type ObjectSignalNonMutatingMethodsObject<
 export type ObjectSourceSignalMethodsObject<T extends Record<string, any>> =
   ObjectSourceSignalMutatingMethodsObject<T> &
     ObjectSignalNonMutatingMethodsObject<T>;
-
-/**
- * Source signal for plain objects with partial update method.
- *
- * Object source signals include the `set()` method for partial updates and
- * non-mutating methods for accessing properties as derived signals.
- *
- * @template T - The object type
- *
- * @see {@link ObjectSourceSignalMethodsObject} - For object methods
- */
-export type ObjectSourceSignal<T extends Record<string, any>> =
-  BaseSourceSignal<T> & ObjectSourceSignalMethodsObject<T>;
 
 /**
  * Intrinsic non-mutating methods for string signals.
@@ -441,16 +340,6 @@ export type StringSignalNonMutatingMethodsObject =
     StringSignalCustomNonMutatingMethodsObject;
 
 /**
- * Source signal for strings with non-mutating methods.
- *
- * String source signals include non-mutating methods that return derived signals.
- *
- * @see {@link StringSignalNonMutatingMethodsObject} - For string methods
- */
-export type StringSourceSignal = BaseSourceSignal<string> &
-  StringSignalNonMutatingMethodsObject;
-
-/**
  * Intrinsic non-mutating methods for number signals.
  *
  * These methods mirror JavaScript Number non-mutating methods but return
@@ -501,16 +390,6 @@ export type NumberSignalNonMutatingMethodsObject =
     NumberSignalCustomNonMutatingMethodsObject;
 
 /**
- * Source signal for numbers with non-mutating methods.
- *
- * Number source signals include non-mutating methods that return derived signals.
- *
- * @see {@link NumberSignalNonMutatingMethodsObject} - For number methods
- */
-export type NumberSourceSignal = BaseSourceSignal<number> &
-  NumberSignalNonMutatingMethodsObject;
-
-/**
  * Mutating methods for boolean signals.
  *
  * @remarks
@@ -535,47 +414,5 @@ export type BooleanSignalNonMutatingMethodsObject = {
   negated: () => DerivedSignal<boolean>;
 };
 
-export type BooleanSignalMethodsObject = BooleanSignalMutatingMethodsObject &
-  BooleanSignalNonMutatingMethodsObject;
-
-/**
- * Source signal for booleans with non-mutating methods.
- *
- * Boolean source signals include non-mutating methods that return derived signals.
- *
- * @see {@link BooleanSignalNonMutatingMethodsObject} - For boolean methods
- */
-export type BooleanSourceSignal = BaseSourceSignal<boolean> &
-  BooleanSignalMethodsObject;
-
-/**
- * A mutable source signal created from plain JavaScript data.
- *
- * Source signals can notify dependent computations when their value changes.
- * The specific type (array, object, string, number, or boolean) determines which
- * additional methods are available.
- *
- * @template T - The type of value the signal holds
- *
- * @remarks
- * - For arrays: includes array mutation methods (push, pop, splice, etc.)
- * - For plain objects: includes `set()` method for partial updates
- * - For strings: includes string methods (toLowerCase, toUpperCase, etc.)
- * - For numbers: includes number methods (toFixed, toPrecision, etc.)
- * - For booleans: includes boolean methods (not, toString)
- * - For other primitives: only the base signal interface
- *
- * @see {@link signal} - For creating source signals
- * @see {@link DerivedSignal} - For read-only derived signals
- */
-export type SourceSignal<T> = T extends any[]
-  ? ArraySourceSignal<T>
-  : T extends Record<string, any>
-    ? ObjectSourceSignal<T>
-    : T extends string
-      ? StringSourceSignal
-      : T extends number
-        ? NumberSourceSignal
-        : T extends boolean
-          ? BooleanSourceSignal
-          : BaseSourceSignal<T>;
+export type BooleanSourceSignalMethodsObject =
+  BooleanSignalMutatingMethodsObject & BooleanSignalNonMutatingMethodsObject;

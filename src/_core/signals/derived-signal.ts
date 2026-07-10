@@ -1,5 +1,5 @@
 import { isPlainObject } from "@cyftec/immut";
-import { effect } from "./effect";
+import { effect } from "../effect";
 import {
   getArraySignalNonMutatingMethodsObject,
   getBooleanSignalNonMutatingMethodsObject,
@@ -7,13 +7,13 @@ import {
   getObjectSignalNonMutatingMethodsObject,
   getStringSignalMethodsObject,
   ObjectSignalNonMutatingMethodsObject,
-  signal,
   type ArraySignalNonMutatingMethodsObject,
-  type BaseDerivedSignal,
   type BooleanSignalNonMutatingMethodsObject,
   type NumberSignalNonMutatingMethodsObject,
   type StringSignalNonMutatingMethodsObject,
-} from "./signal";
+} from "../data-specific-methods";
+import { BaseDerivedSignal } from "./types";
+import { signal } from "./source-signal";
 
 /**
  * A read-only derived signal computed from other signals.

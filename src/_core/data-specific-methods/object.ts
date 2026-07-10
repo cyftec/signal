@@ -1,10 +1,13 @@
-import { derive, DerivedSignal } from "../..";
 import {
-  BaseSignal,
-  ObjectSourceSignalMethodsObject,
+  type BaseSignalifiedObject,
+  type DerivedSignal,
+  derive,
+} from "../signals";
+import {
   ObjectSignalNonMutatingMethodsObject,
+  ObjectSourceSignalMethodsObject,
   ObjectSourceSignalMutatingMethodsObject,
-} from "../types";
+} from "./types";
 
 /**
  * Returns an object with methods to update the source signal's value.
@@ -43,23 +46,27 @@ export const getObjectSignalMutatingMethodsObject = <
 export const getObjectSignalNonMutatingMethodsObject = <
   T extends Record<string, any>,
 >(
-  baseObjectSignal: BaseSignal<T>,
+  baseObjectSignalifiedObject: BaseSignalifiedObject<T>,
 ): ObjectSignalNonMutatingMethodsObject<T> => {
   return {
     prop: <K extends keyof T>(key: K) =>
-      derive(() => baseObjectSignal.value[key]),
+      derive(() => baseObjectSignalifiedObject.value[key]),
     props: () => {
       const signalledPropsObj = {} as {
         [key in keyof T]: DerivedSignal<T[key]>;
       };
 
-      (Object.keys(baseObjectSignal.value) as (keyof T)[]).forEach((key) => {
-        signalledPropsObj[key] = derive(() => baseObjectSignal.value[key]);
-      });
+      (Object.keys(baseObjectSignalifiedObject.value) as (keyof T)[]).forEach(
+        (key) => {
+          signalledPropsObj[key] = derive(
+            () => baseObjectSignalifiedObject.value[key],
+          );
+        },
+      );
 
       return signalledPropsObj;
     },
-    keys: () => derive(() => Object.keys(baseObjectSignal.value)),
+    keys: () => derive(() => Object.keys(baseObjectSignalifiedObject.value)),
   };
 };
 
@@ -78,8 +85,8 @@ export const getObjectSourceSignalMethodsObject = <
   T extends Record<string, any>,
 >(
   valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
-  baseObjectSignal: BaseSignal<T>,
+  baseObjectSignalifiedObject: BaseSignalifiedObject<T>,
 ): ObjectSourceSignalMethodsObject<T> => ({
   ...getObjectSignalMutatingMethodsObject(valueSetter),
-  ...getObjectSignalNonMutatingMethodsObject(baseObjectSignal),
+  ...getObjectSignalNonMutatingMethodsObject(baseObjectSignalifiedObject),
 });

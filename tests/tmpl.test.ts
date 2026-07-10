@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { tmpl, signal, derive } from "../src/index";
+import { tmpl, signal, derive } from "../src";
 
 describe("tmpl", () => {
   it("should create derived signal from template literal", () => {
