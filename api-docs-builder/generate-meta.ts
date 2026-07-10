@@ -3,15 +3,16 @@ import * as fs from "fs";
 import * as path from "path";
 import {
   categoryForFile,
-  outputDir,
+  OUTPUT_FILE_PATH,
+  OUTPUT_FILENAME,
   readText,
   relSource,
+  SRC_DIR_PATH,
   stripIndent,
+  writeText,
   type CodeEntitiesMeta,
   type CodeEntity,
   type TSDoc,
-  writeText,
-  srcDir,
 } from "./shared";
 
 type ExportEntry = {
@@ -224,7 +225,7 @@ function walk(dir: string) {
 }
 
 function main() {
-  walk(srcDir);
+  walk(SRC_DIR_PATH);
 
   const meta: CodeEntitiesMeta = {
     const: {
@@ -247,13 +248,8 @@ function main() {
 
   const entitiesCount = Array.from(exportMap.values()).length;
 
-  writeText(
-    path.join(outputDir, "_code_entities_meta.json"),
-    JSON.stringify(meta, null, 2) + "\n",
-  );
-  console.log(
-    `Generated _code_entities_meta.json with ${entitiesCount} entities.`,
-  );
+  writeText(OUTPUT_FILE_PATH, JSON.stringify(meta, null, 2) + "\n");
+  console.log(`Generated '${OUTPUT_FILENAME}' with ${entitiesCount} entities.`);
 }
 
 main();

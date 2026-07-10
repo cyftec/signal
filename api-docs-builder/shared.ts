@@ -45,12 +45,12 @@ export type CodeEntitiesMeta = {
   };
 };
 
-export const repoRoot = path.join(process.cwd(), "..");
-export const srcDir = path.join(repoRoot, "signal/src");
-export const outputDir = path.join(
-  process.cwd(),
-  "./website/dev/view/pages/assets",
-);
+export const OUTPUT_FILENAME = "_code_entities_meta.json";
+export const OUTPUT_DIRNAME = "/website/dev/view/pages/assets";
+export const REPO_ROOT = path.join(process.cwd(), "..");
+export const SRC_DIR_PATH = path.join(REPO_ROOT, "signal/src");
+export const OUTPUT_DIR_PATH = path.join(REPO_ROOT, OUTPUT_DIRNAME);
+export const OUTPUT_FILE_PATH = path.join(OUTPUT_DIR_PATH, OUTPUT_FILENAME);
 
 export function readText(filePath: string) {
   return fs.readFileSync(filePath, "utf8");
@@ -74,10 +74,10 @@ export function stripIndent(input: string) {
 }
 
 export function relSource(filePath: string) {
-  return path.relative(repoRoot, filePath).split(path.sep).join("/");
+  return path.relative(REPO_ROOT, filePath).split(path.sep).join("/");
 }
 
 export function categoryForFile(filePath: string) {
-  const rel = path.relative(srcDir, filePath).split(path.sep).join("/");
+  const rel = path.relative(SRC_DIR_PATH, filePath).split(path.sep).join("/");
   return rel.startsWith("_core/") ? "core" : "api";
 }
