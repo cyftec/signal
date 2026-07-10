@@ -21,10 +21,8 @@
     "bun-types": "^1.3.14"
   },
   "scripts": {
-    "docs:api": "bun docs/scripts/generate-api-docs.ts",
-    "docs:validate-api": "bun docs/scripts/validate-api-docs.ts",
-    "docs:build": "bun docs/scripts/build-docs.ts",
-    "docs": "bun run docs:api && bun run docs:validate-api && bun run docs:build",
-    "build:meta": "bun run ./api-docs-builder/generate-meta.ts"
+    "build:meta": "bun run ./api-meta-builder/generate-meta.ts",
+    "build:validate": "bun run ./api-meta-builder/validate-meta.ts",
+    "docs": "bun run build:meta && bun run build:validate && cd website && brahma p"
   }
 }
