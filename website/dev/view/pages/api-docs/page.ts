@@ -71,8 +71,8 @@ const onEntitySelect = (codeEntityName: string) => {
 };
 
 const loadApiDocs = async () => {
-  const response = await fetch("/assets/_code_entities_meta.json");
-  if (!response.ok) throw new Error("Failed to load _code_entities_meta.json");
+  const response = await fetch("/assets/code_entities_meta.json");
+  if (!response.ok) throw new Error("Failed to load code_entities_meta.json");
   const metaJson = (await response.json()) as CodeEntitiesMeta;
   entitiesMeta.value = metaJson;
 };
