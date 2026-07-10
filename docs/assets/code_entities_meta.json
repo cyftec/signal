@@ -37,7 +37,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/effect.ts"
+        "sourcePath": "src/_core/effect.ts"
       },
       {
         "name": "dispose",
@@ -72,7 +72,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/dispose.ts"
+        "sourcePath": "src/_core/dispose.ts"
       },
       {
         "name": "valueIsSourceSignal",
@@ -108,7 +108,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/type-checkers.ts"
+        "sourcePath": "src/_core/utils/type-checkers.ts"
       },
       {
         "name": "valueIsDerivedSignal",
@@ -144,7 +144,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/type-checkers.ts"
+        "sourcePath": "src/_core/utils/type-checkers.ts"
       },
       {
         "name": "valueIsSignal",
@@ -180,7 +180,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/type-checkers.ts"
+        "sourcePath": "src/_core/utils/type-checkers.ts"
       },
       {
         "name": "valueIsNonSignalObject",
@@ -221,7 +221,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/type-checkers.ts"
+        "sourcePath": "src/_core/utils/type-checkers.ts"
       },
       {
         "name": "valueIsSignalifiedObject",
@@ -257,7 +257,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/type-checkers.ts"
+        "sourcePath": "src/_core/utils/type-checkers.ts"
       },
       {
         "name": "valueIsNonSignalString",
@@ -292,7 +292,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/type-checkers.ts"
+        "sourcePath": "src/_core/utils/type-checkers.ts"
       },
       {
         "name": "valueIsNonSignalStringArray",
@@ -327,7 +327,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/type-checkers.ts"
+        "sourcePath": "src/_core/utils/type-checkers.ts"
       },
       {
         "name": "valueIsMaybeSignalValueOfStringOrArray",
@@ -362,7 +362,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/type-checkers.ts"
+        "sourcePath": "src/_core/utils/type-checkers.ts"
       },
       {
         "name": "value",
@@ -404,7 +404,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/value-getter.ts"
+        "sourcePath": "src/_core/utils/value-getter.ts"
       },
       {
         "name": "getDesignalifiedMethodParams",
@@ -440,7 +440,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/utils/designalified-params.ts"
+        "sourcePath": "src/_core/utils/designalified-params.ts"
       },
       {
         "name": "derive",
@@ -483,7 +483,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/derive.ts"
+        "sourcePath": "src/_core/derive.ts"
       },
       {
         "name": "getNonSignalObject",
@@ -525,7 +525,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/non-signal.ts"
+        "sourcePath": "src/_core/non-signal.ts"
       },
       {
         "name": "setCurrentEffect",
@@ -553,7 +553,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/source-signal.ts"
+        "sourcePath": "src/_core/signal/source-signal.ts"
       },
       {
         "name": "signal",
@@ -595,7 +595,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/source-signal.ts"
+        "sourcePath": "src/_core/signal/source-signal.ts"
       },
       {
         "name": "getArraySignalIntrinsicMutatingMethodsObject",
@@ -632,7 +632,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/array.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
       },
       {
         "name": "getArraySignalCustomMutatingMethodsObject",
@@ -669,7 +669,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/array.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
       },
       {
         "name": "getArraySignalMutatingMethodsObject",
@@ -704,7 +704,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/array.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
       },
       {
         "name": "getArraySignalIntrinsicNonMutatingMethodsObject",
@@ -741,7 +741,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/array.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
       },
       {
         "name": "getArraySignalCustomNonMutatingMethodsObject",
@@ -778,7 +778,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/array.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
       },
       {
         "name": "getArraySignalNonMutatingMethodsObject",
@@ -815,7 +815,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/array.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
       },
       {
         "name": "getArraySourceSignalMethodsObject",
@@ -856,7 +856,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/array.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/array.ts"
       },
       {
         "name": "getStringSignalIntrinsicNonMutatingMethodsObject",
@@ -888,7 +888,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/string.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/string.ts"
       },
       {
         "name": "getStringSignalCustomNonMutatingMethodsObject",
@@ -920,7 +920,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/string.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/string.ts"
       },
       {
         "name": "getStringSignalMethodsObject",
@@ -952,7 +952,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/string.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/string.ts"
       },
       {
         "name": "getBooleanSignalMutatingMethodsObject",
@@ -975,7 +975,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/boolean.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/boolean.ts"
       },
       {
         "name": "getBooleanSignalNonMutatingMethodsObject",
@@ -1007,7 +1007,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/boolean.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/boolean.ts"
       },
       {
         "name": "getBooleanSignalMethodsObject",
@@ -1039,7 +1039,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/boolean.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/boolean.ts"
       },
       {
         "name": "getNumberSignalIntrinsicNonMutatingMethodsObject",
@@ -1071,7 +1071,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/number.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/number.ts"
       },
       {
         "name": "getNumberSignalCustomNonMutatingMethodsObject",
@@ -1103,7 +1103,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/number.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/number.ts"
       },
       {
         "name": "getNumberSignalMethodsObject",
@@ -1135,7 +1135,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/number.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/number.ts"
       },
       {
         "name": "getObjectSignalMutatingMethodsObject",
@@ -1172,7 +1172,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/object.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/object.ts"
       },
       {
         "name": "getObjectSignalNonMutatingMethodsObject",
@@ -1209,7 +1209,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/object.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/object.ts"
       },
       {
         "name": "getObjectSourceSignalMethodsObject",
@@ -1246,7 +1246,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/signal-methods-objects/object.ts"
+        "sourcePath": "src/_core/signal/signal-methods-objects/object.ts"
       }
     ],
     "api": [
@@ -1294,7 +1294,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/compute.ts"
+        "sourcePath": "src/api/compute.ts"
       },
       {
         "name": "tmpl",
@@ -1335,7 +1335,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/tmpl.ts"
+        "sourcePath": "src/api/tmpl.ts"
       },
       {
         "name": "promstates",
@@ -1392,7 +1392,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/promstates.ts"
+        "sourcePath": "src/api/promstates.ts"
       },
       {
         "name": "stringAndArrayOp",
@@ -1429,7 +1429,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/operations/string-and-array-operation.ts"
+        "sourcePath": "src/api/operations/string-and-array-operation.ts"
       },
       {
         "name": "genericOp",
@@ -1466,7 +1466,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/operations/generic-operation.ts"
+        "sourcePath": "src/api/operations/generic-operation.ts"
       },
       {
         "name": "numberOp",
@@ -1503,7 +1503,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/operations/number-operation.ts"
+        "sourcePath": "src/api/operations/number-operation.ts"
       },
       {
         "name": "op",
@@ -1545,7 +1545,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/operations/index.ts"
+        "sourcePath": "src/api/operations/index.ts"
       },
       {
         "name": "receive",
@@ -1591,7 +1591,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/connectors.ts"
+        "sourcePath": "src/api/connectors.ts"
       },
       {
         "name": "transmit",
@@ -1637,7 +1637,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/connectors.ts"
+        "sourcePath": "src/api/connectors.ts"
       }
     ]
   },
@@ -1672,7 +1672,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "MaybeNonSignal",
@@ -1702,7 +1702,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "MaybeSignal",
@@ -1732,7 +1732,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "MaybeSourceSignal",
@@ -1762,7 +1762,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "MaybeDerivedSignal",
@@ -1792,7 +1792,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "SignalifiedObject",
@@ -1823,7 +1823,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "MaybeSignalValue",
@@ -1853,7 +1853,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "NonNullSignalValue",
@@ -1881,7 +1881,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "MaybeSignalValues",
@@ -1911,7 +1911,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "PlainValues",
@@ -1941,7 +1941,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "PlainValue",
@@ -1972,7 +1972,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/types.ts"
+        "sourcePath": "src/_core/types.ts"
       },
       {
         "name": "DerivedSignal",
@@ -2005,7 +2005,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/derive.ts"
+        "sourcePath": "src/_core/derive.ts"
       },
       {
         "name": "DerivedValueGetterWithSignals",
@@ -2044,7 +2044,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/derive.ts"
+        "sourcePath": "src/_core/derive.ts"
       },
       {
         "name": "NonSignal",
@@ -2078,7 +2078,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/non-signal.ts"
+        "sourcePath": "src/_core/non-signal.ts"
       },
       {
         "name": "BaseSourceSignal",
@@ -2106,7 +2106,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "BaseDerivedSignal",
@@ -2136,7 +2136,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "BaseSignal",
@@ -2166,7 +2166,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "SignalsEffect",
@@ -2193,7 +2193,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ArraySignalIntrinsicMutatingMethodsObject",
@@ -2223,7 +2223,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ArraySignalCustomMutatingMethodsObject",
@@ -2253,7 +2253,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ArraySignalMutatingMethodsObject",
@@ -2281,7 +2281,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ArraySignalIntrinsicNonMutatingMethodsObject",
@@ -2311,7 +2311,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ArraySignalCustomNonMutatingMethodsObject",
@@ -2341,7 +2341,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ArraySignalNonMutatingMethodsObject",
@@ -2369,7 +2369,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ArraySourceSignalMethodsObject",
@@ -2399,7 +2399,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ArraySourceSignal",
@@ -2429,7 +2429,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ObjectSourceSignalMutatingMethodsObject",
@@ -2459,7 +2459,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ObjectSignalNonMutatingMethodsObject",
@@ -2482,7 +2482,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ObjectSourceSignalMethodsObject",
@@ -2504,7 +2504,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "ObjectSourceSignal",
@@ -2534,7 +2534,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "StringSignalIntrinsicNonMutatingMethodsObject",
@@ -2559,7 +2559,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "StringSignalCustomNonMutatingMethodsObject",
@@ -2584,7 +2584,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "StringSignalNonMutatingMethodsObject",
@@ -2607,7 +2607,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "StringSourceSignal",
@@ -2632,7 +2632,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "NumberSignalIntrinsicNonMutatingMethodsObject",
@@ -2657,7 +2657,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "NumberSignalCustomNonMutatingMethodsObject",
@@ -2682,7 +2682,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "NumberSignalNonMutatingMethodsObject",
@@ -2705,7 +2705,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "NumberSourceSignal",
@@ -2730,7 +2730,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "BooleanSignalMutatingMethodsObject",
@@ -2755,7 +2755,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "BooleanSignalNonMutatingMethodsObject",
@@ -2780,7 +2780,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "BooleanSignalMethodsObject",
@@ -2802,7 +2802,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "BooleanSourceSignal",
@@ -2827,7 +2827,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       },
       {
         "name": "SourceSignal",
@@ -2860,7 +2860,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/_core/signal/types.ts"
+        "sourcePath": "src/_core/signal/types.ts"
       }
     ],
     "api": [
@@ -2887,7 +2887,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/tmpl.ts"
+        "sourcePath": "src/api/tmpl.ts"
       },
       {
         "name": "OperationResult",
@@ -2910,7 +2910,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/operations/types.ts"
+        "sourcePath": "src/api/operations/types.ts"
       },
       {
         "name": "GenericOperation",
@@ -2933,7 +2933,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/operations/types.ts"
+        "sourcePath": "src/api/operations/types.ts"
       },
       {
         "name": "NumberOperation",
@@ -2956,7 +2956,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/operations/types.ts"
+        "sourcePath": "src/api/operations/types.ts"
       },
       {
         "name": "StringAndArrayOperation",
@@ -2979,7 +2979,7 @@
           "template": [],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/operations/types.ts"
+        "sourcePath": "src/api/operations/types.ts"
       },
       {
         "name": "Operation",
@@ -3009,7 +3009,7 @@
           ],
           "deprecated": []
         },
-        "sourcePath": "signal/src/api/operations/types.ts"
+        "sourcePath": "src/api/operations/types.ts"
       }
     ]
   }
