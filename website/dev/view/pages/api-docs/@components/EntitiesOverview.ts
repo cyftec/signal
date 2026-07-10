@@ -1,15 +1,15 @@
 import { component, m } from "@cyftec/maya";
 import { HeaderCard } from "./HeaderCard";
 
-type SymbolsOverviewProps = {
-  symbolsDetails: {
+type EntitiesOverviewProps = {
+  entityCategories: {
     type: string;
     label: string;
   }[];
 };
 
-export const SymbolsOverview = component<SymbolsOverviewProps>(
-  ({ symbolsDetails }) => {
+export const EntitiesOverview = component<EntitiesOverviewProps>(
+  ({ entityCategories }) => {
     return m.Article({
       class: "doc",
       children: [
@@ -19,17 +19,17 @@ export const SymbolsOverview = component<SymbolsOverviewProps>(
           description:
             "Complete reference generated from the source tree and validated markdown.",
           children: m.If({
-            subject: symbolsDetails,
+            subject: entityCategories,
             isTruthy: () =>
               m.Div({
                 class: "stats",
                 children: m.For({
-                  subject: symbolsDetails,
-                  map: (symbol) =>
+                  subject: entityCategories,
+                  map: (category) =>
                     m.Div({
                       children: [
-                        m.Strong({ children: symbol.label }),
-                        m.Span({ children: `${symbol.type} symbols` }),
+                        m.Strong({ children: category.label }),
+                        m.Span({ children: `${category.type} entities` }),
                       ],
                     }),
                 }),
@@ -41,7 +41,7 @@ export const SymbolsOverview = component<SymbolsOverviewProps>(
           children: [
             m.H2("Start here"),
             m.P(
-              "Select a symbol from the navigation. Search filters both the nav and page content.",
+              "Select a category from the navigation. Search filters both the nav and page content.",
             ),
           ],
         }),

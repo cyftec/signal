@@ -1,20 +1,20 @@
 import { component, m } from "@cyftec/maya";
 import { compute, derive, tmpl } from "@cyftec/maya/signal";
 import { extractCodeTokens } from "../../../../controller";
-import { ExportSymbol } from "../../../../models";
+import { CodeEntity } from "../../../../models";
 import { CodeBlock, Paragraph } from "../../../components";
 import { HeaderCard } from "./HeaderCard";
 
-type SymbolDetailsProps = {
-  symbol: ExportSymbol;
-  onSymbolSelect: (symbolName: string) => void;
+type EntityDetailsProps = {
+  codeEntity: CodeEntity;
+  onEntitySelect: (codeEntityName: string) => void;
 };
 
-export const SymbolDetails = component<SymbolDetailsProps>(
-  ({ symbol, onSymbolSelect }) => {
-    const derivedSym = derive(() => symbol.value);
+export const EntityDetails = component<EntityDetailsProps>(
+  ({ codeEntity, onEntitySelect }) => {
+    const derivedEntity = derive(() => codeEntity.value);
     const { kind, category, name, sourcePath, signature, tsdoc } =
-      derivedSym.props();
+      derivedEntity.props();
     const nonNullSignature = derive(() => signature?.value || "");
     const { title, summary, returns, remarks, params, examples, see } =
       tsdoc.props();
@@ -23,7 +23,6 @@ export const SymbolDetails = component<SymbolDetailsProps>(
       if (onlyRem.startsWith("-")) onlyRem = onlyRem.slice(1).trim();
       return onlyRem.split("\n-");
     });
-    console.log(derivedSym.value);
     const eyebrowLabel = tmpl`${category} / ${kind}`;
 
     return m.Article({
@@ -86,13 +85,13 @@ export const SymbolDetails = component<SymbolDetailsProps>(
             subject: see,
             map: (s) => {
               const [linkStr, description] = s.split("}");
-              const symbolName = linkStr.split(" ").pop() || "";
-              if (!symbolName) return m.Span({ style: "display: none;" });
+              const codeEntityName = linkStr.split(" ").pop() || "";
+              if (!codeEntityName) return m.Span({ style: "display: none;" });
 
               return m.Li([
                 m.A({
-                  onclick: () => onSymbolSelect(symbolName),
-                  children: symbolName,
+                  onclick: () => onEntitySelect(codeEntityName),
+                  children: codeEntityName,
                 }),
                 m.Span(description),
               ]);

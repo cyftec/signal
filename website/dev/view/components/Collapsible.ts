@@ -1,0 +1,56 @@
+import { m, component, Children } from "@cyftec/maya";
+import { derive, effect, receive, signal, tmpl } from "@cyftec/maya/signal";
+
+type CollapsibleProps = {
+  title: string;
+  children: Children;
+  expandedState?: boolean;
+};
+
+export const Collapsible = component<CollapsibleProps>(
+  ({ expandedState, title, children }) => {
+    const expanded = signal(true);
+    const outerExpandedState = derive(() => !!expandedState?.value);
+    const iconClass = tmpl`collapsible-icon ${() => (expanded.value ? "expanded" : "collapsed")}`;
+    const iconLabel = derive(() => (expanded.value ? "𐱀" : "𐰷"));
+
+    effect(() => console.log(expanded.value ? "expanded" : "collapsed"));
+    effect(() => console.log("outerExpandedState: ", outerExpandedState.value));
+
+    effect(() => {
+      console.log(`ran again without oter state: ${outerExpandedState.value}`);
+      expanded.value = outerExpandedState.value;
+    });
+    // receive(expanded, outerExpandedState);
+    let clickCount = 0;
+
+    return m.Div({
+      class: "collapsible",
+      children: [
+        m.Button({
+          type: "button",
+          class: "collapsible-header",
+          onclick: () => {
+            console.log(`clicked ${clickCount++} times`);
+            expanded.value = !expanded.value;
+          },
+          children: [
+            m.Span({ class: "collapsible-title", children: title }),
+            m.Span({
+              class: iconClass,
+              children: iconLabel,
+            }),
+          ],
+        }),
+        m.If({
+          subject: expanded,
+          isTruthy: () =>
+            m.Div({
+              class: "collapsible-content",
+              children,
+            }),
+        }),
+      ],
+    });
+  },
+);

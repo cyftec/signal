@@ -9,10 +9,8 @@ const selectedCss = (path: string = "/") => {
 
 export const Header = () =>
   m.Nav({
-    onmount: (el: MHtmlElement) => {
-      locationPath.value = window?.location?.pathname || "/";
-      console.log(locationPath.value);
-    },
+    onmount: (el: MHtmlElement) =>
+      (locationPath.value = window?.location?.pathname || "/"),
     class: "header",
     children: [
       m.A({

@@ -1,4 +1,5 @@
 :root {
+  --smokebg: #f2f2f2;
   --bg: #fff;
   --fg: #666;
   --muted: #888;
@@ -46,6 +47,24 @@ pre {
 
 .mb2 {
   margin-bottom: 2rem
+}
+
+.collapsible {
+  border-bottom: 1px solid var(--line);
+}
+
+.collapsible-header {
+  background-color: var(--bg);
+  margin: 0;
+  padding: 0.5rem 0;
+  border: none;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.collapsible-content {
+  margin-left: 0.75rem;
 }
 
 .tabs {
@@ -191,7 +210,7 @@ pre {
 
 .search {
   display: block;
-  margin: 0 0 18px
+  margin: 1rem 0;
 }
 
 .search span {
@@ -860,11 +879,11 @@ pre {
     display: block
   }
 
-  .sidebar[data-collapsed="true"] #nav,
+  /* .sidebar[data-collapsed="true"] #nav,
   .sidebar[data-collapsed="true"] .search,
   .sidebar[data-collapsed="true"] .search-status {
     display: none
-  }
+  } */
 
   .main {
     padding: 16px
