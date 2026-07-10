@@ -1,104 +1,36 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tutorial | API Docs</title>
-  <link rel="stylesheet" href="../assets/docs.css" />
-</head>
-<body>
-  <div class="app-shell content-layout">
-    <aside class="sidebar content-shell">
-      <div class="brand">
-        <div class="brand-kicker">Cyftech Signal</div>
-        <div class="brand-title">API Docs</div>
-      </div>
-      <div class="content-nav"><a href="../">Home</a><a href="../api-docs/">API Docs</a><a href="../tutorial/">Tutorial</a><a href="../architecture/">Architecture</a></div>
-    </aside>
-    <main class="main">
-      <nav class="content-top-nav">
-        <a class="content-top-nav-brand" href="/">
-          <img src="/assets/images/signal-logo.svg" alt="Cyftec Signal Logo" />
-          <span>Signal</span>
-        </a>
-        <div class="content-top-nav-links">
-          <a href="/api-docs/">Docs</a>
-          <a href="/tutorial/">Tutorial</a>
-          <a href="/architecture/">Architecture</a>
-        </div>
-      </nav>
-      <article class="doc">
-        <header class="hero"><div class="eyebrow">Tutorial</div><h1>Tutorial</h1><p>Learn the library step by step.</p></header><h2 id="1-install">1. Install</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts">import { signal, derive, effect } from <span class="tok str">&quot;@cyftech/signal&quot;</span>;</code></pre></div>
-<p>Expected result:</p>
-<ul><li>the library imports cleanly</li><li>the three primitives are available immediately</li></ul>
-<h2 id="2-create-state">2. Create State</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
-console.<span class="tok fn">log</span>(count.value); <span class="tok cm">// 0</span>
-count.value = <span class="tok num">1</span>;
-console.<span class="tok fn">log</span>(count.value); <span class="tok cm">// 1</span></code></pre></div>
-<p>What changed:</p>
-<ul><li><code>signal()</code> stores mutable state</li><li><code>.value</code> reads and writes the current value</li></ul>
-<h2 id="3-read-from-state">3. Read From State</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> name = <span class="tok fn">signal</span>(<span class="tok str">&quot;Ada&quot;</span>);
-console.<span class="tok fn">log</span>(<span class="tok str">`Hello, ${name.value}`</span>);</code></pre></div>
-<p>Expected result:</p>
-<ul><li>output reads the current signal value directly</li></ul>
-<h2 id="4-derive-state">4. Derive State</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">2</span>);
-<span class="tok kw">const</span> doubled = <span class="tok fn">derive</span>(() =&gt; count.value * <span class="tok num">2</span>);
-console.<span class="tok fn">log</span>(doubled.value); <span class="tok cm">// 4</span></code></pre></div>
-<p>What changed:</p>
-<ul><li><code>derive()</code> computes new state from existing state</li><li>the result stays in sync automatically</li></ul>
-<h2 id="5-react-to-changes">5. React To Changes</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
-<span class="tok fn">effect</span>(() =&gt; {
-  console.<span class="tok fn">log</span>(<span class="tok str">&quot;count:&quot;</span>, count.value);
-});
-count.value = <span class="tok num">1</span>;</code></pre></div>
-<p>Expected result:</p>
-<ul><li>the effect runs once immediately</li><li>it runs again after the update</li></ul>
-<h2 id="6-combine-signals">6. Combine Signals</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> first = <span class="tok fn">signal</span>(<span class="tok str">&quot;Ada&quot;</span>);
-<span class="tok kw">const</span> last = <span class="tok fn">signal</span>(<span class="tok str">&quot;Lovelace&quot;</span>);
-<span class="tok kw">const</span> fullName = <span class="tok fn">derive</span>(() =&gt; <span class="tok str">`${first.value} ${last.value}`</span>);
-<span class="tok fn">effect</span>(() =&gt; {
-  console.<span class="tok fn">log</span>(fullName.value);
-});</code></pre></div>
-<h2 id="7-pattern-to-prefer">7. Pattern to Prefer</h2>
-<ul><li>Use <code>signal()</code> for mutable source data</li><li>Use <code>derive()</code> for computed values</li><li>Use <code>effect()</code> for logging, DOM updates, and integration points</li></ul>
-<h2 id="8-mental-model">8. Mental Model</h2>
-<div class="diagram-block"><div class="diagram-title">Data Flow</div><div class="diagram-svg"><div class="diagram-node"><span>source signal</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>derived signal</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>effect</span></div><div class="diagram-arrow">→</div><div class="diagram-node"><span>side effects</span></div></div></div>
-<p>Use this when you want the shortest path from state to UI.</p>
-<h2 id="9-equality-short-circuit">9. Equality Short-Circuit</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">1</span>);
-<span class="tok fn">effect</span>(() =&gt; {
-  console.<span class="tok fn">log</span>(count.value);
-});
-count.value = <span class="tok num">1</span>;</code></pre></div>
-<p>Expected result:</p>
-<ul><li>the effect does not re-run for the same value</li></ul>
-<h2 id="10-dispose-when-done">10. Dispose When Done</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> count = <span class="tok fn">signal</span>(<span class="tok num">0</span>);
-<span class="tok kw">const</span> logger = <span class="tok fn">effect</span>(() =&gt; {
-  console.<span class="tok fn">log</span>(count.value);
+<!DOCTYPE html>
+<html lang="en" data-elem-id="1"><head data-elem-id="2"><title data-elem-id="3">Tutorial | Cyftec Signal Docs</title><meta charset="UTF-8" data-elem-id="4"><meta name="viewport" content="width=device-width, initial-scale=1" data-elem-id="5"><link rel="stylesheet" href="/assets/docs.css" data-elem-id="6"></head><body data-elem-id="7"><script src="main.js" defer="" data-elem-id="8"></script><nav class="header" data-elem-id="9"><a class="header-brand" href="/" data-elem-id="10"><img src="/assets/images/signal-logo.svg" alt="Cyftec Signal Logo" data-elem-id="11"><span data-elem-id="12"></span></a><div class="header-links" data-elem-id="13"><a class="" href="/api-docs/" data-elem-id="14">API Docs</a><a class="" href="/tutorial/" data-elem-id="15">Tutorial</a><a class="" href="/architecture/" data-elem-id="16">Architecture</a></div></nav><main class="main" data-elem-id="17"><article class="doc" data-elem-id="18"><header class="card deep mb2" data-elem-id="19"><div class="eyebrow" data-elem-id="20">Tutorial</div><h1 data-elem-id="21">Tutorial</h1><p data-elem-id="22">Learn the library step by step.</p></header><section data-elem-id="23"><h2 data-elem-id="24">1. Import</h2><pre data-elem-id="25"><div class="card code-block" data-elem-id="26"><button type="button" class="copy-button" data-elem-id="27">Copy</button><pre data-elem-id="28"><code data-lang="ts" data-elem-id="29"><span class="tok plain" data-elem-id="30"></span><span class="tok kw" data-elem-id="31">import</span><span class="tok plain" data-elem-id="32"> { signal, derive, effect } </span><span class="tok kw" data-elem-id="33">from</span><span class="tok plain" data-elem-id="34"> </span><span class="tok str" data-elem-id="35">"@cyftec/signal"</span><span class="tok plain" data-elem-id="36">;</span></code></pre></div></pre><p data-elem-id="37">Expected result:</p><ul data-elem-id="38"><li data-elem-id="39">the library imports cleanly</li><li data-elem-id="40">the three primitives are available immediately</li></ul></section><section data-elem-id="41"><h2 data-elem-id="42">2. Create State</h2><pre data-elem-id="43"><div class="card code-block" data-elem-id="44"><button type="button" class="copy-button" data-elem-id="45">Copy</button><pre data-elem-id="46"><code data-lang="ts" data-elem-id="47"><span class="tok plain" data-elem-id="48"></span><span class="tok kw" data-elem-id="49">const</span><span class="tok plain" data-elem-id="50"> count = </span><span class="tok fn" data-elem-id="51">signal</span><span class="tok plain" data-elem-id="52">(</span><span class="tok num" data-elem-id="53">0</span><span class="tok plain" data-elem-id="54">);
+console.</span><span class="tok fn" data-elem-id="55">log</span><span class="tok plain" data-elem-id="56">(count.value); </span><span class="tok cm" data-elem-id="57">// 0</span><span class="tok plain" data-elem-id="58">
+count.value = </span><span class="tok num" data-elem-id="59">1</span><span class="tok plain" data-elem-id="60">;
+console.</span><span class="tok fn" data-elem-id="61">log</span><span class="tok plain" data-elem-id="62">(count.value); </span><span class="tok cm" data-elem-id="63">// 1</span><span class="tok plain" data-elem-id="64"></span></code></pre></div></pre><p data-elem-id="65">What changed:</p><ul data-elem-id="66"><li data-elem-id="67">`signal()` stores mutable state</li><li data-elem-id="68">`.value` reads and writes the current value</li></ul></section><section data-elem-id="69"><h2 data-elem-id="70">3. Read From State</h2><pre data-elem-id="71"><div class="card code-block" data-elem-id="72"><button type="button" class="copy-button" data-elem-id="73">Copy</button><pre data-elem-id="74"><code data-lang="ts" data-elem-id="75"><span class="tok plain" data-elem-id="76"></span><span class="tok kw" data-elem-id="77">const</span><span class="tok plain" data-elem-id="78"> name = </span><span class="tok fn" data-elem-id="79">signal</span><span class="tok plain" data-elem-id="80">(</span><span class="tok str" data-elem-id="81">"Ada"</span><span class="tok plain" data-elem-id="82">);
+console.</span><span class="tok fn" data-elem-id="83">log</span><span class="tok plain" data-elem-id="84">(</span><span class="tok str" data-elem-id="85">`Hello, ${name.value}`</span><span class="tok plain" data-elem-id="86">); </span><span class="tok cm" data-elem-id="87">// Hello, Ada</span><span class="tok plain" data-elem-id="88"></span></code></pre></div></pre><p data-elem-id="89">Expected result:</p><ul data-elem-id="90"><li data-elem-id="91">output reads the current signal value directly</li></ul></section><section data-elem-id="92"><h2 data-elem-id="93">4. Derive State</h2><pre data-elem-id="94"><div class="card code-block" data-elem-id="95"><button type="button" class="copy-button" data-elem-id="96">Copy</button><pre data-elem-id="97"><code data-lang="ts" data-elem-id="98"><span class="tok plain" data-elem-id="99"></span><span class="tok kw" data-elem-id="100">const</span><span class="tok plain" data-elem-id="101"> count = </span><span class="tok fn" data-elem-id="102">signal</span><span class="tok plain" data-elem-id="103">(</span><span class="tok num" data-elem-id="104">2</span><span class="tok plain" data-elem-id="105">);
+</span><span class="tok kw" data-elem-id="106">const</span><span class="tok plain" data-elem-id="107"> doubled = </span><span class="tok fn" data-elem-id="108">derive</span><span class="tok plain" data-elem-id="109">(() =&gt; count.value * </span><span class="tok num" data-elem-id="110">2</span><span class="tok plain" data-elem-id="111">);
+console.</span><span class="tok fn" data-elem-id="112">log</span><span class="tok plain" data-elem-id="113">(doubled.value); </span><span class="tok cm" data-elem-id="114">// 4</span><span class="tok plain" data-elem-id="115"></span></code></pre></div></pre><p data-elem-id="116">What changed:</p><ul data-elem-id="117"><li data-elem-id="118">`derive()` computes new state from existing state</li><li data-elem-id="119">the result stays in sync automatically</li></ul></section><section data-elem-id="120"><h2 data-elem-id="121">5. React To Changes</h2><pre data-elem-id="122"><div class="card code-block" data-elem-id="123"><button type="button" class="copy-button" data-elem-id="124">Copy</button><pre data-elem-id="125"><code data-lang="ts" data-elem-id="126"><span class="tok plain" data-elem-id="127"></span><span class="tok kw" data-elem-id="128">const</span><span class="tok plain" data-elem-id="129"> count = </span><span class="tok fn" data-elem-id="130">signal</span><span class="tok plain" data-elem-id="131">(</span><span class="tok num" data-elem-id="132">0</span><span class="tok plain" data-elem-id="133">);
+
+</span><span class="tok fn" data-elem-id="134">effect</span><span class="tok plain" data-elem-id="135">(() =&gt; {
+  console.</span><span class="tok fn" data-elem-id="136">log</span><span class="tok plain" data-elem-id="137">(count.value); </span><span class="tok cm" data-elem-id="138">// 0</span><span class="tok plain" data-elem-id="139">
 });
 
-logger.<span class="tok fn">dispose</span>();
-count.value = <span class="tok num">1</span>;</code></pre></div>
-<p>Expected result:</p>
-<ul><li>the disposed effect does not run again after the next update cycle</li></ul>
-<h2 id="11-arrays-and-objects">11. Arrays And Objects</h2>
-<div class="code-block"><button type="button" class="copy-button">Copy</button><pre><code data-lang="ts"><span class="tok kw">const</span> items = <span class="tok fn">signal</span>([<span class="tok num">1</span>, <span class="tok num">2</span>, <span class="tok num">3</span>]);
-items.<span class="tok fn">push</span>(<span class="tok num">4</span>);
+count.value = </span><span class="tok num" data-elem-id="140">1</span><span class="tok plain" data-elem-id="141">; </span><span class="tok cm" data-elem-id="142">// 1</span><span class="tok plain" data-elem-id="143"></span></code></pre></div></pre><p data-elem-id="144">Expected result:</p><ul data-elem-id="145"><li data-elem-id="146">the effect runs once immediately</li><li data-elem-id="147">it runs again after the update</li></ul></section><section data-elem-id="148"><h2 data-elem-id="149">6. Combine Signals</h2><pre data-elem-id="150"><div class="card code-block" data-elem-id="151"><button type="button" class="copy-button" data-elem-id="152">Copy</button><pre data-elem-id="153"><code data-lang="ts" data-elem-id="154"><span class="tok plain" data-elem-id="155"></span><span class="tok kw" data-elem-id="156">const</span><span class="tok plain" data-elem-id="157"> first = </span><span class="tok fn" data-elem-id="158">signal</span><span class="tok plain" data-elem-id="159">(</span><span class="tok str" data-elem-id="160">"Ada"</span><span class="tok plain" data-elem-id="161">);
+</span><span class="tok kw" data-elem-id="162">const</span><span class="tok plain" data-elem-id="163"> last = </span><span class="tok fn" data-elem-id="164">signal</span><span class="tok plain" data-elem-id="165">(</span><span class="tok str" data-elem-id="166">"Lovelace"</span><span class="tok plain" data-elem-id="167">);
+</span><span class="tok kw" data-elem-id="168">const</span><span class="tok plain" data-elem-id="169"> fullName = </span><span class="tok fn" data-elem-id="170">derive</span><span class="tok plain" data-elem-id="171">(() =&gt; </span><span class="tok str" data-elem-id="172">`${first.value} ${last.value}`</span><span class="tok plain" data-elem-id="173">);
 
-<span class="tok kw">const</span> user = <span class="tok fn">signal</span>({ name: <span class="tok str">&quot;Ada&quot;</span>, age: <span class="tok num">36</span> });
-user.<span class="tok fn">set</span>({ age: <span class="tok num">37</span> });</code></pre></div>
-<p>Expected result:</p>
-<ul><li>array helpers update the array signal</li><li>object <code>set()</code> performs a shallow merge</li></ul>
-      </article>
-    </main>
-  </div>
-  
-</body>
-</html>
+</span><span class="tok fn" data-elem-id="174">effect</span><span class="tok plain" data-elem-id="175">(() =&gt; {
+  console.</span><span class="tok fn" data-elem-id="176">log</span><span class="tok plain" data-elem-id="177">(fullName.value); </span><span class="tok cm" data-elem-id="178">// Ada Lovelace</span><span class="tok plain" data-elem-id="179">
+});</span></code></pre></div></pre></section><section data-elem-id="180"><h2 data-elem-id="181">7. Pattern to Prefer</h2><ul data-elem-id="182"><li data-elem-id="183">Use `signal()` for mutable source data</li><li data-elem-id="184">Use `derive()` for computed values</li><li data-elem-id="185">Use `effect()` for logging, DOM updates, and integration points</li></ul></section><section data-elem-id="186"><h2 data-elem-id="187">8. Mental Model</h2><div class="card diagram-block" data-elem-id="188"><div class="diagram-svg" data-elem-id="189"><div class="card shallow diagram-node" data-elem-id="190"><span data-elem-id="191">source signal</span></div><div class="diagram-arrow" data-elem-id="192">→</div><div class="card shallow diagram-node" data-elem-id="193"><span data-elem-id="194">derive()</span></div><div class="diagram-arrow" data-elem-id="195">→</div><div class="card shallow diagram-node" data-elem-id="196"><span data-elem-id="197">effect()</span></div></div></div><p data-elem-id="198">Use this when you want the shortest path from state to UI.</p></section><section data-elem-id="199"><h2 data-elem-id="200">9. Equality Short-Circuit</h2><pre data-elem-id="201"><div class="card code-block" data-elem-id="202"><button type="button" class="copy-button" data-elem-id="203">Copy</button><pre data-elem-id="204"><code data-lang="ts" data-elem-id="205"><span class="tok plain" data-elem-id="206"></span><span class="tok kw" data-elem-id="207">const</span><span class="tok plain" data-elem-id="208"> count = </span><span class="tok fn" data-elem-id="209">signal</span><span class="tok plain" data-elem-id="210">(</span><span class="tok num" data-elem-id="211">1</span><span class="tok plain" data-elem-id="212">);
+
+</span><span class="tok fn" data-elem-id="213">effect</span><span class="tok plain" data-elem-id="214">(() =&gt; {
+  console.</span><span class="tok fn" data-elem-id="215">log</span><span class="tok plain" data-elem-id="216">(count.value); </span><span class="tok cm" data-elem-id="217">// 1</span><span class="tok plain" data-elem-id="218">
+});
+
+count.value = </span><span class="tok num" data-elem-id="219">1</span><span class="tok plain" data-elem-id="220">; </span><span class="tok cm" data-elem-id="221">// no log</span><span class="tok plain" data-elem-id="222"></span></code></pre></div></pre><p data-elem-id="223">Expected result:</p><ul data-elem-id="224"><li data-elem-id="225">the effect does not re-run for the same value</li></ul></section><section data-elem-id="226"><h2 data-elem-id="227">10. Dispose When Done</h2><pre data-elem-id="228"><div class="card code-block" data-elem-id="229"><button type="button" class="copy-button" data-elem-id="230">Copy</button><pre data-elem-id="231"><code data-lang="ts" data-elem-id="232"><span class="tok plain" data-elem-id="233"></span><span class="tok kw" data-elem-id="234">const</span><span class="tok plain" data-elem-id="235"> count = </span><span class="tok fn" data-elem-id="236">signal</span><span class="tok plain" data-elem-id="237">(</span><span class="tok num" data-elem-id="238">0</span><span class="tok plain" data-elem-id="239">);
+</span><span class="tok kw" data-elem-id="240">const</span><span class="tok plain" data-elem-id="241"> logger = </span><span class="tok fn" data-elem-id="242">effect</span><span class="tok plain" data-elem-id="243">(() =&gt; {
+  console.</span><span class="tok fn" data-elem-id="244">log</span><span class="tok plain" data-elem-id="245">(count.value); </span><span class="tok cm" data-elem-id="246">// 0</span><span class="tok plain" data-elem-id="247">
+});
+
+logger.</span><span class="tok fn" data-elem-id="248">dispose</span><span class="tok plain" data-elem-id="249">();
+count.value = </span><span class="tok num" data-elem-id="250">1</span><span class="tok plain" data-elem-id="251">; </span><span class="tok cm" data-elem-id="252">// no log</span><span class="tok plain" data-elem-id="253"></span></code></pre></div></pre><p data-elem-id="254">Expected result:</p><ul data-elem-id="255"><li data-elem-id="256">the disposed effect does not run again after the next update cycle</li></ul></section><section data-elem-id="257"><h2 data-elem-id="258">11. Arrays And Objects</h2><pre data-elem-id="259"><div class="card code-block" data-elem-id="260"><button type="button" class="copy-button" data-elem-id="261">Copy</button><pre data-elem-id="262"><code data-lang="ts" data-elem-id="263"><span class="tok plain" data-elem-id="264"></span><span class="tok kw" data-elem-id="265">const</span><span class="tok plain" data-elem-id="266"> items = </span><span class="tok fn" data-elem-id="267">signal</span><span class="tok plain" data-elem-id="268">([</span><span class="tok num" data-elem-id="269">1</span><span class="tok plain" data-elem-id="270">, </span><span class="tok num" data-elem-id="271">2</span><span class="tok plain" data-elem-id="272">, </span><span class="tok num" data-elem-id="273">3</span><span class="tok plain" data-elem-id="274">]);
+items.</span><span class="tok fn" data-elem-id="275">push</span><span class="tok plain" data-elem-id="276">(</span><span class="tok num" data-elem-id="277">4</span><span class="tok plain" data-elem-id="278">);
+
+</span><span class="tok kw" data-elem-id="279">const</span><span class="tok plain" data-elem-id="280"> user = </span><span class="tok fn" data-elem-id="281">signal</span><span class="tok plain" data-elem-id="282">({ name: </span><span class="tok str" data-elem-id="283">"Ada"</span><span class="tok plain" data-elem-id="284">, age: </span><span class="tok num" data-elem-id="285">36</span><span class="tok plain" data-elem-id="286"> });
+user.</span><span class="tok fn" data-elem-id="287">set</span><span class="tok plain" data-elem-id="288">({ age: </span><span class="tok num" data-elem-id="289">37</span><span class="tok plain" data-elem-id="290"> });</span></code></pre></div></pre><p data-elem-id="291">Expected result:</p><ul data-elem-id="292"><li data-elem-id="293">array helpers update the array signal</li><li data-elem-id="294">object `set()` performs a shallow merge</li></ul></section></article></main></body></html>

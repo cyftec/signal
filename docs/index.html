@@ -1,61 +1,16 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cyftech Signal Docs</title>
-  <link rel="stylesheet" href="./assets/docs.css" />
-</head>
-<body>
-  <main class="landing">
-    <nav class="landing-nav">
-      <a href="./api-docs/">API Docs</a>
-      <a href="./tutorial/">Tutorial</a>
-      <a href="./architecture/">Architecture</a>
-    </nav>
-    <section class="showcase">
-      <div class="showcase-copy">
-        <div class="eyebrow">Cyftech Signal</div>
-        <h1>Signals you can read in the code and see in the UI.</h1>
-        <p>A source signal owns the state. An effect observes that state. When the value changes, the UI follows synchronously.</p>
-        <div class="showcase-code"><pre><code>import { signal, effect } from <span class="tok str">&quot;@cyftech/signal&quot;</span>;
+<!DOCTYPE html>
+<html lang="en" data-elem-id="1"><head data-elem-id="2"><title data-elem-id="3">Cyftec Signal Docs</title><meta charset="UTF-8" data-elem-id="4"><meta name="viewport" content="width=device-width, initial-scale=1" data-elem-id="5"><link rel="stylesheet" href="/assets/docs.css" data-elem-id="6"></head><body data-elem-id="7"><script src="main.js" defer="" data-elem-id="8"></script><nav class="header" data-elem-id="9"><a class="header-brand" href="/" data-elem-id="10"><img src="/assets/images/signal-logo.svg" alt="Cyftec Signal Logo" data-elem-id="11"><span data-elem-id="12"></span></a><div class="header-links" data-elem-id="13"><a class="" href="/api-docs/" data-elem-id="14">API Docs</a><a class="" href="/tutorial/" data-elem-id="15">Tutorial</a><a class="" href="/architecture/" data-elem-id="16">Architecture</a></div></nav><main class="landing" data-elem-id="17"><section class="showcase" data-elem-id="18"><div class="showcase-code" data-elem-id="19"><h1 data-elem-id="20">Signals you can wire in the code, watch the effects in the UI.</h1><p data-elem-id="21">A source signal owns the state. An effect observes that state. When the value changes, the UI follows synchronously.</p><div class="card code-block" data-elem-id="22"><span style="display: none;" data-elem-id="23"></span><pre data-elem-id="24"><code data-lang="ts" data-elem-id="25"><span class="tok plain" data-elem-id="26"></span><span class="tok kw" data-elem-id="27">import</span><span class="tok plain" data-elem-id="28"> { signal, effect } </span><span class="tok kw" data-elem-id="29">from</span><span class="tok plain" data-elem-id="30"> </span><span class="tok str" data-elem-id="31">"@cyftech/signal"</span><span class="tok plain" data-elem-id="32">;
 
-<span class="tok kw">type</span> LightState = <span class="tok str">&quot;red&quot;</span> | <span class="tok str">&quot;amber&quot;</span> | <span class="tok str">&quot;green&quot;</span>;
+</span><span class="tok kw" data-elem-id="33">type</span><span class="tok plain" data-elem-id="34"> LightState = </span><span class="tok str" data-elem-id="35">"red"</span><span class="tok plain" data-elem-id="36"> | </span><span class="tok str" data-elem-id="37">"amber"</span><span class="tok plain" data-elem-id="38"> | </span><span class="tok str" data-elem-id="39">"green"</span><span class="tok plain" data-elem-id="40">;
 
-<span class="tok kw">const</span> light = signal&lt;LightState&gt;(<span class="tok str">&quot;red&quot;</span>);
-<span class="tok kw">const</span> order: LightState[] = [<span class="tok str">&quot;red&quot;</span>, <span class="tok str">&quot;amber&quot;</span>, <span class="tok str">&quot;green&quot;</span>];
+</span><span class="tok kw" data-elem-id="41">const</span><span class="tok plain" data-elem-id="42"> light = signal&lt;LightState&gt;(</span><span class="tok str" data-elem-id="43">"red"</span><span class="tok plain" data-elem-id="44">);
+</span><span class="tok kw" data-elem-id="45">const</span><span class="tok plain" data-elem-id="46"> order: LightState[] = [</span><span class="tok str" data-elem-id="47">"red"</span><span class="tok plain" data-elem-id="48">, </span><span class="tok str" data-elem-id="49">"amber"</span><span class="tok plain" data-elem-id="50">, </span><span class="tok str" data-elem-id="51">"green"</span><span class="tok plain" data-elem-id="52">];
 
-<span class="tok fn">effect</span>(() =&gt; {
+</span><span class="tok fn" data-elem-id="53">effect</span><span class="tok plain" data-elem-id="54">(() =&gt; {
   trafficLight.dataset.state = light.value;
 });
 
-<span class="tok fn">setInterval</span>(() =&gt; {
-  <span class="tok kw">const</span> current = order.<span class="tok fn">indexOf</span>(light.value);
-  light.value = order[(current + <span class="tok num">1</span>) % order.length];
-}, <span class="tok num">1200</span>);</code></pre></div>
-      </div>
-      <div class="showcase-demo" aria-label="Animated traffic light driven by a signal state">
-        <div class="traffic-scene">
-          <div class="traffic-controller">
-            <span>signal value</span>
-            <strong class="state-word" aria-label="animated light state"></strong>
-          </div>
-          <div class="traffic-light" aria-hidden="true">
-            <div class="lamp lamp-red"></div>
-            <div class="lamp lamp-amber"></div>
-            <div class="lamp lamp-green"></div>
-          </div>
-          <div class="traffic-timeline">
-            <span>red</span>
-            <span>amber</span>
-            <span>green</span>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section class="landing-grid">
-      <a class="landing-card" href="./api-docs/"><span>api-docs</span><small>Generated API reference driven by TSDoc and validated markdown.</small></a><a class="landing-card" href="./tutorial/"><span>tutorial</span><small>Learning-first guide with examples, outcomes, and progressive steps.</small></a><a class="landing-card" href="./architecture/"><span>architecture</span><small>Contributor-focused diagrams and implementation notes.</small></a>
-    </section>
-  </main>
-</body>
-</html>
+</span><span class="tok fn" data-elem-id="55">setInterval</span><span class="tok plain" data-elem-id="56">(() =&gt; {
+  </span><span class="tok kw" data-elem-id="57">const</span><span class="tok plain" data-elem-id="58"> current = order.</span><span class="tok fn" data-elem-id="59">indexOf</span><span class="tok plain" data-elem-id="60">(light.value);
+  light.value = order[(current + </span><span class="tok num" data-elem-id="61">1</span><span class="tok plain" data-elem-id="62">) % order.length];
+}, </span><span class="tok num" data-elem-id="63">1200</span><span class="tok plain" data-elem-id="64">);</span></code></pre></div></div><div class="card showcase-demo" data-elem-id="65"><div class="traffic-scene" data-elem-id="66"><div class="traffic-controller" data-elem-id="67"><span data-elem-id="68">signal value</span><strong class="state-word" data-elem-id="69"></strong></div><div class="card traffic-light" data-elem-id="70"><div class="lamp lamp-red" data-elem-id="71"></div><div class="lamp lamp-amber" data-elem-id="72"></div><div class="lamp lamp-green" data-elem-id="73"></div></div><div class="traffic-timeline" data-elem-id="74"><span data-elem-id="75">red</span><span data-elem-id="76">amber</span><span data-elem-id="77">green</span></div></div></div></section><section class="landing-grid" data-elem-id="78"><a class="card landing-card" href="/api-docs/" data-elem-id="79"><span data-elem-id="80">api-docs</span><small data-elem-id="81">Generated API reference driven by TSDoc and validated markdown.</small></a><a class="card landing-card" href="/tutorial/" data-elem-id="82"><span data-elem-id="83">tutorial</span><small data-elem-id="84">Learning-first guide with examples, outcomes, and progressive steps.</small></a><a class="card landing-card" href="/architecture/" data-elem-id="85"><span data-elem-id="86">architecture</span><small data-elem-id="87">Contributor-focused diagrams and implementation notes.</small></a></section></main></body></html>
