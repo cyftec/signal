@@ -14,15 +14,7 @@ export const Collapsible = component<CollapsibleProps>(
     const iconClass = tmpl`collapsible-icon ${() => (expanded.value ? "expanded" : "collapsed")}`;
     const iconLabel = derive(() => (expanded.value ? "𐱀" : "𐰷"));
 
-    effect(() => console.log(expanded.value ? "expanded" : "collapsed"));
-    effect(() => console.log("outerExpandedState: ", outerExpandedState.value));
-
-    effect(() => {
-      console.log(`ran again without oter state: ${outerExpandedState.value}`);
-      expanded.value = outerExpandedState.value;
-    });
-    // receive(expanded, outerExpandedState);
-    let clickCount = 0;
+    receive(expanded, outerExpandedState);
 
     return m.Div({
       class: "collapsible",
@@ -30,10 +22,7 @@ export const Collapsible = component<CollapsibleProps>(
         m.Button({
           type: "button",
           class: "collapsible-header",
-          onclick: () => {
-            console.log(`clicked ${clickCount++} times`);
-            expanded.value = !expanded.value;
-          },
+          onclick: () => expanded.toggle(),
           children: [
             m.Span({ class: "collapsible-title", children: title }),
             m.Span({

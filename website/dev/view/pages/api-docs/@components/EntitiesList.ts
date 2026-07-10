@@ -19,7 +19,7 @@ export const EntitiesList = component<EntitiesListProps>(
 
     return m.Div({
       children: m.For({
-        subject: Object.keys(codeEntitiesMeta.value) as CodeEntityKind[],
+        subject: ["const", "type"] as CodeEntityKind[],
         map: (codeEntityKind) => {
           const codeEntitiesGroup = derive(
             () => codeEntitiesMeta.value[codeEntityKind],
@@ -29,9 +29,7 @@ export const EntitiesList = component<EntitiesListProps>(
             expandedState: expanded,
             title: codeEntityKind,
             children: m.For({
-              subject: Object.keys(
-                codeEntitiesMeta.value[codeEntityKind],
-              ) as CodeEntityCategory[],
+              subject: ["core", "api"] as CodeEntityCategory[],
               map: (category) => {
                 const codeEntities = derive(
                   () => codeEntitiesGroup.value[category],

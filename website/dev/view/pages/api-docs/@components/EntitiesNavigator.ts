@@ -22,9 +22,6 @@ export const EntitiesNavigator = component<EntitiesNavigatorProps>(
       return searching ? true : mobileView ? false : !prevState;
     });
 
-    effect(() => console.log(isMobile.value ? "mobile" : "desktop"));
-    effect(() => console.log("EXPANDED: ", newExpandedState.value));
-
     const filteredEntitiesMeta = derive(() => {
       const searchedText = searchInput.value;
       const filteredMeta = newVal(meta.value);
