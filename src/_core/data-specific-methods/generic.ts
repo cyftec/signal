@@ -16,19 +16,20 @@ import type {
   NullableLogicalMethods,
   NumberLogicalMethods,
   ObjectLogicalMethods,
+  Primitive,
   StringLogicalMethods,
 } from "./types";
 
 export const getNullableLogicalNonMutatingMethodsObject = <T>(
-  baseSignalifiedObject: BaseSignalifiedObject<T>,
+  baseSignalifiedObject: MaybeSignal<T>,
 ): NullableLogicalMethods<T> => {
   return {
     truthy: () => derive(() => !!value(baseSignalifiedObject)),
     falsy: () => derive(() => !value(baseSignalifiedObject)),
-    or: (alternativeValue: MaybeSignal<NonNullable<T>>) =>
+    or: <R>(alternativeValue: MaybeSignal<R>) =>
       derive(() => {
-        const altValue = value(alternativeValue) as NonNullable<T>;
-        return baseSignalifiedObject.value || altValue;
+        const altValue = value(alternativeValue);
+        return value(baseSignalifiedObject) || altValue;
       }),
   };
 };
@@ -75,20 +76,18 @@ const createLogicalTruthiness = <T>(
  * @param baseSignalifiedObjectGetter - The base signal to compare
  * @returns A logical equality object
  */
-const createLogicalEquality = <
-  T extends string | number | boolean | null | undefined,
->(
+const createLogicalEquality = <T extends Primitive>(
   valueGetter: () => T,
 ): LogicalEquality<T> => {
   return {
     equals: (compareValue: MaybeSignal<T>) => {
       const equalityEvaluator = () =>
-        valueGetter() === (value(compareValue) as number);
+        valueGetter() === (value(compareValue) as Primitive);
       return createLogicalMap(equalityEvaluator);
     },
     notEquals: (compareValue: MaybeSignal<T>) => {
       const notEqualityEvaluator = () =>
-        valueGetter() !== (value(compareValue) as number);
+        valueGetter() !== (value(compareValue) as Primitive);
       return createLogicalMap(notEqualityEvaluator);
     },
   };
@@ -133,7 +132,7 @@ const createLogicalNumberInequality = (
  * @param baseSignalifiedObjectGetter - The base signal with length property
  * @returns A logical length comparison object
  */
-const createLogicalLengthComparison = <T extends string | any[]>(
+const createLogicalLengthComparison = (
   lengthGetter: () => number,
 ): LogicalLengthComparison => {
   return {

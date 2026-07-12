@@ -1,12 +1,23 @@
 import type { DerivedSignal, MaybeSignal, MaybeSignalValues } from "../signals";
 
+export type Primitive =
+  | string
+  | number
+  | bigint
+  | boolean
+  | null
+  | undefined
+  | symbol;
+
+export type Falsyable = Exclude<Primitive, symbol>;
+
 // Nullable properties for any type
 export type NullableLogicalMethods<T> = {
   truthy: () => DerivedSignal<boolean>;
   falsy: () => DerivedSignal<boolean>;
-  or: (
-    alternativeValue: MaybeSignal<NonNullable<T>>,
-  ) => DerivedSignal<NonNullable<T>>;
+  or: <R>(
+    alternativeValue: MaybeSignal<R>,
+  ) => DerivedSignal<NonNullable<T> | R>;
 };
 
 export type LogicalMapMethod = <U, V>(
@@ -20,9 +31,7 @@ export type LogicalTruthiness = {
   isTruthy: LogicalMap;
 };
 
-export type LogicalEquality<
-  T extends boolean | number | string | null | undefined,
-> = {
+export type LogicalEquality<T extends Primitive> = {
   equals: (compareValue: MaybeSignal<T>) => LogicalMap;
   notEquals: (compareValue: MaybeSignal<T>) => LogicalMap;
 };
@@ -43,9 +52,7 @@ export type LogicalWhen<T> = ([string] extends [T] ? LogicalTruthiness : {}) &
   ([boolean] extends [T] ? LogicalTruthiness : {}) &
   ([null] extends [T] ? LogicalTruthiness : {}) &
   ([undefined] extends [T] ? LogicalTruthiness : {}) &
-  ([T] extends [string | number | boolean | null | undefined]
-    ? LogicalEquality<T>
-    : {}) &
+  ([T] extends [Primitive] ? LogicalEquality<T> : {}) &
   ([T] extends [string | any[]] ? LogicalLengthComparison : {}) &
   ([T] extends [number] ? LogicalNumberInequality : {});
 
