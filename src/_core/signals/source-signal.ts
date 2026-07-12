@@ -7,12 +7,13 @@ import {
   getNumberSignalMethodsObject,
   getObjectSourceSignalMethodsObject,
   getStringSignalMethodsObject,
+  NullableLogicalMethods,
   NumberSignalNonMutatingMethodsObject,
   ObjectSourceSignalMethodsObject,
   StringSignalNonMutatingMethodsObject,
 } from "../data-specific-methods";
-import { BaseSourceSignal } from "./types";
 import { getCurrentEffect, SignalsEffect } from "../effect";
+import { BaseSourceSignal } from "./types";
 
 /**
  * Source signal for arrays with mutation and non-mutating methods.
@@ -90,17 +91,22 @@ export type BooleanSourceSignal = BaseSourceSignal<boolean> &
  * @see {@link signal} - For creating source signals
  * @see {@link DerivedSignal} - For read-only derived signals
  */
-export type SourceSignal<T> = T extends any[]
-  ? ArraySourceSignal<T>
-  : T extends Record<string, any>
-    ? ObjectSourceSignal<T>
-    : T extends string
-      ? StringSourceSignal
-      : T extends number
-        ? NumberSourceSignal
-        : T extends boolean
-          ? BooleanSourceSignal
-          : BaseSourceSignal<T>;
+export type SourceSignal<T> = BaseSourceSignal<T> &
+  ([null] extends [T]
+    ? NullableLogicalMethods<T>
+    : [undefined] extends [T]
+      ? NullableLogicalMethods<T>
+      : T extends any[]
+        ? ArraySourceSignal<T>
+        : T extends Record<string, any>
+          ? ObjectSourceSignal<T>
+          : T extends string
+            ? StringSourceSignal
+            : T extends number
+              ? NumberSourceSignal
+              : T extends boolean
+                ? BooleanSourceSignal
+                : {});
 
 /**
  * Creates a mutable source signal from any JavaScript value.
@@ -256,13 +262,15 @@ export const signal = <T>(
             : typeof nonNullableInitial === "boolean"
               ? Object.assign(
                   baseSourceSignal,
-                  getBooleanSignalMethodsObject((mutatorMethod) =>
-                    setValueAndRunEffects(
-                      mutatorMethod(_value as boolean) as T,
-                    ),
+                  getBooleanSignalMethodsObject(
+                    (mutatorMethod) =>
+                      setValueAndRunEffects(
+                        mutatorMethod(_value as boolean) as T,
+                      ),
+                    baseSourceSignal as BaseSourceSignal<boolean>,
                   ),
                 )
-              : baseSourceSignal
+              : Object.assign(baseSourceSignal)
   ) as SourceSignal<T>;
 
   return result;

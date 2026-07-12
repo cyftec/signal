@@ -1,5 +1,77 @@
 import type { DerivedSignal, MaybeSignal, MaybeSignalValues } from "../signals";
 
+// Nullable properties for any type
+export type NullableLogicalMethods<T> = {
+  truthy: () => DerivedSignal<boolean>;
+  falsy: () => DerivedSignal<boolean>;
+  or: (
+    alternativeValue: MaybeSignal<NonNullable<T>>,
+  ) => DerivedSignal<NonNullable<T>>;
+};
+
+export type LogicalMapMethod = <U, V>(
+  truthyOption: MaybeSignal<U>,
+  falsyOption: MaybeSignal<V>,
+) => DerivedSignal<U | V>;
+
+export type LogicalMap = { map: LogicalMapMethod };
+
+export type LogicalTruthiness = {
+  isTruthy: LogicalMap;
+};
+
+export type LogicalEquality<
+  T extends boolean | number | string | null | undefined,
+> = {
+  equals: (compareValue: MaybeSignal<T>) => LogicalMap;
+  notEquals: (compareValue: MaybeSignal<T>) => LogicalMap;
+};
+
+export type LogicalNumberInequality = {
+  greaterThan: (compareValue: MaybeSignal<number>) => LogicalMap;
+  greaterThanOrEqualTo: (compareValue: MaybeSignal<number>) => LogicalMap;
+  smallerThan: (compareValue: MaybeSignal<number>) => LogicalMap;
+  smallerThanOrEqualTo: (compareValue: MaybeSignal<number>) => LogicalMap;
+};
+
+export type LogicalLengthComparison = {
+  length: LogicalEquality<number> & LogicalNumberInequality;
+};
+
+export type LogicalWhen<T> = ([string] extends [T] ? LogicalTruthiness : {}) &
+  ([number] extends [T] ? LogicalTruthiness : {}) &
+  ([boolean] extends [T] ? LogicalTruthiness : {}) &
+  ([null] extends [T] ? LogicalTruthiness : {}) &
+  ([undefined] extends [T] ? LogicalTruthiness : {}) &
+  ([T] extends [string | number | boolean | null | undefined]
+    ? LogicalEquality<T>
+    : {}) &
+  ([T] extends [string | any[]] ? LogicalLengthComparison : {}) &
+  ([T] extends [number] ? LogicalNumberInequality : {});
+
+export type LogicalWhenMethodsObject<T> = [T] extends [Record<string, any>]
+  ? {}
+  : {
+      when: LogicalWhen<T>;
+    };
+
+// Logical methods for booleans
+export type BooleanLogicalMethods = LogicalWhenMethodsObject<boolean>;
+
+// Logical methods for numbers
+export type NumberLogicalMethods = LogicalWhenMethodsObject<number>;
+
+// Logical methods for strings
+export type StringLogicalMethods = LogicalWhenMethodsObject<string>;
+
+// Logical methods for arrays
+export type ArrayLogicalMethods = {
+  when: LogicalWhen<any[]>;
+};
+
+// Logical methods for objects
+export type ObjectLogicalMethods = {};
+
 /**
  * Intrinsic mutating methods for array signals.
  *
@@ -175,13 +247,14 @@ export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
 /**
  * Combined non-mutating methods for array signals.
  *
- * Combines intrinsic and custom non-mutating methods into a single type.
+ * Combines intrinsic, custom, and logical non-mutating methods into a single type.
  *
  * @template T - The array type
  */
 export type ArraySignalNonMutatingMethodsObject<T extends any[]> =
   ArraySignalIntrinsicNonMutatingMethodsObject<T> &
-    ArraySignalCustomNonMutatingMethodsObject<T>;
+    ArraySignalCustomNonMutatingMethodsObject<T> &
+    ArrayLogicalMethods;
 
 /**
  * Combined methods for array source signals.
@@ -227,7 +300,7 @@ export type ObjectSignalNonMutatingMethodsObject<
   props: () => { [key in keyof T]: DerivedSignal<T[key]> };
   /** Returns the object's keys as a derived signal. */
   keys: () => DerivedSignal<string[]>;
-};
+} & ObjectLogicalMethods;
 
 export type ObjectSourceSignalMethodsObject<T extends Record<string, any>> =
   ObjectSourceSignalMutatingMethodsObject<T> &
@@ -357,11 +430,13 @@ export type StringSignalCustomNonMutatingMethodsObject = {
 /**
  * Combined non-mutating methods for string signals.
  *
- * Combines intrinsic and custom non-mutating methods into a single type.
+ * Combines intrinsic, custom, and logical non-mutating methods into a single type.
  */
 export type StringSignalNonMutatingMethodsObject =
   StringSignalIntrinsicNonMutatingMethodsObject &
-    StringSignalCustomNonMutatingMethodsObject;
+    StringSignalCustomNonMutatingMethodsObject &
+    StringLogicalMethods &
+    NullableLogicalMethods<string>;
 
 /**
  * Intrinsic non-mutating methods for number signals.
@@ -410,11 +485,13 @@ export type NumberSignalCustomNonMutatingMethodsObject = {
 /**
  * Combined non-mutating methods for number signals.
  *
- * Combines intrinsic and custom non-mutating methods into a single type.
+ * Combines intrinsic, custom, and logical non-mutating methods into a single type.
  */
 export type NumberSignalNonMutatingMethodsObject =
   NumberSignalIntrinsicNonMutatingMethodsObject &
-    NumberSignalCustomNonMutatingMethodsObject;
+    NumberSignalCustomNonMutatingMethodsObject &
+    NumberLogicalMethods &
+    NullableLogicalMethods<number>;
 
 /**
  * Mutating methods for boolean signals.
@@ -428,4 +505,6 @@ export type BooleanSignalMutatingMethodsObject = {
 };
 
 export type BooleanSourceSignalMethodsObject =
-  BooleanSignalMutatingMethodsObject;
+  BooleanSignalMutatingMethodsObject &
+    BooleanLogicalMethods &
+    NullableLogicalMethods<boolean>;

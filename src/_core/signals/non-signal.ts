@@ -5,6 +5,7 @@ import {
   getNumberSignalMethodsObject,
   getObjectSignalNonMutatingMethodsObject,
   getStringSignalMethodsObject,
+  NullableLogicalMethods,
   NumberSignalNonMutatingMethodsObject,
   ObjectSignalNonMutatingMethodsObject,
   StringSignalNonMutatingMethodsObject,
@@ -35,15 +36,19 @@ import { BaseNonSignal } from "./types";
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type NonSignal<T> = BaseNonSignal<T> &
-  (T extends any[]
-    ? ArraySignalNonMutatingMethodsObject<T>
-    : T extends Record<string, any>
-      ? ObjectSignalNonMutatingMethodsObject<T>
-      : T extends string
-        ? StringSignalNonMutatingMethodsObject
-        : T extends number
-          ? NumberSignalNonMutatingMethodsObject
-          : {});
+  ([null] extends [T]
+    ? NullableLogicalMethods<T>
+    : [undefined] extends [T]
+      ? NullableLogicalMethods<T>
+      : T extends any[]
+        ? ArraySignalNonMutatingMethodsObject<T>
+        : T extends Record<string, any>
+          ? ObjectSignalNonMutatingMethodsObject<T>
+          : T extends string
+            ? StringSignalNonMutatingMethodsObject
+            : T extends number
+              ? NumberSignalNonMutatingMethodsObject
+              : {});
 
 /**
  * Wraps a plain value in a NonSignal object for runtime type discrimination.
@@ -109,5 +114,5 @@ export const getNonSignalObject = <T>(input: T): NonSignal<T> => {
     ) as any;
   }
 
-  return baseNonSignal as any;
+  return Object.assign(baseNonSignal) as any;
 };

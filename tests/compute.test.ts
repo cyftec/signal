@@ -133,11 +133,11 @@ describe("compute", () => {
   it("should work with object arguments", () => {
     const name = signal({ first: "John", last: "Doe" });
     const age = 30; // Plain value, not a signal
-    const person = compute(
-      (name: any, age: number) => ({ ...name, age }),
-      name,
+    const fn = (name: { first: string; last: string }, age: number) => ({
+      ...name,
       age,
-    );
+    });
+    const person = compute(fn, name, age);
 
     expect(person.value).toEqual({ first: "John", last: "Doe", age: 30 });
 

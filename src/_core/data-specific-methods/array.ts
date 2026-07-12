@@ -1,10 +1,15 @@
 import { newVal } from "@cyftec/immut";
+import { getDesignalifiedMethodParams, value } from "../../utils";
 import {
   derive,
   MaybeSignal,
   MaybeSignalValues,
   type BaseSignalifiedObject,
 } from "../signals";
+import {
+  getArrayLogicalMethods,
+  getNullableLogicalNonMutatingMethodsObject,
+} from "./generic";
 import {
   ArraySignalCustomMutatingMethodsObject,
   ArraySignalCustomNonMutatingMethodsObject,
@@ -14,7 +19,6 @@ import {
   ArraySignalNonMutatingMethodsObject,
   ArraySourceSignalMethodsObject,
 } from "./types";
-import { getDesignalifiedMethodParams, value } from "../../utils";
 
 /**
  * Creates intrinsic mutating methods for array signals.
@@ -341,7 +345,7 @@ export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
 /**
  * Creates combined non-mutating methods for array signals.
  *
- * Combines intrinsic and custom non-mutating methods into a single object.
+ * Combines intrinsic, custom, and logical non-mutating methods into a single object.
  *
  * @template T - The array type
  * @param baseSignalifiedArrayObject - The base array signal to access values from
@@ -359,6 +363,8 @@ export const getArraySignalNonMutatingMethodsObject = <T extends any[]>(
     baseSignalifiedArrayObject,
   ),
   ...getArraySignalCustomNonMutatingMethodsObject(baseSignalifiedArrayObject),
+  ...getArrayLogicalMethods(baseSignalifiedArrayObject),
+  ...getNullableLogicalNonMutatingMethodsObject(baseSignalifiedArrayObject),
 });
 
 /**

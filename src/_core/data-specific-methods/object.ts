@@ -4,6 +4,10 @@ import {
   derive,
 } from "../signals";
 import {
+  getNullableLogicalNonMutatingMethodsObject,
+  getObjectLogicalMethods,
+} from "./generic";
+import {
   ObjectSignalNonMutatingMethodsObject,
   ObjectSourceSignalMethodsObject,
   ObjectSourceSignalMutatingMethodsObject,
@@ -67,6 +71,8 @@ export const getObjectSignalNonMutatingMethodsObject = <
       return signalledPropsObj;
     },
     keys: () => derive(() => Object.keys(baseObjectSignalifiedObject.value)),
+    ...getObjectLogicalMethods(),
+    ...getNullableLogicalNonMutatingMethodsObject(baseObjectSignalifiedObject),
   };
 };
 

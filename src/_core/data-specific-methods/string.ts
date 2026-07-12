@@ -10,6 +10,10 @@ import {
   StringSignalIntrinsicNonMutatingMethodsObject,
   StringSignalNonMutatingMethodsObject,
 } from "./types";
+import {
+  getNullableLogicalNonMutatingMethodsObject,
+  getStringLogicalMethods,
+} from "./generic";
 
 /**
  * Creates intrinsic non-mutating methods for string signals.
@@ -63,7 +67,7 @@ export const getStringSignalIntrinsicNonMutatingMethodsObject = (
         baseStringSignalifiedObject.value.concat(
           ...getDesignalifiedMethodParams(...args),
         ),
-      ),
+      ) as any,
     endsWith: (...args: MaybeSignalValues<Parameters<String["endsWith"]>>) =>
       derive(() =>
         baseStringSignalifiedObject.value.endsWith(
@@ -107,7 +111,7 @@ export const getStringSignalIntrinsicNonMutatingMethodsObject = (
         baseStringSignalifiedObject.value.repeat(
           ...getDesignalifiedMethodParams(...args),
         ),
-      ),
+      ) as any,
     slice: (...args: MaybeSignalValues<Parameters<String["slice"]>>) =>
       derive(() =>
         baseStringSignalifiedObject.value.slice(
@@ -150,7 +154,7 @@ export const getStringSignalIntrinsicNonMutatingMethodsObject = (
     localeCompare: (
       that: MaybeSignal<string>,
       locales?: MaybeSignal<string | string[] | undefined>,
-      options?: MaybeSignal<Intl.CollatorOptions>,
+      options?: MaybeSignal<Intl.CollatorOptions | undefined>,
     ) =>
       derive(() =>
         baseStringSignalifiedObject.value.localeCompare(
@@ -246,7 +250,7 @@ export const getStringSignalCustomNonMutatingMethodsObject = (
 /**
  * Creates combined non-mutating methods for string signals.
  *
- * Combines intrinsic and custom non-mutating methods into a single object.
+ * Combines intrinsic, custom, and logical non-mutating methods into a single object.
  *
  * @param baseStringSignalifiedObject - The base string signal to access values from
  * @returns Combined non-mutating methods for string signals
@@ -264,4 +268,6 @@ export const getStringSignalMethodsObject = (
     baseStringSignalifiedObject,
   ),
   ...getStringSignalCustomNonMutatingMethodsObject(baseStringSignalifiedObject),
+  ...getStringLogicalMethods(baseStringSignalifiedObject),
+  ...getNullableLogicalNonMutatingMethodsObject(baseStringSignalifiedObject),
 });

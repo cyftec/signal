@@ -1205,36 +1205,36 @@ describe("signal - nullable types", () => {
     const arr = signal<number[] | undefined>(undefined, []);
     expect(arr.value).toBeUndefined();
     // Check if methods are available even when value is undefined
-    expect(typeof (arr as Signal<number[]>).map).toBe("function");
-    expect(typeof (arr as Signal<number[]>).reduce).toBe("function");
-    expect(typeof (arr as Signal<number[]>).filter).toBe("function");
+    expect(typeof (arr as any).map).toBe("function");
+    expect(typeof (arr as any).reduce).toBe("function");
+    expect(typeof (arr as any).filter).toBe("function");
   });
 
   it("should handle array | null with null initial value", () => {
     const arr = signal<number[] | null>(null, []);
     expect(arr.value).toBeNull();
     // Check if methods are available even when value is null
-    expect(typeof (arr as Signal<number[]>).map).toBe("function");
-    expect(typeof (arr as Signal<number[]>).reduce).toBe("function");
-    expect(typeof (arr as Signal<number[]>).filter).toBe("function");
+    expect(typeof (arr as any).map).toBe("function");
+    expect(typeof (arr as any).reduce).toBe("function");
+    expect(typeof (arr as any).filter).toBe("function");
   });
 
   it("should handle object | undefined with undefined initial value", () => {
     const obj = signal<{ name: string } | undefined>(undefined, {});
     expect(obj.value).toBeUndefined();
     // Check if methods are available even when value is undefined
-    expect(typeof (obj as Signal<Record<string, any>>).keys).toBe("function");
-    expect(typeof (obj as Signal<Record<string, any>>).prop).toBe("function");
-    expect(typeof (obj as Signal<Record<string, any>>).props).toBe("function");
+    expect(typeof (obj as any).keys).toBe("function");
+    expect(typeof (obj as any).prop).toBe("function");
+    expect(typeof (obj as any).props).toBe("function");
   });
 
   it("should handle object | null with null initial value", () => {
     const obj = signal<{ name: string } | null>(null, {});
     expect(obj.value).toBeNull();
     // Check if methods are available even when value is null
-    expect(typeof (obj as Signal<Record<string, any>>).keys).toBe("function");
-    expect(typeof (obj as Signal<Record<string, any>>).prop).toBe("function");
-    expect(typeof (obj as Signal<Record<string, any>>).props).toBe("function");
+    expect(typeof (obj as any).keys).toBe("function");
+    expect(typeof (obj as any).prop).toBe("function");
+    expect(typeof (obj as any).props).toBe("function");
   });
 
   it("should handle string | undefined transitioning from undefined to string", () => {

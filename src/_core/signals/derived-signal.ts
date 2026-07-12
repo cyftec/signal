@@ -1,17 +1,18 @@
 import { isPlainObject } from "@cyftec/immut";
-import { effect } from "../effect";
 import {
   getArraySignalNonMutatingMethodsObject,
   getNumberSignalMethodsObject,
   getObjectSignalNonMutatingMethodsObject,
   getStringSignalMethodsObject,
+  NullableLogicalMethods,
   ObjectSignalNonMutatingMethodsObject,
   type ArraySignalNonMutatingMethodsObject,
   type NumberSignalNonMutatingMethodsObject,
   type StringSignalNonMutatingMethodsObject,
 } from "../data-specific-methods";
-import { BaseDerivedSignal } from "./types";
+import { effect } from "../effect";
 import { signal } from "./source-signal";
+import { BaseDerivedSignal } from "./types";
 
 /**
  * A read-only derived signal computed from other signals.
@@ -37,15 +38,19 @@ import { signal } from "./source-signal";
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
-  (T extends any[]
-    ? ArraySignalNonMutatingMethodsObject<T>
-    : T extends Record<string, any>
-      ? ObjectSignalNonMutatingMethodsObject<T>
-      : T extends string
-        ? StringSignalNonMutatingMethodsObject
-        : T extends number
-          ? NumberSignalNonMutatingMethodsObject
-          : {});
+  ([null] extends [T]
+    ? NullableLogicalMethods<T>
+    : [undefined] extends [T]
+      ? NullableLogicalMethods<T>
+      : T extends any[]
+        ? ArraySignalNonMutatingMethodsObject<T>
+        : T extends Record<string, any>
+          ? ObjectSignalNonMutatingMethodsObject<T>
+          : T extends string
+            ? StringSignalNonMutatingMethodsObject
+            : T extends number
+              ? NumberSignalNonMutatingMethodsObject
+              : {});
 
 /**
  * A function that computes a derived signal's value.
@@ -171,5 +176,5 @@ export const derive = <T>(
     ) as any;
   }
 
-  return baseDerivedSignal as any;
+  return Object.assign(baseDerivedSignal) as any;
 };
