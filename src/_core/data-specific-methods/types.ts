@@ -47,14 +47,11 @@ export type LogicalLengthComparison = {
   length: LogicalEquality<number> & LogicalNumberInequality;
 };
 
-export type LogicalWhen<T> = ([string] extends [T] ? LogicalTruthiness : {}) &
-  ([number] extends [T] ? LogicalTruthiness : {}) &
-  ([boolean] extends [T] ? LogicalTruthiness : {}) &
-  ([null] extends [T] ? LogicalTruthiness : {}) &
-  ([undefined] extends [T] ? LogicalTruthiness : {}) &
-  ([T] extends [Primitive] ? LogicalEquality<T> : {}) &
-  ([T] extends [string | any[]] ? LogicalLengthComparison : {}) &
-  ([T] extends [number] ? LogicalNumberInequality : {});
+export type LogicalWhen<T> = //
+  ([T] extends [Falsyable] ? LogicalTruthiness : {}) &
+    ([T] extends [Primitive] ? LogicalEquality<T> : {}) &
+    ([T] extends [string | any[]] ? LogicalLengthComparison : {}) &
+    ([T] extends [number] ? LogicalNumberInequality : {});
 
 export type LogicalWhenMethodsObject<T> = [T] extends [Record<string, any>]
   ? {}
