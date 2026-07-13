@@ -1,6 +1,95 @@
-import type { DerivedSignal } from "./derive";
+import type { DerivedSignal } from "./derived-signal";
 import type { NonSignal } from "./non-signal";
-import type { SourceSignal } from "./signal";
+import { SourceSignal } from "./source-signal";
+
+/**
+ * A runtime type wrapper for plain values.
+ *
+ * NonSignal objects are used for runtime type discrimination in complex
+ * type scenarios where TypeScript's compile-time types are insufficient.
+ * They enable distinguishing between plain values and signalified objects
+ * at runtime.
+ *
+ * @template T - The type of value wrapped
+ *
+ * @remarks
+ * - Used with `MaybeSignal` types to resolve ambiguity at runtime
+ * - Has a `type: "non-signal"` property for runtime type checking
+ * - The `value` property holds the wrapped plain value
+ *
+ * @see {@link Signal} - For signal objects
+ * @see {@link MaybeSignal} - For union types that include signals
+ * @see {@link getNonSignalObject} - For creating NonSignal objects
+ */
+export type BaseNonSignal<T> = {
+  /** Runtime type discriminator for non-signal objects */
+  type: "non-signal";
+  /** The wrapped plain value */
+  get value(): T;
+};
+
+/**
+ * Base source signal type with value getter/setter.
+ *
+ * @template T - The type of value the signal holds
+ */
+export type BaseSourceSignal<T> = {
+  /** Runtime type discriminator for source signals */
+  type: "source-signal";
+  /** Getter/setter for the signal's value */
+  value: T;
+};
+
+/**
+ * Base derived signal type with read-only value access.
+ *
+ * Derived signals are computed from other signals and automatically update
+ * when their dependencies change.
+ *
+ * @template T - The type of value the signal holds
+ *
+ * @remarks
+ * - Value is read-only (computed from dependencies)
+ * - The `prevValue` getter provides access to the previous computed value
+ * - Calling `dispose()` stops the signal from tracking its dependencies
+ */
+export type BaseDerivedSignal<T> = {
+  /** Runtime type discriminator for derived signals */
+  type: "derived-signal";
+  /** The previous computed value (undefined on first computation) */
+  get prevValue(): T | undefined;
+  /** The current computed value */
+  get value(): T;
+  /**
+   * Stops the derived signal from tracking its dependencies.
+   *
+   * After calling dispose(), the derived signal's value remains accessible
+   * but will no longer update when its dependencies change.
+   */
+  dispose: () => void;
+};
+
+/**
+ * Base signal type union for both source and derived signals.
+ *
+ * @template T - The type of value the signal holds
+ *
+ * @remarks
+ * - Source signals have mutable values via the setter
+ * - Derived signals have read-only values computed from dependencies
+ */
+export type BaseSignal<T> = BaseSourceSignal<T> | BaseDerivedSignal<T>;
+
+/**
+ * Base signalifed object type union for source signal, derived signal or non-signal object.
+ *
+ * @template T - The type of value the signalified object holds
+ *
+ * @remarks
+ * - Source signals have mutable values via the setter
+ * - Derived signals have read-only values computed from dependencies
+ */
+export type BaseSignalifiedObject<T> = BaseSignal<T> | BaseNonSignal<T>;
 
 /**
  * A union type representing either a source or derived signal.
@@ -58,7 +147,11 @@ export type SignalifiedObject<T> = NonSignal<T> | Signal<T>;
  *
  * @see {@link SignalifiedObject} - For signalified objects
  */
-export type MaybeSignal<T> = T | NonSignal<T> | Signal<T>;
+export type MaybeSignal<T> =
+  | T
+  | Signal<T>
+  | NonSignal<T>
+  | BaseSignalifiedObject<T>;
 
 /**
  * A utility type that removes `null` and `undefined` from signal realm types.

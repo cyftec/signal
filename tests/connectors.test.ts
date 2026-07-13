@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { derive, effect, receive, signal, transmit } from "../src/index";
+import { derive, effect, receive, signal, transmit } from "../src";
 
 describe("receive", () => {
   it("should connect multiple transmitters to a receiver", () => {
@@ -126,6 +126,50 @@ describe("receive", () => {
     event2.value = { type: "hover", y: 25 };
     expect(currentEvent.value).toEqual({ type: "hover", y: 25 });
   });
+
+  it("should handle plain value transmitters", () => {
+    const receiver = signal("");
+
+    receive(receiver, "Hello", "World");
+
+    expect(receiver.value).toBe("World"); // Last plain value
+  });
+
+  it("should handle plain number transmitters", () => {
+    const receiver = signal(0);
+
+    receive(receiver, 42, 100);
+
+    expect(receiver.value).toBe(100);
+  });
+
+  it("should handle plain object transmitters", () => {
+    const receiver = signal({});
+
+    receive(receiver, { type: "click" }, { type: "hover" });
+
+    expect(receiver.value).toEqual({ type: "hover" });
+  });
+
+  it("should handle mixed signal and plain value transmitters", () => {
+    const signalTransmitter = signal("Signal value");
+    const receiver = signal("");
+
+    receive(receiver, signalTransmitter, "Plain value");
+
+    expect(receiver.value).toBe("Plain value");
+
+    signalTransmitter.value = "Updated signal";
+    expect(receiver.value).toBe("Updated signal");
+  });
+
+  it("should handle null and undefined plain transmitters", () => {
+    const receiver = signal<string | null>("initial");
+
+    receive(receiver, null, "undefined");
+
+    expect(receiver.value).toBe("undefined");
+  });
 });
 
 describe("transmit", () => {
@@ -176,14 +220,14 @@ describe("transmit", () => {
     const transmitter = signal("Hello");
     const receiver1 = signal("");
     const receiver2 = signal("");
-    
+
     transmit(transmitter, receiver1, receiver2);
     expect(receiver1.value).toBe("Hello");
     expect(receiver2.value).toBe("Hello");
-    
+
     receiver1.value = "Manual update 1";
     receiver2.value = "Manual update 2";
-    
+
     expect(receiver1.value).toBe("Manual update 1");
     expect(receiver2.value).toBe("Manual update 2");
 
@@ -277,5 +321,46 @@ describe("transmit", () => {
     expect(receiver1.value).toBe(2);
     expect(receiver2.value).toBe(2);
     expect(updateOrder).toEqual([1, 2, 1, 2]);
+  });
+
+  it("should handle plain value transmitter", () => {
+    const receiver1 = signal("");
+    const receiver2 = signal("");
+
+    transmit("Hello", receiver1, receiver2);
+
+    expect(receiver1.value).toBe("Hello");
+    expect(receiver2.value).toBe("Hello");
+  });
+
+  it("should handle plain number transmitter", () => {
+    const receiver1 = signal(0);
+    const receiver2 = signal(0);
+
+    transmit(42, receiver1, receiver2);
+
+    expect(receiver1.value).toBe(42);
+    expect(receiver2.value).toBe(42);
+  });
+
+  it("should handle plain object transmitter", () => {
+    const receiver1 = signal({});
+    const receiver2 = signal({});
+
+    transmit({ type: "click", x: 10 }, receiver1, receiver2);
+
+    expect(receiver1.value).toEqual({ type: "click", x: 10 });
+    expect(receiver2.value).toEqual({ type: "click", x: 10 });
+  });
+
+  it("should handle null and undefined plain transmitter", () => {
+    const receiver1 = signal<string | null>("initial");
+    const receiver2 = signal<string | undefined>("initial");
+
+    transmit(null, receiver1);
+    expect(receiver1.value).toBe(null);
+
+    transmit(undefined, receiver2);
+    expect(receiver2.value).toBe(undefined);
   });
 });

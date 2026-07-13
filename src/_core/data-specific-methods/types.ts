@@ -1,79 +1,122 @@
-import type { DerivedSignal } from "../derive";
+import type { DerivedSignal, MaybeSignal, MaybeSignalValues } from "../signals";
+
+export type IsObjectLiteral<T> = T extends object
+  ? T extends readonly any[]
+    ? false
+    : T extends (...args: any[]) => any
+      ? false
+      : true
+  : false;
+
+export type IsArray<T> = T extends readonly unknown[] ? true : false;
+
+export type IsExactly<T, U> =
+  (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2
+    ? (<G>() => G extends U ? 1 : 2) extends <G>() => G extends T ? 1 : 2
+      ? true
+      : never
+    : never;
+
+export type IsUnionAndHasOtherTypeThan<T, U> = [true] extends [IsExactly<T, U>]
+  ? never
+  : Extract<T, U> extends never
+    ? never
+    : Exclude<T, U> extends never
+      ? never
+      : true;
+
+export type Primitive = string | number | bigint | boolean | null | undefined;
+
+export type HasPrimitive<T> =
+  Extract<T, Primitive> extends never ? never : true;
 
 /**
- * Base source signal type with value getter/setter.
+ * Logical Methods Structure
  *
- * @template T - The type of value the signal holds
+ * or.
+ * length.
+ * is.
+ * when.
+ *
+ * hasAtLeastOne.primitive.or.alternative
+ * hasAtLeastOne.primitive.is.exitence
+ * hasAtLeastOne.primitive.is?number.greaterOrSmaller
+ * hasAtLeastOne.primitive.is?stringOrArray.length.exitence
+ * hasAtLeastOne.primitive.is?stringOrArray.length.greaterOrSmaller
+ * hasAtLeastOne.primitive.when.exitence
+ * hasAtLeastOne.primitive.when?number.greaterOrSmaller
+ * hasAtLeastOne.primitive.when?stringOrArray.length.exitence
+ * hasAtLeastOne.primitive.when?stringOrArray.length.greaterOrSmaller
  */
-export type BaseSourceSignal<T> = {
-  /** Runtime type discriminator for source signals */
-  type: "source-signal";
-  /** Getter/setter for the signal's value */
-  value: T;
+
+export type LogicalTernaryMethod = <U, V>(
+  truthyOption: MaybeSignal<U>,
+  falsyOption: MaybeSignal<V>,
+) => DerivedSignal<U | V>;
+
+export type LogicalThen = { then: LogicalTernaryMethod };
+
+export type LogicalCheckReturnType = DerivedSignal<boolean> | LogicalThen;
+
+export type LogicalPrimitiveMethods<
+  T extends Primitive,
+  R extends LogicalCheckReturnType,
+> = {
+  truthy: () => R;
+  falsy: () => R;
+  equalTo: (compareValue: MaybeSignal<T>) => R;
+  notEqualTo: (compareValue: MaybeSignal<T>) => R;
 };
 
-/**
- * Base derived signal type with read-only value access.
- *
- * Derived signals are computed from other signals and automatically update
- * when their dependencies change.
- *
- * @template T - The type of value the signal holds
- *
- * @remarks
- * - Value is read-only (computed from dependencies)
- * - The `prevValue` getter provides access to the previous computed value
- * - Calling `dispose()` stops the signal from tracking its dependencies
- */
-export type BaseDerivedSignal<T> = {
-  /** Runtime type discriminator for derived signals */
-  type: "derived-signal";
-  /** The previous computed value (undefined on first computation) */
-  get prevValue(): T | undefined;
-  /** The current computed value */
-  get value(): T;
-  /**
-   * Stops the derived signal from tracking its dependencies.
-   *
-   * After calling dispose(), the derived signal's value remains accessible
-   * but will no longer update when its dependencies change.
-   */
-  dispose: () => void;
+export type LogicalNumberOnlyMethods<R extends LogicalCheckReturnType> = {
+  greaterThan: (compareValue: MaybeSignal<number>) => R;
+  greaterThanOrEqualTo: (compareValue: MaybeSignal<number>) => R;
+  smallerThan: (compareValue: MaybeSignal<number>) => R;
+  smallerThanOrEqualTo: (compareValue: MaybeSignal<number>) => R;
 };
 
-/**
- * Base signal type union for both source and derived signals.
- *
- * @template T - The type of value the signal holds
- *
- * @remarks
- * - Source signals have mutable values via the setter
- * - Derived signals have read-only values computed from dependencies
- */
-export type BaseSignal<T> = BaseSourceSignal<T> | BaseDerivedSignal<T>;
-
-/**
- * A function that can be registered to run when signal values change.
- *
- * Effects are created by the `effect()` function and track dependencies
- * by accessing `.value` on signals during execution.
- *
- * @remarks
- * - The effect function runs immediately when created
- * - It re-runs whenever any tracked signal's value changes
- * - The `canDisposeNow` flag marks the effect for disposal
- * - Calling `dispose()` sets `canDisposeNow` to true
- *
- * @see {@link effect} - For creating effects
- */
-export type SignalsEffect = {
-  /** The effect function body */
-  (): void;
-  /** Flag indicating whether the effect is marked for disposal */
-  canDisposeNow: boolean;
-  /** Marks the effect for disposal */
-  dispose(): void;
+// Nullable properties for any type
+export type LogicalOrMethods<T extends Primitive> = {
+  or: <U>(
+    alternativeValue: MaybeSignal<U>,
+  ) => DerivedSignal<NonNullable<T> | U>;
 };
+
+export type LogicalChecker<
+  T extends Primitive,
+  R extends LogicalCheckReturnType,
+> = LogicalPrimitiveMethods<T, R> &
+  (T extends number ? LogicalNumberOnlyMethods<R> : {});
+
+export type LogicalLengthMethods<R extends LogicalCheckReturnType> = {
+  length: LogicalChecker<number, R>;
+};
+
+export type LogicalIsWhenMethods<T extends Primitive | any[]> = {
+  is: ([T] extends [Primitive]
+    ? LogicalChecker<T, DerivedSignal<boolean>>
+    : {}) &
+    ([string] extends [T]
+      ? LogicalLengthMethods<DerivedSignal<boolean>>
+      : [any[]] extends [T]
+        ? LogicalLengthMethods<DerivedSignal<boolean>>
+        : {});
+  when: ([T] extends [Primitive] ? LogicalChecker<T, LogicalThen> : {}) &
+    ([string] extends [T]
+      ? LogicalLengthMethods<LogicalThen>
+      : [any[]] extends [T]
+        ? LogicalLengthMethods<LogicalThen>
+        : {});
+};
+
+export type LogicalMethods<T> = [true] extends [
+  IsExactly<T, Record<string, any>>,
+]
+  ? {}
+  : [true] extends [HasPrimitive<T>]
+    ? LogicalOrMethods<Extract<T, Primitive>> &
+        LogicalIsWhenMethods<Extract<T, Primitive>>
+    : LogicalIsWhenMethods<any[]>;
 
 /**
  * Intrinsic mutating methods for array signals.
@@ -89,15 +132,33 @@ export type SignalsEffect = {
  * - Methods expose a mutable-style API while maintaining immutability
  */
 export type ArraySignalIntrinsicMutatingMethodsObject<T extends any[]> = {
-  copyWithin: (...args: Parameters<Array<T[number]>["copyWithin"]>) => void;
-  fill: (...args: Parameters<Array<T[number]>["fill"]>) => void;
-  pop: (...args: Parameters<Array<T[number]>["pop"]>) => void;
-  push: (...args: Parameters<Array<T[number]>["push"]>) => void;
-  reverse: (...args: Parameters<Array<T[number]>["reverse"]>) => void;
-  shift: (...args: Parameters<Array<T[number]>["shift"]>) => void;
-  sort: (...args: Parameters<Array<T[number]>["sort"]>) => void;
-  splice: (...args: Parameters<Array<T[number]>["splice"]>) => void;
-  unshift: (...args: Parameters<Array<T[number]>["unshift"]>) => void;
+  copyWithin: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["copyWithin"]>>
+  ) => void;
+  fill: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["fill"]>>
+  ) => void;
+  pop: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["pop"]>>
+  ) => void;
+  push: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["push"]>>
+  ) => void;
+  reverse: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["reverse"]>>
+  ) => void;
+  shift: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["shift"]>>
+  ) => void;
+  sort: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["sort"]>>
+  ) => void;
+  splice: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["splice"]>>
+  ) => void;
+  unshift: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["unshift"]>>
+  ) => void;
 };
 
 /**
@@ -114,9 +175,13 @@ export type ArraySignalIntrinsicMutatingMethodsObject<T extends any[]> = {
  */
 export type ArraySignalCustomMutatingMethodsObject<T extends any[]> = {
   /** Keeps items where the predicate returns true */
-  keep: (...args: Parameters<Array<T[number]>["filter"]>) => void;
+  keep: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
+  ) => void;
   /** Removes items where the predicate returns true */
-  remove: (...args: Parameters<Array<T[number]>["filter"]>) => void;
+  remove: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
+  ) => void;
 };
 
 /**
@@ -145,28 +210,28 @@ export type ArraySignalMutatingMethodsObject<T extends any[]> =
  */
 export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
   at: (
-    ...args: Parameters<Array<T[number]>["at"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["at"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["at"]>>;
   concat: (
-    ...args: Parameters<Array<T[number]>["concat"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["concat"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["concat"]>>;
   every: (
-    ...args: Parameters<Array<T[number]>["every"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["every"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["every"]>>;
   filter: (
-    ...args: Parameters<Array<T[number]>["filter"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["filter"]>>;
   find: (
-    ...args: Parameters<Array<T[number]>["find"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["find"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["find"]>>;
   findIndex: (
-    ...args: Parameters<Array<T[number]>["findIndex"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["findIndex"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["findIndex"]>>;
   findLast: (
-    ...args: Parameters<Array<T[number]>["findLast"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["findLast"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["findLast"]>>;
   findLastIndex: (
-    ...args: Parameters<Array<T[number]>["findLastIndex"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["findLastIndex"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["findLastIndex"]>>;
   length: () => DerivedSignal<number>;
   map: <U>(
@@ -179,7 +244,7 @@ export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
       currentIndex: number,
       array: T,
     ) => U,
-    initialValue: U,
+    initialValue: MaybeSignal<U>,
   ) => DerivedSignal<U>;
   reduceRight: <U>(
     reducerFn: (
@@ -188,19 +253,19 @@ export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
       currentIndex: number,
       array: T,
     ) => U,
-    initialValue: U,
+    initialValue: MaybeSignal<U>,
   ) => DerivedSignal<U>;
   some: (
-    ...args: Parameters<Array<T[number]>["some"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["some"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["some"]>>;
   toReversed: (
-    ...args: Parameters<Array<T[number]>["toReversed"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["toReversed"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["toReversed"]>>;
   toSorted: (
-    ...args: Parameters<Array<T[number]>["toSorted"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSorted"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["toSorted"]>>;
   toSpliced: (
-    ...args: Parameters<Array<T[number]>["toSpliced"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSpliced"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["toSpliced"]>>;
 };
 
@@ -221,14 +286,14 @@ export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
   lastItem: () => DerivedSignal<T[number] | undefined>;
   /** Custom method that splits the array into `[passing, failing]` based on a predicate. */
   partition: (
-    ...args: Parameters<Array<T[number]>["filter"]>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
   ) => readonly [DerivedSignal<T>, DerivedSignal<T>];
 };
 
 /**
  * Combined non-mutating methods for array signals.
  *
- * Combines intrinsic and custom non-mutating methods into a single type.
+ * Combines intrinsic, custom, and logical non-mutating methods into a single type.
  *
  * @template T - The array type
  */
@@ -250,19 +315,6 @@ export type ArraySignalNonMutatingMethodsObject<T extends any[]> =
  */
 export type ArraySourceSignalMethodsObject<T extends any[]> =
   ArraySignalMutatingMethodsObject<T> & ArraySignalNonMutatingMethodsObject<T>;
-
-/**
- * Source signal for arrays with mutation and non-mutating methods.
- *
- * Array source signals include both mutating methods (push, pop, splice, etc.)
- * and non-mutating methods (map, filter, etc.) that return derived signals.
- *
- * @template T - The array type
- *
- * @see {@link ArraySourceSignalMethodsObject} - For array methods
- */
-export type ArraySourceSignal<T extends any[]> = BaseSourceSignal<T> &
-  ArraySourceSignalMethodsObject<T>;
 
 /**
  * Mutating methods for object signals.
@@ -300,19 +352,6 @@ export type ObjectSourceSignalMethodsObject<T extends Record<string, any>> =
     ObjectSignalNonMutatingMethodsObject<T>;
 
 /**
- * Source signal for plain objects with partial update method.
- *
- * Object source signals include the `set()` method for partial updates and
- * non-mutating methods for accessing properties as derived signals.
- *
- * @template T - The object type
- *
- * @see {@link ObjectSourceSignalMethodsObject} - For object methods
- */
-export type ObjectSourceSignal<T extends Record<string, any>> =
-  BaseSourceSignal<T> & ObjectSourceSignalMethodsObject<T>;
-
-/**
  * Intrinsic non-mutating methods for string signals.
  *
  * These methods mirror JavaScript String non-mutating methods but return
@@ -325,86 +364,88 @@ export type ObjectSourceSignal<T extends Record<string, any>> =
  */
 export type StringSignalIntrinsicNonMutatingMethodsObject = {
   at: (
-    ...args: Parameters<String["at"]>
+    ...args: MaybeSignalValues<Parameters<String["at"]>>
   ) => DerivedSignal<ReturnType<String["at"]>>;
   charAt: (
-    ...args: Parameters<String["charAt"]>
+    ...args: MaybeSignalValues<Parameters<String["charAt"]>>
   ) => DerivedSignal<ReturnType<String["charAt"]>>;
   charCodeAt: (
-    ...args: Parameters<String["charCodeAt"]>
+    ...args: MaybeSignalValues<Parameters<String["charCodeAt"]>>
   ) => DerivedSignal<ReturnType<String["charCodeAt"]>>;
   codePointAt: (
-    ...args: Parameters<String["codePointAt"]>
+    ...args: MaybeSignalValues<Parameters<String["codePointAt"]>>
   ) => DerivedSignal<ReturnType<String["codePointAt"]>>;
   concat: (
-    ...args: Parameters<String["concat"]>
+    ...args: MaybeSignalValues<Parameters<String["concat"]>>
   ) => DerivedSignal<ReturnType<String["concat"]>>;
   endsWith: (
-    ...args: Parameters<String["endsWith"]>
+    ...args: MaybeSignalValues<Parameters<String["endsWith"]>>
   ) => DerivedSignal<ReturnType<String["endsWith"]>>;
   includes: (
-    ...args: Parameters<String["includes"]>
+    ...args: MaybeSignalValues<Parameters<String["includes"]>>
   ) => DerivedSignal<ReturnType<String["includes"]>>;
   indexOf: (
-    ...args: Parameters<String["indexOf"]>
+    ...args: MaybeSignalValues<Parameters<String["indexOf"]>>
   ) => DerivedSignal<ReturnType<String["indexOf"]>>;
   lastIndexOf: (
-    ...args: Parameters<String["lastIndexOf"]>
+    ...args: MaybeSignalValues<Parameters<String["lastIndexOf"]>>
   ) => DerivedSignal<ReturnType<String["lastIndexOf"]>>;
   padEnd: (
-    ...args: Parameters<String["padEnd"]>
+    ...args: MaybeSignalValues<Parameters<String["padEnd"]>>
   ) => DerivedSignal<ReturnType<String["padEnd"]>>;
   padStart: (
-    ...args: Parameters<String["padStart"]>
+    ...args: MaybeSignalValues<Parameters<String["padStart"]>>
   ) => DerivedSignal<ReturnType<String["padStart"]>>;
   repeat: (
-    ...args: Parameters<String["repeat"]>
+    ...args: MaybeSignalValues<Parameters<String["repeat"]>>
   ) => DerivedSignal<ReturnType<String["repeat"]>>;
   slice: (
-    ...args: Parameters<String["slice"]>
+    ...args: MaybeSignalValues<Parameters<String["slice"]>>
   ) => DerivedSignal<ReturnType<String["slice"]>>;
   startsWith: (
-    ...args: Parameters<String["startsWith"]>
+    ...args: MaybeSignalValues<Parameters<String["startsWith"]>>
   ) => DerivedSignal<ReturnType<String["startsWith"]>>;
   substring: (
-    ...args: Parameters<String["substring"]>
+    ...args: MaybeSignalValues<Parameters<String["substring"]>>
   ) => DerivedSignal<ReturnType<String["substring"]>>;
   trim: (
-    ...args: Parameters<String["trim"]>
+    ...args: MaybeSignalValues<Parameters<String["trim"]>>
   ) => DerivedSignal<ReturnType<String["trim"]>>;
   trimEnd: (
-    ...args: Parameters<String["trimEnd"]>
+    ...args: MaybeSignalValues<Parameters<String["trimEnd"]>>
   ) => DerivedSignal<ReturnType<String["trimEnd"]>>;
   trimStart: (
-    ...args: Parameters<String["trimStart"]>
+    ...args: MaybeSignalValues<Parameters<String["trimStart"]>>
   ) => DerivedSignal<ReturnType<String["trimStart"]>>;
   length: () => DerivedSignal<number>;
   localeCompare: (
-    that: string,
-    locales?: string | string[] | undefined,
-    options?: Intl.CollatorOptions,
+    that: MaybeSignal<string>,
+    locales?: MaybeSignal<string | string[] | undefined>,
+    options?: MaybeSignal<Intl.CollatorOptions>,
   ) => DerivedSignal<ReturnType<String["localeCompare"]>>;
   normalize: (
-    form: "NFC" | "NFD" | "NFKC" | "NFKD",
+    form: MaybeSignal<"NFC" | "NFD" | "NFKC" | "NFKD">,
   ) => DerivedSignal<ReturnType<String["normalize"]>>;
   replace: (
-    searchValue: string | RegExp,
-    replaceValue: string,
+    searchValue: MaybeSignal<string | RegExp>,
+    replaceValue: MaybeSignal<string>,
   ) => DerivedSignal<ReturnType<String["replace"]>>;
   replaceAll: (
-    searchValue: string | RegExp,
-    replaceValue: string,
+    searchValue: MaybeSignal<string | RegExp>,
+    replaceValue: MaybeSignal<string>,
   ) => DerivedSignal<ReturnType<String["replaceAll"]>>;
-  search: (regexp: RegExp) => DerivedSignal<ReturnType<String["search"]>>;
+  search: (
+    regexp: MaybeSignal<RegExp>,
+  ) => DerivedSignal<ReturnType<String["search"]>>;
   split: (
-    separator: string | RegExp,
-    limit?: number | undefined,
+    separator: MaybeSignal<string | RegExp>,
+    limit?: MaybeSignal<number | undefined>,
   ) => DerivedSignal<ReturnType<String["split"]>>;
   toLocaleLowerCase: (
-    locales?: string | string[] | undefined,
+    locales?: MaybeSignal<string | string[] | undefined>,
   ) => DerivedSignal<ReturnType<String["toLocaleLowerCase"]>>;
   toLocaleUpperCase: (
-    locales?: string | string[] | undefined,
+    locales?: MaybeSignal<string | string[] | undefined>,
   ) => DerivedSignal<ReturnType<String["toLocaleUpperCase"]>>;
 };
 
@@ -434,21 +475,11 @@ export type StringSignalCustomNonMutatingMethodsObject = {
 /**
  * Combined non-mutating methods for string signals.
  *
- * Combines intrinsic and custom non-mutating methods into a single type.
+ * Combines intrinsic, custom, and logical non-mutating methods into a single type.
  */
 export type StringSignalNonMutatingMethodsObject =
   StringSignalIntrinsicNonMutatingMethodsObject &
     StringSignalCustomNonMutatingMethodsObject;
-
-/**
- * Source signal for strings with non-mutating methods.
- *
- * String source signals include non-mutating methods that return derived signals.
- *
- * @see {@link StringSignalNonMutatingMethodsObject} - For string methods
- */
-export type StringSourceSignal = BaseSourceSignal<string> &
-  StringSignalNonMutatingMethodsObject;
 
 /**
  * Intrinsic non-mutating methods for number signals.
@@ -463,17 +494,17 @@ export type StringSourceSignal = BaseSourceSignal<string> &
  */
 export type NumberSignalIntrinsicNonMutatingMethodsObject = {
   toExponential: (
-    ...args: Parameters<number["toExponential"]>
+    ...args: MaybeSignalValues<Parameters<number["toExponential"]>>
   ) => DerivedSignal<ReturnType<number["toExponential"]>>;
   toFixed: (
-    ...args: Parameters<number["toFixed"]>
+    ...args: MaybeSignalValues<Parameters<number["toFixed"]>>
   ) => DerivedSignal<ReturnType<number["toFixed"]>>;
   toPrecision: (
-    ...args: Parameters<number["toPrecision"]>
+    ...args: MaybeSignalValues<Parameters<number["toPrecision"]>>
   ) => DerivedSignal<ReturnType<number["toPrecision"]>>;
   toLocaleString: (
-    locales?: string | string[] | undefined,
-    options?: Intl.NumberFormatOptions,
+    locales?: MaybeSignal<string | string[] | undefined>,
+    options?: MaybeSignal<Intl.NumberFormatOptions>,
   ) => DerivedSignal<ReturnType<number["toLocaleString"]>>;
 };
 
@@ -488,27 +519,20 @@ export type NumberSignalIntrinsicNonMutatingMethodsObject = {
  */
 export type NumberSignalCustomNonMutatingMethodsObject = {
   /** Confines the number within a range [start, end]. */
-  toConfined: (start: number, end: number) => DerivedSignal<number>;
+  toConfined: (
+    start: MaybeSignal<number>,
+    end: MaybeSignal<number>,
+  ) => DerivedSignal<number>;
 };
 
 /**
  * Combined non-mutating methods for number signals.
  *
- * Combines intrinsic and custom non-mutating methods into a single type.
+ * Combines intrinsic, custom, and logical non-mutating methods into a single type.
  */
 export type NumberSignalNonMutatingMethodsObject =
   NumberSignalIntrinsicNonMutatingMethodsObject &
     NumberSignalCustomNonMutatingMethodsObject;
-
-/**
- * Source signal for numbers with non-mutating methods.
- *
- * Number source signals include non-mutating methods that return derived signals.
- *
- * @see {@link NumberSignalNonMutatingMethodsObject} - For number methods
- */
-export type NumberSourceSignal = BaseSourceSignal<number> &
-  NumberSignalNonMutatingMethodsObject;
 
 /**
  * Mutating methods for boolean signals.
@@ -521,61 +545,27 @@ export type BooleanSignalMutatingMethodsObject = {
   toggle: () => void;
 };
 
-/**
- * Custom non-mutating methods for boolean signals.
- *
- * These are library-specific methods that provide additional functionality
- * for boolean values.
- *
- * @remarks
- * - `negated` returns the negated boolean value
- */
-export type BooleanSignalNonMutatingMethodsObject = {
-  /** Negated boolean value. */
-  negated: () => DerivedSignal<boolean>;
-};
+export type BooleanSourceSignalMethodsObject =
+  BooleanSignalMutatingMethodsObject;
 
-export type BooleanSignalMethodsObject = BooleanSignalMutatingMethodsObject &
-  BooleanSignalNonMutatingMethodsObject;
+export type NonMutatingMethodsObject<T> = [true] extends [IsArray<T>]
+  ? ArraySignalNonMutatingMethodsObject<Extract<T, any[]>>
+  : [true] extends [IsObjectLiteral<T>]
+    ? ObjectSignalNonMutatingMethodsObject<Extract<T, Record<string, any>>>
+    : [true] extends [IsExactly<T, string>]
+      ? StringSignalNonMutatingMethodsObject
+      : [true] extends [IsExactly<T, number>]
+        ? NumberSignalNonMutatingMethodsObject
+        : {};
 
-/**
- * Source signal for booleans with non-mutating methods.
- *
- * Boolean source signals include non-mutating methods that return derived signals.
- *
- * @see {@link BooleanSignalNonMutatingMethodsObject} - For boolean methods
- */
-export type BooleanSourceSignal = BaseSourceSignal<boolean> &
-  BooleanSignalMethodsObject;
-
-/**
- * A mutable source signal created from plain JavaScript data.
- *
- * Source signals can notify dependent computations when their value changes.
- * The specific type (array, object, string, number, or boolean) determines which
- * additional methods are available.
- *
- * @template T - The type of value the signal holds
- *
- * @remarks
- * - For arrays: includes array mutation methods (push, pop, splice, etc.)
- * - For plain objects: includes `set()` method for partial updates
- * - For strings: includes string methods (toLowerCase, toUpperCase, etc.)
- * - For numbers: includes number methods (toFixed, toPrecision, etc.)
- * - For booleans: includes boolean methods (not, toString)
- * - For other primitives: only the base signal interface
- *
- * @see {@link signal} - For creating source signals
- * @see {@link DerivedSignal} - For read-only derived signals
- */
-export type SourceSignal<T> = T extends any[]
-  ? ArraySourceSignal<T>
-  : T extends Record<string, any>
-    ? ObjectSourceSignal<T>
-    : T extends string
-      ? StringSourceSignal
-      : T extends number
-        ? NumberSourceSignal
-        : T extends boolean
-          ? BooleanSourceSignal
-          : BaseSourceSignal<T>;
+export type MutatingAndNonMutatingMethodsObject<T> = [true] extends [IsArray<T>]
+  ? ArraySourceSignalMethodsObject<Extract<T, any[]>>
+  : [true] extends [IsObjectLiteral<T>]
+    ? ObjectSourceSignalMethodsObject<Extract<T, Record<string, any>>>
+    : [true] extends [IsExactly<T, string>]
+      ? StringSignalNonMutatingMethodsObject
+      : [true] extends [IsExactly<T, number>]
+        ? NumberSignalNonMutatingMethodsObject
+        : [true] extends [IsExactly<T, boolean>]
+          ? BooleanSourceSignalMethodsObject
+          : {};

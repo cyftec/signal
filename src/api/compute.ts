@@ -1,10 +1,10 @@
 import {
   derive,
-  value,
   type DerivedSignal,
   type MaybeSignalValues,
   type PlainValues,
 } from "../_core";
+import { value } from "../utils";
 
 /**
  * Creates a derived signal from a function with signalified arguments.

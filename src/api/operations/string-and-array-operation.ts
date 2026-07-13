@@ -1,4 +1,5 @@
-import { type MaybeSignal, value } from "../../_core";
+import { type MaybeSignal } from "../../_core";
+import { value } from "../../utils";
 import { genericOp } from "./generic-operation";
 import type { StringAndArrayOperation } from "./types";
 
@@ -9,9 +10,23 @@ import type { StringAndArrayOperation } from "./types";
  * @param input - A signalified string/array or value-producing function
  * @returns A string-and-array operation object with length-based methods
  *
+ * @example
+ * ```typescript
+ * const text = signal("hello");
+ * const op = stringAndArrayOp(text);
+ * op.lengthEquals(5).truthy; // DerivedSignal<boolean>
+ * op.lengthBetween(3, 10).truthy; // DerivedSignal<boolean>
+ *
+ * const items = signal([1, 2, 3]);
+ * const arrOp = stringAndArrayOp(items);
+ * arrOp.lengthGT(2).truthy; // DerivedSignal<boolean>
+ * ```
+ *
  * @remarks
  * - Used when the evaluated value is a string or array
  * - Methods return new operation objects for chaining
+ * - Supports length comparisons (lengthBetween, lengthEquals, lengthLT, etc.)
+ * - Inherits all generic logical operations (AND, OR, NOT, equals)
  */
 export const stringAndArrayOp = <T extends string | unknown[]>(
   input: MaybeSignal<T> | (() => T),

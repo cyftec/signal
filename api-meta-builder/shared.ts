@@ -25,7 +25,7 @@ export type CodeEntity = {
   sourcePath: string;
   isExported: boolean;
   exportKind: "named" | "default" | "reexport";
-  category: "core" | "api";
+  category: "core" | "api" | "utils";
   subcategory?: string;
   signature?: string;
   type?: string;
@@ -38,10 +38,12 @@ export type CodeEntitiesMeta = {
   const: {
     core: CodeEntity[];
     api: CodeEntity[];
+    utils: CodeEntity[];
   };
   type: {
     core: CodeEntity[];
     api: CodeEntity[];
+    utils: CodeEntity[];
   };
 };
 
@@ -81,5 +83,9 @@ export function relSource(filePath: string) {
 
 export function categoryForFile(filePath: string) {
   const rel = path.relative(SRC_DIR_PATH, filePath).split(path.sep).join("/");
-  return rel.startsWith("_core/") ? "core" : "api";
+  return rel.startsWith("_core/")
+    ? "core"
+    : rel.startsWith("api/")
+      ? "api"
+      : "utils";
 }

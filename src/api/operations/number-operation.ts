@@ -1,4 +1,5 @@
-import { derive, type MaybeSignal, value } from "../../_core";
+import { derive, type MaybeSignal } from "../../_core";
+import { value } from "../../utils";
 import { genericOp } from "./generic-operation";
 import type { NumberOperation } from "./types";
 
@@ -9,9 +10,22 @@ import type { NumberOperation } from "./types";
  * @param input - A signalified number or value-producing function
  * @returns A number operation object with math and comparison methods
  *
+ * @example
+ * ```typescript
+ * const count = signal(10);
+ * const op = numberOp(count);
+ * op.result; // DerivedSignal<number>
+ * op.add(5).result; // DerivedSignal<number> = 15
+ * op.isBetween(5, 15).truthy; // DerivedSignal<boolean>
+ * op.mul(2).isGT(20).truthy; // Chained operations
+ * ```
+ *
  * @remarks
  * - Used when the evaluated value is a number
  * - Methods return new operation objects for chaining
+ * - Supports arithmetic operations (add, sub, mul, div, mod, pow)
+ * - Supports numeric comparisons (isBetween, isLT, isLTE, isGT, isGTE)
+ * - Inherits all generic logical operations (AND, OR, NOT, equals)
  */
 export const numberOp = (
   input: MaybeSignal<number> | (() => number),

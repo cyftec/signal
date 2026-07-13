@@ -2,34 +2,39 @@ import { immut, isPlainObject, newVal } from "@cyftec/immut";
 import {
   getArraySourceSignalMethodsObject,
   getBooleanSignalMethodsObject,
+  getLogicalMethods,
   getNumberSignalMethodsObject,
   getObjectSourceSignalMethodsObject,
   getStringSignalMethodsObject,
-} from "./signal-methods-objects";
-import { BaseSourceSignal, SignalsEffect, SourceSignal } from "./types";
+  LogicalMethods,
+  MutatingAndNonMutatingMethodsObject,
+} from "../data-specific-methods";
+import { getCurrentEffect, SignalsEffect } from "../effect";
+import { BaseSourceSignal } from "./types";
 
 /**
- * Global variable that tracks the currently executing effect.
+ * A mutable source signal created from plain JavaScript data.
  *
- * This is used for automatic dependency tracking: when a signal's value is accessed
- * during effect execution, the signal registers this effect as a dependency.
- * The effect function sets this variable before running the user's function,
- * and clears it after.
+ * Source signals can notify dependent computations when their value changes.
+ * The specific type (array, object, string, number, or boolean) determines which
+ * additional methods are available.
  *
- * @see effect function in effect.ts
+ * @template T - The type of value the signal holds
+ *
+ * @remarks
+ * - For arrays: includes array mutation methods (push, pop, splice, etc.)
+ * - For plain objects: includes `set()` method for partial updates
+ * - For strings: includes string methods (toLowerCase, toUpperCase, etc.)
+ * - For numbers: includes number methods (toFixed, toPrecision, etc.)
+ * - For booleans: includes boolean methods (not, toString)
+ * - For other primitives: only the base signal interface
+ *
+ * @see {@link signal} - For creating source signals
+ * @see {@link DerivedSignal} - For read-only derived signals
  */
-let _currentSignalEffect: SignalsEffect | null = null;
-
-/**
- * Sets the currently executing effect.
- *
- * Called by the effect function before running the user's function to enable
- * automatic dependency tracking. After the effect completes, this is set to null.
- *
- * @param effect - The effect to set as current, or `null` to clear tracking
- */
-export const setCurrentEffect = (effect: SignalsEffect | null) =>
-  (_currentSignalEffect = effect);
+export type SourceSignal<T> = BaseSourceSignal<T> &
+  MutatingAndNonMutatingMethodsObject<T> &
+  LogicalMethods<T>;
 
 /**
  * Creates a mutable source signal from any JavaScript value.
@@ -117,7 +122,8 @@ export const signal = <T>(
     get value() {
       // Automatic dependency tracking: if an effect is currently executing,
       // register this effect as a dependency of this signal
-      if (_currentSignalEffect) _effects.add(_currentSignalEffect);
+      const currentRegisteredEffect = getCurrentEffect();
+      if (currentRegisteredEffect) _effects.add(currentRegisteredEffect);
       // Return a fresh copy of the immutable value
       return newVal(_value);
     },
@@ -146,54 +152,53 @@ export const signal = <T>(
     nonNullableInitialValue === undefined
       ? initialValue
       : nonNullableInitialValue;
-  const result: SourceSignal<T> = (
-    Array.isArray(nonNullableInitial)
+  const result: SourceSignal<T> = Array.isArray(nonNullableInitial)
+    ? Object.assign(
+        baseSourceSignal,
+        getArraySourceSignalMethodsObject(
+          (mutatorMethod) =>
+            setValueAndRunEffects(mutatorMethod(_value as unknown[]) as T),
+          baseSourceSignal as BaseSourceSignal<any[]>,
+        ),
+      )
+    : isPlainObject(nonNullableInitial)
       ? Object.assign(
           baseSourceSignal,
-          getArraySourceSignalMethodsObject(
+          getObjectSourceSignalMethodsObject(
             (mutatorMethod) =>
-              setValueAndRunEffects(mutatorMethod(_value as unknown[]) as T),
-            baseSourceSignal as BaseSourceSignal<any[]>,
+              setValueAndRunEffects(
+                mutatorMethod(_value as Record<string, any>) as T,
+              ),
+            baseSourceSignal as BaseSourceSignal<Record<string, any>>,
           ),
         )
-      : isPlainObject(nonNullableInitial)
+      : typeof nonNullableInitial === "string"
         ? Object.assign(
             baseSourceSignal,
-            getObjectSourceSignalMethodsObject(
-              (mutatorMethod) =>
-                setValueAndRunEffects(
-                  mutatorMethod(_value as Record<string, any>) as T,
-                ),
-              baseSourceSignal as BaseSourceSignal<Record<string, any>>,
+            getStringSignalMethodsObject(
+              baseSourceSignal as BaseSourceSignal<string>,
             ),
           )
-        : typeof nonNullableInitial === "string"
+        : typeof nonNullableInitial === "number"
           ? Object.assign(
               baseSourceSignal,
-              getStringSignalMethodsObject(
-                baseSourceSignal as BaseSourceSignal<string>,
+              getNumberSignalMethodsObject(
+                baseSourceSignal as BaseSourceSignal<number>,
               ),
             )
-          : typeof nonNullableInitial === "number"
+          : typeof nonNullableInitial === "boolean"
             ? Object.assign(
                 baseSourceSignal,
-                getNumberSignalMethodsObject(
-                  baseSourceSignal as BaseSourceSignal<number>,
+                getBooleanSignalMethodsObject(
+                  (mutatorMethod) =>
+                    setValueAndRunEffects(
+                      mutatorMethod(_value as boolean) as T,
+                    ),
+                  baseSourceSignal as BaseSourceSignal<boolean>,
                 ),
               )
-            : typeof nonNullableInitial === "boolean"
-              ? Object.assign(
-                  baseSourceSignal,
-                  getBooleanSignalMethodsObject(
-                    (mutatorMethod) =>
-                      setValueAndRunEffects(
-                        mutatorMethod(_value as boolean) as T,
-                      ),
-                    baseSourceSignal as BaseSourceSignal<boolean>,
-                  ),
-                )
-              : baseSourceSignal
-  ) as SourceSignal<T>;
+            : Object.assign(baseSourceSignal);
+  Object.assign(result, getLogicalMethods(baseSourceSignal));
 
-  return result;
+  return result as SourceSignal<T>;
 };

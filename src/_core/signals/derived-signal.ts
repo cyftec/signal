@@ -1,19 +1,16 @@
 import { isPlainObject } from "@cyftec/immut";
-import { effect } from "./effect";
 import {
   getArraySignalNonMutatingMethodsObject,
-  getBooleanSignalNonMutatingMethodsObject,
+  getLogicalMethods,
   getNumberSignalMethodsObject,
   getObjectSignalNonMutatingMethodsObject,
   getStringSignalMethodsObject,
-  ObjectSignalNonMutatingMethodsObject,
-  signal,
-  type ArraySignalNonMutatingMethodsObject,
-  type BaseDerivedSignal,
-  type BooleanSignalNonMutatingMethodsObject,
-  type NumberSignalNonMutatingMethodsObject,
-  type StringSignalNonMutatingMethodsObject,
-} from "./signal";
+  LogicalMethods,
+  NonMutatingMethodsObject,
+} from "../data-specific-methods";
+import { effect } from "../effect";
+import { signal } from "./source-signal";
+import { BaseDerivedSignal } from "./types";
 
 /**
  * A read-only derived signal computed from other signals.
@@ -39,17 +36,8 @@ import {
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
-  (T extends any[]
-    ? ArraySignalNonMutatingMethodsObject<T>
-    : T extends Record<string, any>
-      ? ObjectSignalNonMutatingMethodsObject<T>
-      : T extends string
-        ? StringSignalNonMutatingMethodsObject
-        : T extends number
-          ? NumberSignalNonMutatingMethodsObject
-          : T extends boolean
-            ? BooleanSignalNonMutatingMethodsObject
-            : {});
+  NonMutatingMethodsObject<T> &
+  LogicalMethods<T>;
 
 /**
  * A function that computes a derived signal's value.
@@ -175,14 +163,6 @@ export const derive = <T>(
     ) as any;
   }
 
-  if (typeof derivedSource.value === "boolean") {
-    return Object.assign(
-      baseDerivedSignal,
-      getBooleanSignalNonMutatingMethodsObject(
-        baseDerivedSignal as BaseDerivedSignal<boolean>,
-      ),
-    ) as any;
-  }
-
-  return baseDerivedSignal as any;
+  Object.assign(baseDerivedSignal, getLogicalMethods(baseDerivedSignal));
+  return Object.assign(baseDerivedSignal) as any;
 };

@@ -1,4 +1,4 @@
-import { MaybeSignalValues, PlainValues } from "../types";
+import { MaybeSignalValues, PlainValues } from "../_core/signals/types";
 import { value } from "./value-getter";
 
 /**
@@ -12,9 +12,6 @@ import { value } from "./value-getter";
  * able to call standard JavaScript methods that expect plain values.
  *
  * @param methodParams - Signalified parameters (signals, plain values, or non-signals)
- * @see SignalifiedFunction
- * @see MaybeSignalValues
- * @see PlainValues
  * @returns Array of plain values extracted from the signalified parameters
  *
  * @example
@@ -23,6 +20,15 @@ import { value } from "./value-getter";
  * const text = signal("hello world");
  * const params = getDesignalifiedMethodParams(search);
  * // params is ["world"], which can be passed to text.includes("world")
+ *
+ * @remarks
+ * - Used internally by trap methods for data-specific operations
+ * - Unwraps each parameter using the `value()` helper
+ * - Returns an array of plain values matching the input parameter order
+ *
+ * @see {@link value} - For unwrapping individual signalified values
+ * @see {@link MaybeSignalValues} - For the input type
+ * @see {@link PlainValues} - For the output type
  */
 export const getDesignalifiedMethodParams = <
   T extends MaybeSignalValues<any[]>,

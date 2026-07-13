@@ -1,4 +1,5 @@
-import { derive, type MaybeSignal, value } from "../../_core";
+import { derive, type MaybeSignal } from "../../_core";
+import { value } from "../../utils";
 import type { GenericOperation, OperationResult } from "./types";
 
 /**
@@ -8,9 +9,21 @@ import type { GenericOperation, OperationResult } from "./types";
  * @param input - A signalified value or value-producing function
  * @returns A generic operation object with composable logical methods
  *
+ * @example
+ * ```typescript
+ * const flag = signal(true);
+ * const op = genericOp(flag);
+ * op.truthy; // DerivedSignal<boolean>
+ * op.or(false).truthy; // Chained OR operation
+ * op.and(false).falsy; // Chained AND operation
+ * op.equals(true).truthy; // Equality comparison
+ * ```
+ *
  * @remarks
  * - Used for non-numeric and non-string-or-array inputs
  * - Methods return new operation objects for chaining
+ * - Supports truthy/falsy checks and equality comparisons
+ * - Can combine logical operations with comparisons on other values
  */
 export const genericOp = <T>(
   input: MaybeSignal<T> | (() => T),

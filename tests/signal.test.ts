@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { derive, dispose, effect, Signal, signal } from "../src/index";
+import { derive, dispose, effect, Signal, signal } from "../src";
 
 describe("signal - primitive values", () => {
   it("should create a signal with initial value", () => {
@@ -724,17 +724,6 @@ describe("derive - number signals", () => {
   });
 });
 
-describe("derive - boolean signals", () => {
-  it("should have 'negated' method on derived boolean signal", () => {
-    const bool = signal(true);
-    const derived = derive(() => bool.value);
-    const neg = derived.negated();
-    expect(neg.value).toBe(false);
-    bool.value = false;
-    expect(neg.value).toBe(true);
-  });
-});
-
 describe("dispose utility", () => {
   it("should dispose single derived signal", () => {
     const count = signal(1);
@@ -1163,15 +1152,6 @@ describe("signal - boolean values", () => {
     bool.toggle();
     expect(bool.value).toBe(true);
   });
-
-  // Custom non-mutating methods
-  it("should have 'negated' getter returning derived signal", () => {
-    const bool = signal(true);
-    const neg = bool.negated();
-    expect(neg.value).toBe(false);
-    bool.value = false;
-    expect(neg.value).toBe(true);
-  });
 });
 
 describe("signal - nullable types", () => {
@@ -1214,51 +1194,47 @@ describe("signal - nullable types", () => {
   it("should handle boolean | undefined with undefined initial value", () => {
     const bool = signal<boolean | undefined>(undefined, false);
     expect(bool.value).toBeUndefined();
-    // Check if methods are available even when value is undefined
-    expect(typeof (bool as Signal<boolean>).negated).toBe("function");
   });
 
   it("should handle boolean | null with null initial value", () => {
     const bool = signal<boolean | null>(null, false);
     expect(bool.value).toBeNull();
-    // Check if methods are available even when value is null
-    expect(typeof (bool as Signal<boolean>).negated).toBe("function");
   });
 
   it("should handle array | undefined with undefined initial value", () => {
     const arr = signal<number[] | undefined>(undefined, []);
     expect(arr.value).toBeUndefined();
     // Check if methods are available even when value is undefined
-    expect(typeof (arr as Signal<number[]>).map).toBe("function");
-    expect(typeof (arr as Signal<number[]>).reduce).toBe("function");
-    expect(typeof (arr as Signal<number[]>).filter).toBe("function");
+    expect(typeof (arr as any).map).toBe("function");
+    expect(typeof (arr as any).reduce).toBe("function");
+    expect(typeof (arr as any).filter).toBe("function");
   });
 
   it("should handle array | null with null initial value", () => {
     const arr = signal<number[] | null>(null, []);
     expect(arr.value).toBeNull();
     // Check if methods are available even when value is null
-    expect(typeof (arr as Signal<number[]>).map).toBe("function");
-    expect(typeof (arr as Signal<number[]>).reduce).toBe("function");
-    expect(typeof (arr as Signal<number[]>).filter).toBe("function");
+    expect(typeof (arr as any).map).toBe("function");
+    expect(typeof (arr as any).reduce).toBe("function");
+    expect(typeof (arr as any).filter).toBe("function");
   });
 
   it("should handle object | undefined with undefined initial value", () => {
     const obj = signal<{ name: string } | undefined>(undefined, {});
     expect(obj.value).toBeUndefined();
     // Check if methods are available even when value is undefined
-    expect(typeof (obj as Signal<Record<string, any>>).keys).toBe("function");
-    expect(typeof (obj as Signal<Record<string, any>>).prop).toBe("function");
-    expect(typeof (obj as Signal<Record<string, any>>).props).toBe("function");
+    expect(typeof (obj as any).keys).toBe("function");
+    expect(typeof (obj as any).prop).toBe("function");
+    expect(typeof (obj as any).props).toBe("function");
   });
 
   it("should handle object | null with null initial value", () => {
     const obj = signal<{ name: string } | null>(null, {});
     expect(obj.value).toBeNull();
     // Check if methods are available even when value is null
-    expect(typeof (obj as Signal<Record<string, any>>).keys).toBe("function");
-    expect(typeof (obj as Signal<Record<string, any>>).prop).toBe("function");
-    expect(typeof (obj as Signal<Record<string, any>>).props).toBe("function");
+    expect(typeof (obj as any).keys).toBe("function");
+    expect(typeof (obj as any).prop).toBe("function");
+    expect(typeof (obj as any).props).toBe("function");
   });
 
   it("should handle string | undefined transitioning from undefined to string", () => {
@@ -1282,10 +1258,7 @@ describe("signal - nullable types", () => {
   it("should handle boolean | undefined transitioning from undefined to boolean", () => {
     const bool = signal<boolean | undefined>(undefined, false);
     expect(bool.value).toBeUndefined();
-    const neg = (bool as Signal<boolean>).negated();
-    expect(neg.value).toBe(true);
     bool.value = true;
     expect(bool.value).toBe(true);
-    expect(neg.value).toBe(false);
   });
 });

@@ -231,10 +231,12 @@ function main() {
     const: {
       core: [],
       api: [],
+      utils: [],
     },
     type: {
       core: [],
       api: [],
+      utils: [],
     },
   };
 

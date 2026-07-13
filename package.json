@@ -10,7 +10,7 @@
   ],
   "author": "Chandan Kumar (Cyfer Tech)",
   "license": "MIT",
-  "exports": "./index.ts",
+  "exports": "./src/index.ts",
   "dependencies": {
     "@cyftec/immut": "^0.1.0"
   },

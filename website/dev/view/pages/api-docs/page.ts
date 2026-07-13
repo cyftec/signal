@@ -14,10 +14,12 @@ const entitiesMeta = signal<CodeEntitiesMeta>({
   type: {
     core: [],
     api: [],
+    utils: [],
   },
   const: {
     core: [],
     api: [],
+    utils: [],
   },
 });
 const selectedEntity = derive(() => {
@@ -26,8 +28,10 @@ const selectedEntity = derive(() => {
     (en) => selectedName === en.name,
   ) ||
     entitiesMeta.value.const.api.find((en) => selectedName === en.name) ||
+    entitiesMeta.value.const.utils.find((en) => selectedName === en.name) ||
     entitiesMeta.value.type.core.find((en) => selectedName === en.name) ||
-    entitiesMeta.value.type.api.find((en) => selectedName === en.name) || {
+    entitiesMeta.value.type.api.find((en) => selectedName === en.name) ||
+    entitiesMeta.value.type.utils.find((en) => selectedName === en.name) || {
       name: "",
       kind: "const",
       filePath: "",
@@ -58,10 +62,14 @@ const entitieCategoriesOverview = derive(() => {
   const apiCount =
     (entitiesMeta.value.const.api.length || 0) +
     (entitiesMeta.value.type.api.length || 0);
+  const utilsCount =
+    (entitiesMeta.value.const.utils.length || 0) +
+    (entitiesMeta.value.type.utils.length || 0);
 
   return [
     { type: "core", label: `${coreCount}` },
     { type: "api", label: `${apiCount}` },
+    { type: "utils", label: `${utilsCount}` },
   ];
 });
 
@@ -80,7 +88,9 @@ const loadApiDocs = async () => {
 const onPageMount = () => {
   loadApiDocs();
   const params = Object.fromEntries(
-    new URLSearchParams(window.location.search),
+    typeof globalThis !== "undefined"
+      ? new URLSearchParams((globalThis as any).location?.search || "")
+      : new URLSearchParams(),
   );
   if (params.name) selectedEntityName.value = params.name;
 };

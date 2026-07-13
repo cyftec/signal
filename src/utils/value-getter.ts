@@ -1,5 +1,5 @@
-import type { SignalifiedObject, MaybeSignal } from "../types";
 import { valueIsSignalifiedObject } from "./type-checkers";
+import { MaybeSignal, SignalifiedObject } from "../_core/signals";
 
 /**
  * Extracts the plain value from a signal, non-signal, or plain value.

@@ -22,7 +22,7 @@ export type CodeEntity = {
   sourcePath: string;
   isExported: boolean;
   exportKind: "named" | "default" | "reexport";
-  category: "core" | "api";
+  category: "core" | "api" | "utils";
   subcategory?: string;
   signature?: string;
   type?: string;
@@ -35,9 +35,11 @@ export type CodeEntitiesMeta = {
   const: {
     core: CodeEntity[];
     api: CodeEntity[];
+    utils: CodeEntity[];
   };
   type: {
     core: CodeEntity[];
     api: CodeEntity[];
+    utils: CodeEntity[];
   };
 };
