@@ -88,7 +88,9 @@ const loadApiDocs = async () => {
 const onPageMount = () => {
   loadApiDocs();
   const params = Object.fromEntries(
-    new URLSearchParams(window.location.search),
+    typeof globalThis !== "undefined"
+      ? new URLSearchParams((globalThis as any).location?.search || "")
+      : new URLSearchParams(),
   );
   if (params.name) selectedEntityName.value = params.name;
 };

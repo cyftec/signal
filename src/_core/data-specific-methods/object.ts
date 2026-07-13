@@ -16,9 +16,20 @@ import {
  * @param valueSetter - A function that updates the signal value and triggers effects
  * @returns An object with methods to update the source signal's value
  *
+ * @example
+ * ```typescript
+ * const user = signal({ name: "John", age: 30 });
+ * const methods = getObjectSignalMutatingMethodsObject((mutator) => {
+ *   user.value = mutator(user.value);
+ * });
+ * methods.set({ age: 31 }); // Shallow merge: { name: "John", age: 31 }
+ * ```
+ *
  * @remarks
  * - `set()` performs a shallow merge with the current value
  * - Works with both source and derived signals
+ *
+ * @see {@link getObjectSourceSignalMethodsObject} - For combined methods
  */
 export const getObjectSignalMutatingMethodsObject = <
   T extends Record<string, any>,
@@ -39,9 +50,21 @@ export const getObjectSignalMutatingMethodsObject = <
  * @param input - A signalified plain object
  * @returns A record trap exposing derived property accessors
  *
+ * @example
+ * ```typescript
+ * const user = signal({ name: "John", age: 30 });
+ * const methods = getObjectSignalNonMutatingMethodsObject(user);
+ * const nameSignal = methods.prop("name"); // DerivedSignal<string>
+ * const allProps = methods.props(); // Record of derived signals for all properties
+ * const keysSignal = methods.keys(); // DerivedSignal<string[]>
+ * ```
+ *
  * @remarks
  * - Throws if the input is not a plain object after unwrapping
  * - Property accessors are derived signals
+ * - `prop()` returns a derived signal for a specific property
+ * - `props()` returns an object with derived signals for all properties
+ * - `keys()` returns a derived signal of the object's keys
  */
 export const getObjectSignalNonMutatingMethodsObject = <
   T extends Record<string, any>,
@@ -77,9 +100,24 @@ export const getObjectSignalNonMutatingMethodsObject = <
  * @param valueSetter - A function that updates the signal value and triggers effects
  * @returns An object with methods to update the source signal's value
  *
+ * @example
+ * ```typescript
+ * const user = signal({ name: "John", age: 30 });
+ * const methods = getObjectSourceSignalMethodsObject(
+ *   (mutator) => { user.value = mutator(user.value); },
+ *   user
+ * );
+ * methods.set({ age: 31 }); // Shallow merge
+ * const nameSignal = methods.prop("name"); // DerivedSignal<string>
+ * ```
+ *
  * @remarks
  * - `set()` performs a shallow merge with the current value
  * - Works with both source and derived signals
+ * - Combines mutating and non-mutating methods
+ *
+ * @see {@link getObjectSignalMutatingMethodsObject} - For mutating methods only
+ * @see {@link getObjectSignalNonMutatingMethodsObject} - For non-mutating methods only
  */
 export const getObjectSourceSignalMethodsObject = <
   T extends Record<string, any>,

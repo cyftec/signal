@@ -11,27 +11,27 @@ import {
 import { BaseNonSignal } from "./types";
 
 /**
- * A read-only derived signal computed from other signals.
+ * A runtime type wrapper for plain values.
  *
- * Derived signals automatically recompute their value whenever any of their
- * tracked dependencies change. Dependencies are established by accessing
- * `.value` on signals during the initial computation.
+ * NonSignal objects are used for runtime type discrimination in complex
+ * type scenarios where TypeScript's compile-time types are insufficient.
+ * They enable distinguishing between plain values and signalified objects
+ * at runtime.
  *
- * @template T - The type of value the derived signal holds
+ * @template T - The type of value wrapped
  *
  * @remarks
- * - The value getter function receives the previous computed value (undefined on first run)
- * - Dependencies are only tracked for signals whose `.value` is accessed during execution
- * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
- * - Calling `dispose()` stops the derived signal from tracking dependencies
- * - After disposal, the value remains accessible but won't update
- * - Array derived signals get non-mutating array methods (map, filter, etc.)
- * - String derived signals get non-mutating string methods (toLowerCase, toUpperCase, etc.)
- * - Number derived signals get non-mutating number methods (toFixed, toPrecision, etc.)
- * - Boolean derived signals get non-mutating boolean methods (not, toString)
+ * - Used with `MaybeSignal` types to resolve ambiguity at runtime
+ * - Has a `type: "non-signal"` property for runtime type checking
+ * - The `value` property holds the wrapped plain value
+ * - Array non-signals get non-mutating array methods (map, filter, etc.)
+ * - String non-signals get non-mutating string methods (toLowerCase, toUpperCase, etc.)
+ * - Number non-signals get non-mutating number methods (toFixed, toPrecision, etc.)
+ * - Boolean non-signals get non-mutating boolean methods (not, toString)
  *
- * @see {@link signal} - For creating mutable source signals
- * @see {@link effect} - For registering functions to run when signal values change
+ * @see {@link Signal} - For signal objects
+ * @see {@link MaybeSignal} - For union types that include signals
+ * @see {@link getNonSignalObject} - For creating NonSignal objects
  */
 export type NonSignal<T> = BaseNonSignal<T> &
   NonMutatingMethodsObject<T> &

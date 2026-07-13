@@ -14,13 +14,21 @@
         "tsdoc": {
           "title": "Gets the currently executing effect.",
           "summary": "Gets the currently executing effect.\n\nCalled by the source signal function to extract current registered effect.",
-          "remarks": [],
-          "examples": [],
+          "remarks": [
+            "- Used internally by source signals for automatic dependency tracking\n- Returns null when no effect is currently executing\n- The effect is set by `setCurrentEffect` before running the effect function\n- After the effect completes, this is cleared back to null\n- This is a global variable-based tracking mechanism"
+          ],
+          "examples": [
+            "```typescript\n// Internal usage in source signal getter\nconst currentEffect = getCurrentEffect();\nif (currentEffect) {\n  _effects.add(currentEffect); // Register as dependency\n}\n```"
+          ],
           "params": [],
           "returns": [
-            "currently registred effect, or null if cleared"
+            "The currently registered effect, or null if cleared"
           ],
-          "see": [],
+          "see": [
+            "{@link setCurrentEffect} - For setting the current effect",
+            "{@link effect} - For creating effects",
+            "{@link SignalsEffect} - For the effect type"
+          ],
           "template": [],
           "deprecated": []
         },
@@ -39,7 +47,9 @@
         "tsdoc": {
           "title": "Sets the currently executing effect.",
           "summary": "Sets the currently executing effect.\n\nCalled by the effect function before running the user's function to enable\nautomatic dependency tracking. After the effect completes, this is set to null.",
-          "remarks": [],
+          "remarks": [
+            "- Used internally by the effect function to enable dependency tracking\n- Set to the effect before running the effect function\n- Cleared to null after the effect function completes\n- Source signals check this to register dependencies"
+          ],
           "examples": [],
           "params": [
             {
@@ -48,7 +58,10 @@
             }
           ],
           "returns": [],
-          "see": [],
+          "see": [
+            "{@link getCurrentEffect} - For getting the current effect",
+            "{@link effect} - For creating effects"
+          ],
           "template": [],
           "deprecated": []
         },
@@ -622,12 +635,23 @@
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
-          "title": "",
-          "summary": "",
-          "remarks": [],
-          "examples": [],
-          "params": [],
-          "returns": [],
+          "title": "Creates mutating methods for boolean signals.",
+          "summary": "Creates mutating methods for boolean signals.",
+          "remarks": [
+            "- `toggle()` flips the boolean value\n- Triggers effects synchronously"
+          ],
+          "examples": [
+            "```typescript\nconst methods = getBooleanSignalMutatingMethodsObject((mutator) => {\n  signal.value = mutator(signal.value);\n});\nmethods.toggle(); // Flips the boolean value\n```"
+          ],
+          "params": [
+            {
+              "name": "valueSetter",
+              "description": "Updates the signal value and triggers effects"
+            }
+          ],
+          "returns": [
+            "Mutating methods for boolean signals"
+          ],
           "see": [],
           "template": [],
           "deprecated": []
@@ -645,12 +669,27 @@
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
-          "title": "",
-          "summary": "",
-          "remarks": [],
-          "examples": [],
-          "params": [],
-          "returns": [],
+          "title": "Creates combined methods for boolean source signals.",
+          "summary": "Creates combined methods for boolean source signals.\n\nCombines mutating methods for boolean source signals.",
+          "remarks": [
+            "- Includes toggle method for flipping boolean values\n- Triggers effects synchronously"
+          ],
+          "examples": [
+            "```typescript\nconst boolSignal = signal(true);\nconst methods = getBooleanSignalMethodsObject(\n  (mutator) => { boolSignal.value = mutator(boolSignal.value); },\n  boolSignal\n);\nmethods.toggle(); // Flips from true to false\n```"
+          ],
+          "params": [
+            {
+              "name": "valueSetter",
+              "description": "Updates the signal value and triggers effects"
+            },
+            {
+              "name": "baseSignalifiedObject",
+              "description": "The base boolean signal to access values from"
+            }
+          ],
+          "returns": [
+            "Combined methods for boolean source signals"
+          ],
           "see": [],
           "template": [],
           "deprecated": []
@@ -668,14 +707,28 @@
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
-          "title": "",
-          "summary": "",
-          "remarks": [],
+          "title": "Creates an OR method object for providing alternative values.",
+          "summary": "Creates an OR method object for providing alternative values.\n\nThis function creates a logical OR operation that returns the current value\nif it's truthy, otherwise returns the alternative value.",
+          "remarks": [
+            "- The `or` method returns the current value if truthy, otherwise the alternative\n- Useful for providing default values for nullable signals\n- Returns a derived signal that updates when either value changes"
+          ],
           "examples": [],
-          "params": [],
-          "returns": [],
+          "params": [
+            {
+              "name": "baseSignalifiedObject",
+              "description": "The base signalified value to check"
+            }
+          ],
+          "returns": [
+            "An object with an `or` method for providing alternative values"
+          ],
           "see": [],
-          "template": [],
+          "template": [
+            {
+              "name": "T",
+              "description": "The type of the base value"
+            }
+          ],
           "deprecated": []
         },
         "sourcePath": "src/_core/data-specific-methods/generic.ts"
@@ -691,21 +744,30 @@
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
-          "title": "Creates logical methods for boolean signals.",
-          "summary": "Creates logical methods for boolean signals.",
-          "remarks": [],
-          "examples": [],
+          "title": "Creates logical methods for signalified values.",
+          "summary": "Creates logical methods for signalified values.\n\nThis function creates a comprehensive logical methods object that supports:\n- OR operations for providing alternative values\n- Truthy/falsy checks via `is`\n- Conditional value selection via `when`\n- Length-based checks for strings and arrays\n- Numeric comparisons for numbers",
+          "remarks": [
+            "- `or` provides alternative values for nullable/undefined cases\n- `is` returns derived signals for boolean checks\n- `when` returns LogicalThen objects for conditional value selection\n- Length methods are only available for strings and arrays\n- Numeric comparison methods are only available for numbers"
+          ],
+          "examples": [
+            "```typescript\nconst count = signal(5);\nconst logical = getLogicalMethods(count);\nlogical.is.truthy; // DerivedSignal<boolean>\nlogical.is.greaterThan(3).truthy; // DerivedSignal<boolean>\nlogical.when.greaterThan(10).then(\"big\", \"small\"); // DerivedSignal<string>\n```"
+          ],
           "params": [
             {
               "name": "baseSignalifiedObject",
-              "description": "The base boolean signal"
+              "description": "The signalified value to add logical methods to"
             }
           ],
           "returns": [
-            "Logical methods for boolean signals"
+            "A logical methods object"
           ],
           "see": [],
-          "template": [],
+          "template": [
+            {
+              "name": "T",
+              "description": "The type of the signalified value"
+            }
+          ],
           "deprecated": []
         },
         "sourcePath": "src/_core/data-specific-methods/generic.ts"
@@ -822,7 +884,9 @@
           "remarks": [
             "- `set()` performs a shallow merge with the current value\n- Works with both source and derived signals"
           ],
-          "examples": [],
+          "examples": [
+            "```typescript\nconst user = signal({ name: \"John\", age: 30 });\nconst methods = getObjectSignalMutatingMethodsObject((mutator) => {\n  user.value = mutator(user.value);\n});\nmethods.set({ age: 31 }); // Shallow merge: { name: \"John\", age: 31 }\n```"
+          ],
           "params": [
             {
               "name": "valueSetter",
@@ -832,7 +896,9 @@
           "returns": [
             "An object with methods to update the source signal's value"
           ],
-          "see": [],
+          "see": [
+            "{@link getObjectSourceSignalMethodsObject} - For combined methods"
+          ],
           "template": [
             {
               "name": "T",
@@ -857,9 +923,11 @@
           "title": "Creates the object trap for signalified plain objects.",
           "summary": "Creates the object trap for signalified plain objects.",
           "remarks": [
-            "- Throws if the input is not a plain object after unwrapping\n- Property accessors are derived signals"
+            "- Throws if the input is not a plain object after unwrapping\n- Property accessors are derived signals\n- `prop()` returns a derived signal for a specific property\n- `props()` returns an object with derived signals for all properties\n- `keys()` returns a derived signal of the object's keys"
           ],
-          "examples": [],
+          "examples": [
+            "```typescript\nconst user = signal({ name: \"John\", age: 30 });\nconst methods = getObjectSignalNonMutatingMethodsObject(user);\nconst nameSignal = methods.prop(\"name\"); // DerivedSignal<string>\nconst allProps = methods.props(); // Record of derived signals for all properties\nconst keysSignal = methods.keys(); // DerivedSignal<string[]>\n```"
+          ],
           "params": [
             {
               "name": "input",
@@ -894,9 +962,11 @@
           "title": "Returns an object with methods to update the source signal's value.",
           "summary": "Returns an object with methods to update the source signal's value.",
           "remarks": [
-            "- `set()` performs a shallow merge with the current value\n- Works with both source and derived signals"
+            "- `set()` performs a shallow merge with the current value\n- Works with both source and derived signals\n- Combines mutating and non-mutating methods"
           ],
-          "examples": [],
+          "examples": [
+            "```typescript\nconst user = signal({ name: \"John\", age: 30 });\nconst methods = getObjectSourceSignalMethodsObject(\n  (mutator) => { user.value = mutator(user.value); },\n  user\n);\nmethods.set({ age: 31 }); // Shallow merge\nconst nameSignal = methods.prop(\"name\"); // DerivedSignal<string>\n```"
+          ],
           "params": [
             {
               "name": "valueSetter",
@@ -906,7 +976,10 @@
           "returns": [
             "An object with methods to update the source signal's value"
           ],
-          "see": [],
+          "see": [
+            "{@link getObjectSignalMutatingMethodsObject} - For mutating methods only",
+            "{@link getObjectSignalNonMutatingMethodsObject} - For non-mutating methods only"
+          ],
           "template": [
             {
               "name": "T",
@@ -1077,9 +1150,11 @@
           "title": "Creates the string/array-specific operation chain for a value.",
           "summary": "Creates the string/array-specific operation chain for a value.",
           "remarks": [
-            "- Used when the evaluated value is a string or array\n- Methods return new operation objects for chaining"
+            "- Used when the evaluated value is a string or array\n- Methods return new operation objects for chaining\n- Supports length comparisons (lengthBetween, lengthEquals, lengthLT, etc.)\n- Inherits all generic logical operations (AND, OR, NOT, equals)"
           ],
-          "examples": [],
+          "examples": [
+            "```typescript\nconst text = signal(\"hello\");\nconst op = stringAndArrayOp(text);\nop.lengthEquals(5).truthy; // DerivedSignal<boolean>\nop.lengthBetween(3, 10).truthy; // DerivedSignal<boolean>\n\nconst items = signal([1, 2, 3]);\nconst arrOp = stringAndArrayOp(items);\narrOp.lengthGT(2).truthy; // DerivedSignal<boolean>\n```"
+          ],
           "params": [
             {
               "name": "input",
@@ -1114,9 +1189,11 @@
           "title": "Creates the generic operation chain for a value.",
           "summary": "Creates the generic operation chain for a value.",
           "remarks": [
-            "- Used for non-numeric and non-string-or-array inputs\n- Methods return new operation objects for chaining"
+            "- Used for non-numeric and non-string-or-array inputs\n- Methods return new operation objects for chaining\n- Supports truthy/falsy checks and equality comparisons\n- Can combine logical operations with comparisons on other values"
           ],
-          "examples": [],
+          "examples": [
+            "```typescript\nconst flag = signal(true);\nconst op = genericOp(flag);\nop.truthy; // DerivedSignal<boolean>\nop.or(false).truthy; // Chained OR operation\nop.and(false).falsy; // Chained AND operation\nop.equals(true).truthy; // Equality comparison\n```"
+          ],
           "params": [
             {
               "name": "input",
@@ -1151,9 +1228,11 @@
           "title": "Creates the number-specific operation chain for a value.",
           "summary": "Creates the number-specific operation chain for a value.",
           "remarks": [
-            "- Used when the evaluated value is a number\n- Methods return new operation objects for chaining"
+            "- Used when the evaluated value is a number\n- Methods return new operation objects for chaining\n- Supports arithmetic operations (add, sub, mul, div, mod, pow)\n- Supports numeric comparisons (isBetween, isLT, isLTE, isGT, isGTE)\n- Inherits all generic logical operations (AND, OR, NOT, equals)"
           ],
-          "examples": [],
+          "examples": [
+            "```typescript\nconst count = signal(10);\nconst op = numberOp(count);\nop.result; // DerivedSignal<number>\nop.add(5).result; // DerivedSignal<number> = 15\nop.isBetween(5, 15).truthy; // DerivedSignal<boolean>\nop.mul(2).isGT(20).truthy; // Chained operations\n```"
+          ],
           "params": [
             {
               "name": "input",
@@ -1227,14 +1306,33 @@
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
-          "title": "",
-          "summary": "",
-          "remarks": [],
-          "examples": [],
-          "params": [],
-          "returns": [],
-          "see": [],
-          "template": [],
+          "title": "Adds logical methods to nullable primitive values.",
+          "summary": "Adds logical methods to nullable primitive values.\n\nThis function enables logical operations (truthy/falsy checks, comparisons,\nternary operations) on nullable primitive values by wrapping them with\nthe logical methods interface.",
+          "remarks": [
+            "- Only works with primitive types (string, number, boolean, null, undefined)\n- Returns an empty object for non-primitive types\n- Enables fluent logical operation chaining\n- Useful for conditional logic in reactive contexts"
+          ],
+          "examples": [
+            "```typescript\nconst count = signal(5);\nconst logical = nullable(count);\nlogical.is.truthy; // DerivedSignal<boolean>\nlogical.or(0); // DerivedSignal<number>\n```"
+          ],
+          "params": [
+            {
+              "name": "input",
+              "description": "A signalified primitive value (string, number, boolean, null, or undefined)"
+            }
+          ],
+          "returns": [
+            "An object with logical methods for the input value"
+          ],
+          "see": [
+            "{@link LogicalMethods} - For the logical methods interface",
+            "{@link MaybeSignal} - For the input type"
+          ],
+          "template": [
+            {
+              "name": "T",
+              "description": "The type of value to add logical methods to"
+            }
+          ],
           "deprecated": []
         },
         "sourcePath": "src/api/nullable.ts"
@@ -1678,7 +1776,9 @@
         "tsdoc": {
           "title": "Converts signalified method parameters to plain values.",
           "summary": "Converts signalified method parameters to plain values.\n\nThis helper function is used by trap methods to unwrap parameters that may be\nsignals, plain values, or non-signals into their plain values before passing\nthem to the underlying JavaScript methods (e.g., string methods, array methods).\n\nThis allows trap methods to accept signalified parameters while still being\nable to call standard JavaScript methods that expect plain values.",
-          "remarks": [],
+          "remarks": [
+            "- Used internally by trap methods for data-specific operations\n- Unwraps each parameter using the `value()` helper\n- Returns an array of plain values matching the input parameter order"
+          ],
           "examples": [
             "// Calling string.includes with a signalified search term\nconst search = signal(\"world\");\nconst text = signal(\"hello world\");\nconst params = getDesignalifiedMethodParams(search);\n// params is [\"world\"], which can be passed to text.includes(\"world\")"
           ],
@@ -1692,9 +1792,9 @@
             "Array of plain values extracted from the signalified parameters"
           ],
           "see": [
-            "SignalifiedFunction",
-            "MaybeSignalValues",
-            "PlainValues"
+            "{@link value} - For unwrapping individual signalified values",
+            "{@link MaybeSignalValues} - For the input type",
+            "{@link PlainValues} - For the output type"
           ],
           "template": [],
           "deprecated": []
@@ -2301,22 +2401,23 @@
         "parameters": [],
         "typeParameters": [],
         "tsdoc": {
-          "title": "A read-only derived signal computed from other signals.",
-          "summary": "A read-only derived signal computed from other signals.\n\nDerived signals automatically recompute their value whenever any of their\ntracked dependencies change. Dependencies are established by accessing\n`.value` on signals during the initial computation.",
+          "title": "A runtime type wrapper for plain values.",
+          "summary": "A runtime type wrapper for plain values.\n\nNonSignal objects are used for runtime type discrimination in complex\ntype scenarios where TypeScript's compile-time types are insufficient.\nThey enable distinguishing between plain values and signalified objects\nat runtime.",
           "remarks": [
-            "- The value getter function receives the previous computed value (undefined on first run)\n- Dependencies are only tracked for signals whose `.value` is accessed during execution\n- If a signal is accessed conditionally and the condition is false on first run, it won't be tracked\n- Calling `dispose()` stops the derived signal from tracking dependencies\n- After disposal, the value remains accessible but won't update\n- Array derived signals get non-mutating array methods (map, filter, etc.)\n- String derived signals get non-mutating string methods (toLowerCase, toUpperCase, etc.)\n- Number derived signals get non-mutating number methods (toFixed, toPrecision, etc.)\n- Boolean derived signals get non-mutating boolean methods (not, toString)"
+            "- Used with `MaybeSignal` types to resolve ambiguity at runtime\n- Has a `type: \"non-signal\"` property for runtime type checking\n- The `value` property holds the wrapped plain value\n- Array non-signals get non-mutating array methods (map, filter, etc.)\n- String non-signals get non-mutating string methods (toLowerCase, toUpperCase, etc.)\n- Number non-signals get non-mutating number methods (toFixed, toPrecision, etc.)\n- Boolean non-signals get non-mutating boolean methods (not, toString)"
           ],
           "examples": [],
           "params": [],
           "returns": [],
           "see": [
-            "{@link signal} - For creating mutable source signals",
-            "{@link effect} - For registering functions to run when signal values change"
+            "{@link Signal} - For signal objects",
+            "{@link MaybeSignal} - For union types that include signals",
+            "{@link getNonSignalObject} - For creating NonSignal objects"
           ],
           "template": [
             {
               "name": "T",
-              "description": "The type of value the derived signal holds"
+              "description": "The type of value wrapped"
             }
           ],
           "deprecated": []
