@@ -1,9 +1,5 @@
-import {
-  effect,
-  SignalifiedObject,
-  SignalsEffect,
-  SourceSignal,
-} from "../_core";
+import { effect, MaybeSignal, SignalsEffect, SourceSignal } from "../_core";
+import { value } from "../utils";
 
 /**
  * Connects multiple transmitter signals to a single receiver signal.
@@ -50,10 +46,10 @@ import {
  */
 export const receive = <T>(
   receiver: SourceSignal<T>,
-  ...transmittors: SignalifiedObject<T>[]
+  ...transmittors: MaybeSignal<T>[]
 ): SignalsEffect[] => {
   const effects = transmittors.map((transmittor) =>
-    effect(() => (receiver.value = transmittor.value)),
+    effect(() => (receiver.value = value(transmittor))),
   );
   return effects;
 };
@@ -101,9 +97,9 @@ export const receive = <T>(
  * @see {@link effect} - For the underlying effect primitive
  */
 export const transmit = <T>(
-  transmittor: SignalifiedObject<T>,
+  transmittor: MaybeSignal<T>,
   ...receivers: SourceSignal<T>[]
 ): SignalsEffect =>
   effect(() => {
-    receivers.forEach((receiver) => (receiver.value = transmittor.value));
+    receivers.forEach((receiver) => (receiver.value = value(transmittor)));
   });
