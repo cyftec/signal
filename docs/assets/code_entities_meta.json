@@ -1309,10 +1309,10 @@
           "title": "Adds logical methods to nullable primitive values.",
           "summary": "Adds logical methods to nullable primitive values.\n\nThis function enables logical operations (truthy/falsy checks, comparisons,\nternary operations) on nullable primitive values by wrapping them with\nthe logical methods interface.",
           "remarks": [
-            "- Only works with primitive types (string, number, boolean, null, undefined)\n- Returns an empty object for non-primitive types\n- Enables fluent logical operation chaining\n- Useful for conditional logic in reactive contexts"
+            "- Specially helpful if the input value is not even a signal or signalified object and may even be nullable\n- Only works with primitive types (string, number, boolean, null, undefined)\n- Returns an empty object for non-primitive types\n- Enables fluent logical operation chaining\n- Useful for conditional logic in reactive contexts"
           ],
           "examples": [
-            "```typescript\nconst count = signal(5);\nconst logical = nullable(count);\nlogical.is.truthy; // DerivedSignal<boolean>\nlogical.or(0); // DerivedSignal<number>\n```"
+            "```typescript\nconst count: undefined | SourceSignal<number> = signal(5);\nconst logical = nullable(count);\nlogical.is.truthy; // DerivedSignal<boolean>\nlogical.or(0); // DerivedSignal<number>\n```"
           ],
           "params": [
             {
