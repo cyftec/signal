@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test";
-import { derive, getNonSignalObject, signal } from "../src";
+import { derive, getNonSignalObject, nullable, signal } from "../src";
 
 describe("generic methods - source signals", () => {
   describe("truthy() and falsy()", () => {
     it("should return derived signal for truthy check on number", () => {
       const count = signal(42);
-      const truthy = count.truthy();
-      const falsy = count.falsy();
+      const truthy = count.is.truthy();
+      const falsy = count.is.falsy();
 
       expect(truthy.value).toBe(true);
       expect(falsy.value).toBe(false);
@@ -18,8 +18,8 @@ describe("generic methods - source signals", () => {
 
     it("should return derived signal for truthy check on string", () => {
       const text = signal("hello");
-      const truthy = text.truthy();
-      const falsy = text.falsy();
+      const truthy = text.is.truthy();
+      const falsy = text.is.falsy();
 
       expect(truthy.value).toBe(true);
       expect(falsy.value).toBe(false);
@@ -31,8 +31,8 @@ describe("generic methods - source signals", () => {
 
     it("should return derived signal for truthy check on boolean", () => {
       const bool = signal(true);
-      const truthy = bool.truthy();
-      const falsy = bool.falsy();
+      const truthy = bool.is.truthy();
+      const falsy = bool.is.falsy();
 
       expect(truthy.value).toBe(true);
       expect(falsy.value).toBe(false);
@@ -47,12 +47,56 @@ describe("generic methods - source signals", () => {
     // Nullable signals don't have truthy/falsy methods - they only exist on specific types
   });
 
-  // or() method only exists on specific signal types, not nullable signals
+  describe("or()", () => {
+    it("should return alternative when value is null", () => {
+      const nullSignal = signal<number | null>(null);
+      const orValue = nullSignal.or(100);
 
-  describe("when.isTruthy.map()", () => {
+      expect(orValue.value).toBe(100);
+
+      nullSignal.value = 42;
+      expect(orValue.value).toBe(42);
+    });
+
+    it("should return alternative when value is undefined", () => {
+      const undefinedSignal = signal<number | undefined>(undefined);
+      const orValue = undefinedSignal.or(100);
+
+      expect(orValue.value).toBe(100);
+
+      undefinedSignal.value = 42;
+      expect(orValue.value).toBe(42);
+    });
+
+    it("should work with signal as alternative", () => {
+      const nullSignal = signal<number | null>(null);
+      const alternative = signal(100);
+      const orValue = nullSignal.or(alternative);
+
+      expect(orValue.value).toBe(100);
+
+      alternative.value = 200;
+      expect(orValue.value).toBe(200);
+
+      nullSignal.value = 42;
+      expect(orValue.value).toBe(42);
+    });
+
+    it("should work with string values", () => {
+      const text = signal<string | null>(null);
+      const orValue = text.or("default");
+
+      expect(orValue.value).toBe("default");
+
+      text.value = "hello";
+      expect(orValue.value).toBe("hello");
+    });
+  });
+
+  describe("when.truthy().then()", () => {
     it("should map truthy/falsy to values for number", () => {
       const count = signal(42);
-      const result = count.when.isTruthy.map("yes", "no");
+      const result = count.when.truthy().then("yes", "no");
 
       expect(result.value).toBe("yes");
 
@@ -62,7 +106,7 @@ describe("generic methods - source signals", () => {
 
     it("should map truthy/falsy to values for string", () => {
       const text = signal("hello");
-      const result = text.when.isTruthy.map("yes", "no");
+      const result = text.when.truthy().then("yes", "no");
 
       expect(result.value).toBe("yes");
 
@@ -74,7 +118,7 @@ describe("generic methods - source signals", () => {
       const count = signal(42);
       const truthyAlt = signal("yes");
       const falsyAlt = signal("no");
-      const result = count.when.isTruthy.map(truthyAlt, falsyAlt);
+      const result = count.when.truthy().then(truthyAlt, falsyAlt);
 
       expect(result.value).toBe("yes");
 
@@ -86,11 +130,65 @@ describe("generic methods - source signals", () => {
     });
   });
 
-  describe("when.equals() and when.notEquals()", () => {
+  describe("is.equalTo() and is.notEqualTo()", () => {
     it("should compare equality for numbers", () => {
       const count = signal(42);
-      const equalsResult = count.when.equals(42).map("match", "no match");
-      const notEqualsResult = count.when.notEquals(42).map("different", "same");
+      const equalsResult = count.is.equalTo(42);
+      const notEqualsResult = count.is.notEqualTo(42);
+
+      expect(equalsResult.value).toBe(true);
+      expect(notEqualsResult.value).toBe(false);
+
+      count.value = 100;
+      expect(equalsResult.value).toBe(false);
+      expect(notEqualsResult.value).toBe(true);
+    });
+
+    it("should compare equality for strings", () => {
+      const text = signal("hello");
+      const equalsResult = text.is.equalTo("hello");
+      const notEqualsResult = text.is.notEqualTo("hello");
+
+      expect(equalsResult.value).toBe(true);
+      expect(notEqualsResult.value).toBe(false);
+
+      text.value = "world";
+      expect(equalsResult.value).toBe(false);
+      expect(notEqualsResult.value).toBe(true);
+    });
+
+    it("should compare equality for booleans", () => {
+      const bool = signal(true);
+      const equalsResult = bool.is.equalTo(true);
+      const notEqualsResult = bool.is.notEqualTo(true);
+
+      expect(equalsResult.value).toBe(true);
+      expect(notEqualsResult.value).toBe(false);
+
+      bool.value = false;
+      expect(equalsResult.value).toBe(false);
+      expect(notEqualsResult.value).toBe(true);
+    });
+
+    it("should work with signal as comparison value", () => {
+      const count = signal(42);
+      const compareValue = signal(42);
+      const result = count.is.equalTo(compareValue);
+
+      expect(result.value).toBe(true);
+
+      compareValue.value = 100;
+      expect(result.value).toBe(false);
+    });
+  });
+
+  describe("when.equalTo.then() and when.notEqualTo.then()", () => {
+    it("should compare equality for numbers with ternary", () => {
+      const count = signal(42);
+      const equalsResult = count.when.equalTo(42).then("match", "no match");
+      const notEqualsResult = count.when
+        .notEqualTo(42)
+        .then("different", "same");
 
       expect(equalsResult.value).toBe("match");
       expect(notEqualsResult.value).toBe("same");
@@ -99,55 +197,12 @@ describe("generic methods - source signals", () => {
       expect(equalsResult.value).toBe("no match");
       expect(notEqualsResult.value).toBe("different");
     });
-
-    it("should compare equality for strings", () => {
-      const text = signal("hello");
-      const equalsResult = text.when.equals("hello").map("match", "no match");
-      const notEqualsResult = text.when
-        .notEquals("hello")
-        .map("different", "same");
-
-      expect(equalsResult.value).toBe("match");
-      expect(notEqualsResult.value).toBe("same");
-
-      text.value = "world";
-      expect(equalsResult.value).toBe("no match");
-      expect(notEqualsResult.value).toBe("different");
-    });
-
-    it("should compare equality for booleans", () => {
-      const bool = signal(true);
-      const equalsResult = bool.when.equals(true).map("match", "no match");
-      const notEqualsResult = bool.when
-        .notEquals(true)
-        .map("different", "same");
-
-      expect(equalsResult.value).toBe("match");
-      expect(notEqualsResult.value).toBe("same");
-
-      bool.value = false;
-      expect(equalsResult.value).toBe("no match");
-      expect(notEqualsResult.value).toBe("different");
-    });
-
-    // Nullable signals don't have when methods - they only exist on specific types
-
-    it("should work with signal as comparison value", () => {
-      const count = signal(42);
-      const compareValue = signal(42);
-      const result = count.when.equals(compareValue).map("match", "no match");
-
-      expect(result.value).toBe("match");
-
-      compareValue.value = 100;
-      expect(result.value).toBe("no match");
-    });
   });
 
   describe("when - numeric comparisons", () => {
     it("should have greaterThan for numbers", () => {
       const count = signal(50);
-      const result = count.when.greaterThan(42).map("greater", "not greater");
+      const result = count.when.greaterThan(42).then("greater", "not greater");
 
       expect(result.value).toBe("greater");
 
@@ -159,7 +214,7 @@ describe("generic methods - source signals", () => {
       const count = signal(42);
       const result = count.when
         .greaterThanOrEqualTo(42)
-        .map("greater or equal", "less");
+        .then("greater or equal", "less");
 
       expect(result.value).toBe("greater or equal");
 
@@ -169,7 +224,7 @@ describe("generic methods - source signals", () => {
 
     it("should have smallerThan for numbers", () => {
       const count = signal(30);
-      const result = count.when.smallerThan(42).map("smaller", "not smaller");
+      const result = count.when.smallerThan(42).then("smaller", "not smaller");
 
       expect(result.value).toBe("smaller");
 
@@ -181,7 +236,7 @@ describe("generic methods - source signals", () => {
       const count = signal(42);
       const result = count.when
         .smallerThanOrEqualTo(42)
-        .map("smaller or equal", "greater");
+        .then("smaller or equal", "greater");
 
       expect(result.value).toBe("smaller or equal");
 
@@ -194,7 +249,7 @@ describe("generic methods - source signals", () => {
       const compareValue = signal(42);
       const result = count.when
         .greaterThan(compareValue)
-        .map("greater", "not greater");
+        .then("greater", "not greater");
 
       expect(result.value).toBe("greater");
 
@@ -203,49 +258,45 @@ describe("generic methods - source signals", () => {
     });
   });
 
-  describe("when.length comparisons", () => {
-    it("should have length.equals for strings", () => {
+  describe("is.length comparisons", () => {
+    it("should have length.equalTo for strings", () => {
       const text = signal("hello");
-      const result = text.when.length.equals(5).map("match", "no match");
+      const result = text.is.length.equalTo(5);
 
-      expect(result.value).toBe("match");
+      expect(result.value).toBe(true);
 
       text.value = "hello world";
-      expect(result.value).toBe("no match");
+      expect(result.value).toBe(false);
     });
 
     it("should have length.greaterThan for strings", () => {
       const text = signal("hello world");
-      const result = text.when.length
-        .greaterThan(5)
-        .map("greater", "not greater");
+      const result = text.is.length.greaterThan(5);
 
-      expect(result.value).toBe("greater");
+      expect(result.value).toBe(true);
 
       text.value = "hi";
-      expect(result.value).toBe("not greater");
+      expect(result.value).toBe(false);
     });
 
     it("should have length.smallerThan for arrays", () => {
       const arr = signal([1, 2]);
-      const result = arr.when.length
-        .smallerThan(5)
-        .map("smaller", "not smaller");
+      const result = arr.is.length.smallerThan(5);
 
-      expect(result.value).toBe("smaller");
+      expect(result.value).toBe(true);
 
       arr.push(3, 4, 5, 6);
-      expect(result.value).toBe("not smaller");
+      expect(result.value).toBe(false);
     });
 
-    it("should have length.notEquals for strings", () => {
+    it("should have length.notEqualTo for strings", () => {
       const text = signal("hello");
-      const result = text.when.length.notEquals(10).map("different", "same");
+      const result = text.is.length.notEqualTo(10);
 
-      expect(result.value).toBe("different");
+      expect(result.value).toBe(true);
 
       text.value = "hellohello";
-      expect(result.value).toBe("same");
+      expect(result.value).toBe(false);
     });
   });
 
@@ -259,66 +310,50 @@ describe("generic methods - source signals", () => {
     it("should have length comparisons for string signals", () => {
       const text = signal("hello");
       expect(typeof text.when.length).toBe("object");
-      expect(typeof text.when.length.equals).toBe("function");
+      expect(typeof text.when.length.equalTo).toBe("function");
     });
 
     it("should have length comparisons for array signals", () => {
       const arr = signal([1, 2, 3]);
       expect(typeof arr.when.length).toBe("object");
-      expect(typeof arr.when.length.equals).toBe("function");
+      expect(typeof arr.when.length.equalTo).toBe("function");
     });
 
     it("should have equality comparisons for boolean signals", () => {
       const bool = signal(true);
-      expect(typeof bool.when.equals).toBe("function");
-      expect(typeof bool.when.notEquals).toBe("function");
+      expect(typeof bool.when.equalTo).toBe("function");
+      expect(typeof bool.when.notEqualTo).toBe("function");
     });
 
-    it("should have isTruthy for all signal types", () => {
+    it("should have truthy for primitive signal types", () => {
       const count = signal(42);
       const text = signal("hello");
       const bool = signal(true);
-      const arr = signal([1, 2, 3]);
-      const obj = signal({ name: "test" });
 
-      expect(typeof count.when.isTruthy).toBe("object");
-      expect(typeof text.when.isTruthy).toBe("object");
-      expect(typeof bool.when.isTruthy).toBe("object");
-      // Array signals only have when.length, not when.isTruthy
-      expect(typeof arr.when.length).toBe("object");
+      expect(typeof count.is.truthy).toBe("function");
+      expect(typeof text.is.truthy).toBe("function");
+      expect(typeof bool.is.truthy).toBe("function");
+    });
+
+    it("should have length for array and string signals", () => {
+      const arr = signal([1, 2, 3]);
+      const text = signal("hello");
+
+      expect(typeof arr.is.length).toBe("object");
+      expect(typeof text.is.length).toBe("object");
     });
   });
 });
 
 describe("generic methods - derived signals", () => {
-  it("should have truthy() on derived signal", () => {
+  // Derived signals don't have logical methods directly
+  // They need to be wrapped with nullable() to get logical methods
+
+  it("should have when.truthy().then() on derived signal via nullable", () => {
     const count = signal(42);
     const doubled = derive(() => count.value * 2);
-    const truthy = doubled.truthy();
-
-    expect(truthy.value).toBe(true);
-
-    count.value = 0;
-    expect(truthy.value).toBe(false);
-  });
-
-  it("should have falsy() on derived signal", () => {
-    const count = signal(0);
-    const doubled = derive(() => count.value * 2);
-    const falsy = doubled.falsy();
-
-    expect(falsy.value).toBe(true);
-
-    count.value = 1;
-    expect(falsy.value).toBe(false);
-  });
-
-  // Derived signals don't have or() method - only type-specific derived signals have methods
-
-  it("should have when.isTruthy.map() on derived signal", () => {
-    const count = signal(42);
-    const doubled = derive(() => count.value * 2);
-    const result = doubled.when.isTruthy.map("yes", "no");
+    const withLogical = nullable(doubled);
+    const result = withLogical.when.truthy().then("yes", "no");
 
     expect(result.value).toBe("yes");
 
@@ -326,10 +361,11 @@ describe("generic methods - derived signals", () => {
     expect(result.value).toBe("no");
   });
 
-  it("should have when.equals() on derived signal", () => {
+  it("should have when.equalTo() on derived signal via nullable", () => {
     const count = signal(21);
     const doubled = derive(() => count.value * 2);
-    const result = doubled.when.equals(42).map("match", "no match");
+    const withLogical = nullable(doubled);
+    const result = withLogical.when.equalTo(42).then("match", "no match");
 
     expect(result.value).toBe("match");
 
@@ -337,10 +373,11 @@ describe("generic methods - derived signals", () => {
     expect(result.value).toBe("no match");
   });
 
-  it("should have when.greaterThan() on derived signal", () => {
+  it("should have when.greaterThan() on derived signal via nullable", () => {
     const count = signal(30);
     const doubled = derive(() => count.value * 2);
-    const result = doubled.when.greaterThan(50).map("greater", "not greater");
+    const withLogical = nullable(doubled);
+    const result = withLogical.when.greaterThan(50).then("greater", "not greater");
 
     expect(result.value).toBe("greater");
 
@@ -348,131 +385,125 @@ describe("generic methods - derived signals", () => {
     expect(result.value).toBe("not greater");
   });
 
-  it("should have when.length on derived string signal", () => {
+  it("should have is.length on derived string signal via nullable", () => {
     const text = signal("hello");
     const derived = derive(() => text.value);
-    const result = derived.when.length.equals(5).map("match", "no match");
+    const withLogical = nullable(derived);
+    const result = withLogical.is.length.equalTo(5);
 
-    expect(result.value).toBe("match");
+    expect(result.value).toBe(true);
 
     text.value = "world!";
-    expect(result.value).toBe("no match");
+    expect(result.value).toBe(false);
   });
 
-  it("should have when.length on derived array signal", () => {
-    const arr = signal([1, 2, 3]);
-    const derived = derive(() => arr.value);
-    const result = derived.when.length
-      .greaterThan(2)
-      .map("greater", "not greater");
-
-    expect(result.value).toBe("greater");
-
-    arr.value = [1];
-    expect(result.value).toBe("not greater");
-  });
+  // Arrays are not primitives, so nullable doesn't work with them
+  // Array derived signals have logical methods directly
 });
 
 describe("generic methods - non-signal objects", () => {
-  it("should have truthy() on non-signal", () => {
+  // Non-signal objects need to be wrapped with nullable() to get logical methods
+
+  it("should have is.truthy() on non-signal via nullable", () => {
     const nonSig = getNonSignalObject(42);
-    const truthy = nonSig.truthy();
+    const withLogical = nullable(nonSig);
+    const truthy = withLogical.is.truthy();
 
     expect(truthy.value).toBe(true);
   });
 
-  it("should have falsy() on non-signal", () => {
+  it("should have is.falsy() on non-signal via nullable", () => {
     const nonSig = getNonSignalObject(0);
-    const falsy = nonSig.falsy();
+    const withLogical = nullable(nonSig);
+    const falsy = withLogical.is.falsy();
 
     expect(falsy.value).toBe(true);
   });
 
-  // Non-signal objects don't have or() method
+  it("should have or() on non-signal via nullable", () => {
+    const nonSig = getNonSignalObject<number | null>(null);
+    const withLogical = nullable(nonSig);
+    const orValue = withLogical.or(100);
 
-  it("should have when.isTruthy.map() on non-signal", () => {
+    expect(orValue.value).toBe(100);
+  });
+
+  it("should have when.truthy().then() on non-signal via nullable", () => {
     const nonSig = getNonSignalObject(42);
-    const result = nonSig.when.isTruthy.map("yes", "no");
+    const withLogical = nullable(nonSig);
+    const result = withLogical.when.truthy().then("yes", "no");
 
     expect(result.value).toBe("yes");
   });
 
-  it("should have when.equals() on non-signal", () => {
+  it("should have when.equalTo() on non-signal via nullable", () => {
     const nonSig = getNonSignalObject(42);
-    const result = nonSig.when.equals(42).map("match", "no match");
+    const withLogical = nullable(nonSig);
+    const result = withLogical.when.equalTo(42).then("match", "no match");
 
     expect(result.value).toBe("match");
   });
 
-  it("should have when.greaterThan() on non-signal", () => {
+  it("should have when.greaterThan() on non-signal via nullable", () => {
     const nonSig = getNonSignalObject(50);
-    const result = nonSig.when.greaterThan(42).map("greater", "not greater");
+    const withLogical = nullable(nonSig);
+    const result = withLogical.when.greaterThan(42).then("greater", "not greater");
 
     expect(result.value).toBe("greater");
   });
 
-  it("should have when.length on non-signal string", () => {
+  it("should have is.length on non-signal string via nullable", () => {
     const nonSig = getNonSignalObject("hello");
-    const result = nonSig.when.length.equals(5).map("match", "no match");
+    const withLogical = nullable(nonSig);
+    const result = withLogical.is.length.equalTo(5);
 
-    expect(result.value).toBe("match");
+    expect(result.value).toBe(true);
   });
 
-  it("should have when.length on non-signal array", () => {
-    const nonSig = getNonSignalObject([1, 2, 3]);
-    const result = nonSig.when.length
-      .greaterThan(2)
-      .map("greater", "not greater");
-
-    expect(result.value).toBe("greater");
-  });
-
-  // NonNullable object signals don't have when methods
-
-  // Nullable signals don't have when methods
+  // Arrays are not primitives, so nullable doesn't work with them
 });
 
 describe("generic methods - edge cases", () => {
   it("should handle NaN in numeric comparisons", () => {
     const count = signal(NaN);
-    const result = count.when.greaterThan(42).map("greater", "not greater");
+    const result = count.is.greaterThan(42);
 
-    expect(result.value).toBe("not greater");
+    expect(result.value).toBe(false);
   });
 
   it("should handle Infinity in numeric comparisons", () => {
     const count = signal(Infinity);
-    const result = count.when.greaterThan(42).map("greater", "not greater");
+    const result = count.is.greaterThan(42);
 
-    expect(result.value).toBe("greater");
+    expect(result.value).toBe(true);
   });
 
   it("should handle negative numbers in comparisons", () => {
     const count = signal(-10);
-    const result = count.when.smallerThan(0).map("smaller", "not smaller");
+    const result = count.is.smallerThan(0);
 
-    expect(result.value).toBe("smaller");
+    expect(result.value).toBe(true);
   });
 
   it("should handle empty string in length comparisons", () => {
     const text = signal("");
-    const result = text.when.length.equals(0).map("empty", "not empty");
+    const result = text.is.length.equalTo(0);
 
-    expect(result.value).toBe("empty");
+    expect(result.value).toBe(true);
   });
 
   it("should handle empty array in length comparisons", () => {
     const arr = signal([]);
-    const result = arr.when.length.equals(0).map("empty", "not empty");
+    const result = arr.is.length.equalTo(0);
 
-    expect(result.value).toBe("empty");
+    expect(result.value).toBe(true);
   });
 });
 
 describe("generic methods - reactivity", () => {
   it("should update truthy derived signal when source changes", () => {
     const count = signal(42);
-    const truthy = count.truthy();
+    const truthy = count.is.truthy();
 
     expect(truthy.value).toBe(true);
 
@@ -482,7 +513,7 @@ describe("generic methods - reactivity", () => {
 
   it("should update falsy derived signal when source changes", () => {
     const count = signal(0);
-    const falsy = count.falsy();
+    const falsy = count.is.falsy();
 
     expect(falsy.value).toBe(true);
 
@@ -490,11 +521,19 @@ describe("generic methods - reactivity", () => {
     expect(falsy.value).toBe(false);
   });
 
-  // or() reactivity test - only valid for specific signal types
+  it("should update or derived signal when source changes", () => {
+    const nullSignal = signal<number | null>(null);
+    const orValue = nullSignal.or(100);
 
-  it("should update when.isTruthy.map derived signal when source changes", () => {
+    expect(orValue.value).toBe(100);
+
+    nullSignal.value = 42;
+    expect(orValue.value).toBe(42);
+  });
+
+  it("should update when.truthy().then derived signal when source changes", () => {
     const count = signal(42);
-    const result = count.when.isTruthy.map("yes", "no");
+    const result = count.when.truthy().then("yes", "no");
 
     expect(result.value).toBe("yes");
 
@@ -502,9 +541,9 @@ describe("generic methods - reactivity", () => {
     expect(result.value).toBe("no");
   });
 
-  it("should update when.equals derived signal when source changes", () => {
+  it("should update when.equalTo derived signal when source changes", () => {
     const count = signal(42);
-    const result = count.when.equals(42).map("match", "no match");
+    const result = count.when.equalTo(42).then("match", "no match");
 
     expect(result.value).toBe("match");
 
@@ -514,7 +553,7 @@ describe("generic methods - reactivity", () => {
 
   it("should update when.greaterThan derived signal when source changes", () => {
     const count = signal(50);
-    const result = count.when.greaterThan(42).map("greater", "not greater");
+    const result = count.when.greaterThan(42).then("greater", "not greater");
 
     expect(result.value).toBe("greater");
 
@@ -522,13 +561,13 @@ describe("generic methods - reactivity", () => {
     expect(result.value).toBe("not greater");
   });
 
-  it("should update when.length derived signal when source changes", () => {
+  it("should update is.length derived signal when source changes", () => {
     const text = signal("hello");
-    const result = text.when.length.equals(5).map("match", "no match");
+    const result = text.is.length.equalTo(5);
 
-    expect(result.value).toBe("match");
+    expect(result.value).toBe(true);
 
     text.value = "hello world";
-    expect(result.value).toBe("no match");
+    expect(result.value).toBe(false);
   });
 });

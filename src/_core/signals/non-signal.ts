@@ -1,14 +1,12 @@
 import { isPlainObject } from "@cyftec/immut";
 import {
-  ArraySignalNonMutatingMethodsObject,
   getArraySignalNonMutatingMethodsObject,
+  getLogicalMethods,
   getNumberSignalMethodsObject,
   getObjectSignalNonMutatingMethodsObject,
   getStringSignalMethodsObject,
-  NullableLogicalMethods,
-  NumberSignalNonMutatingMethodsObject,
-  ObjectSignalNonMutatingMethodsObject,
-  StringSignalNonMutatingMethodsObject,
+  LogicalMethods,
+  NonMutatingMethodsObject,
 } from "../data-specific-methods";
 import { BaseNonSignal } from "./types";
 
@@ -36,19 +34,8 @@ import { BaseNonSignal } from "./types";
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type NonSignal<T> = BaseNonSignal<T> &
-  ([null] extends [T]
-    ? NullableLogicalMethods<T>
-    : [undefined] extends [T]
-      ? NullableLogicalMethods<T>
-      : T extends any[]
-        ? ArraySignalNonMutatingMethodsObject<T>
-        : T extends Record<string, any>
-          ? ObjectSignalNonMutatingMethodsObject<T>
-          : T extends string
-            ? StringSignalNonMutatingMethodsObject
-            : T extends number
-              ? NumberSignalNonMutatingMethodsObject
-              : {});
+  NonMutatingMethodsObject<T> &
+  LogicalMethods<T>;
 
 /**
  * Wraps a plain value in a NonSignal object for runtime type discrimination.
@@ -114,5 +101,6 @@ export const getNonSignalObject = <T>(input: T): NonSignal<T> => {
     ) as any;
   }
 
+  Object.assign(baseNonSignal, getLogicalMethods(baseNonSignal));
   return Object.assign(baseNonSignal) as any;
 };

@@ -1,9 +1,5 @@
 import { type BaseSignalifiedObject } from "../signals";
 import {
-  getBooleanLogicalMethods,
-  getNullableLogicalNonMutatingMethodsObject,
-} from "./generic";
-import {
   BooleanSignalMutatingMethodsObject,
   BooleanSourceSignalMethodsObject,
 } from "./types";
@@ -19,6 +15,4 @@ export const getBooleanSignalMethodsObject = (
   baseSignalifiedObject: BaseSignalifiedObject<boolean>,
 ): BooleanSourceSignalMethodsObject => ({
   ...getBooleanSignalMutatingMethodsObject(valueSetter),
-  ...getBooleanLogicalMethods(baseSignalifiedObject),
-  ...getNullableLogicalNonMutatingMethodsObject(baseSignalifiedObject),
 });

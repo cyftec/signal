@@ -1,14 +1,12 @@
 import { isPlainObject } from "@cyftec/immut";
 import {
   getArraySignalNonMutatingMethodsObject,
+  getLogicalMethods,
   getNumberSignalMethodsObject,
   getObjectSignalNonMutatingMethodsObject,
   getStringSignalMethodsObject,
-  NullableLogicalMethods,
-  ObjectSignalNonMutatingMethodsObject,
-  type ArraySignalNonMutatingMethodsObject,
-  type NumberSignalNonMutatingMethodsObject,
-  type StringSignalNonMutatingMethodsObject,
+  LogicalMethods,
+  NonMutatingMethodsObject,
 } from "../data-specific-methods";
 import { effect } from "../effect";
 import { signal } from "./source-signal";
@@ -38,19 +36,8 @@ import { BaseDerivedSignal } from "./types";
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
-  ([null] extends [T]
-    ? NullableLogicalMethods<T>
-    : [undefined] extends [T]
-      ? NullableLogicalMethods<T>
-      : T extends any[]
-        ? ArraySignalNonMutatingMethodsObject<T>
-        : T extends Record<string, any>
-          ? ObjectSignalNonMutatingMethodsObject<T>
-          : T extends string
-            ? StringSignalNonMutatingMethodsObject
-            : T extends number
-              ? NumberSignalNonMutatingMethodsObject
-              : {});
+  NonMutatingMethodsObject<T> &
+  LogicalMethods<T>;
 
 /**
  * A function that computes a derived signal's value.
@@ -176,5 +163,6 @@ export const derive = <T>(
     ) as any;
   }
 
+  Object.assign(baseDerivedSignal, getLogicalMethods(baseDerivedSignal));
   return Object.assign(baseDerivedSignal) as any;
 };

@@ -6,10 +6,6 @@ import {
   MaybeSignalValues,
 } from "../signals";
 import {
-  getNullableLogicalNonMutatingMethodsObject,
-  getNumberLogicalMethods,
-} from "./generic";
-import {
   NumberSignalCustomNonMutatingMethodsObject,
   NumberSignalIntrinsicNonMutatingMethodsObject,
   NumberSignalNonMutatingMethodsObject,
@@ -117,6 +113,4 @@ export const getNumberSignalMethodsObject = (
     baseNumberSignalifiedObject,
   ),
   ...getNumberSignalCustomNonMutatingMethodsObject(baseNumberSignalifiedObject),
-  ...getNumberLogicalMethods(baseNumberSignalifiedObject),
-  ...getNullableLogicalNonMutatingMethodsObject(baseNumberSignalifiedObject),
 });

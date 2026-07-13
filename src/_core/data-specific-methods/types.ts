@@ -1,80 +1,122 @@
 import type { DerivedSignal, MaybeSignal, MaybeSignalValues } from "../signals";
 
-export type Primitive =
-  | string
-  | number
-  | bigint
-  | boolean
-  | null
-  | undefined
-  | symbol;
+export type IsObjectLiteral<T> = T extends object
+  ? T extends readonly any[]
+    ? false
+    : T extends (...args: any[]) => any
+      ? false
+      : true
+  : false;
 
-export type Falsyable = Exclude<Primitive, symbol>;
+export type IsArray<T> = T extends readonly unknown[] ? true : false;
 
-// Nullable properties for any type
-export type NullableLogicalMethods<T> = {
-  truthy: () => DerivedSignal<boolean>;
-  falsy: () => DerivedSignal<boolean>;
-  or: <R>(
-    alternativeValue: MaybeSignal<R>,
-  ) => DerivedSignal<NonNullable<T> | R>;
-};
+export type IsExactly<T, U> =
+  (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2
+    ? (<G>() => G extends U ? 1 : 2) extends <G>() => G extends T ? 1 : 2
+      ? true
+      : never
+    : never;
 
-export type LogicalMapMethod = <U, V>(
+export type IsUnionAndHasOtherTypeThan<T, U> = [true] extends [IsExactly<T, U>]
+  ? never
+  : Extract<T, U> extends never
+    ? never
+    : Exclude<T, U> extends never
+      ? never
+      : true;
+
+export type Primitive = string | number | bigint | boolean | null | undefined;
+
+export type HasPrimitive<T> =
+  Extract<T, Primitive> extends never ? never : true;
+
+/**
+ * Logical Methods Structure
+ *
+ * or.
+ * length.
+ * is.
+ * when.
+ *
+ * hasAtLeastOne.primitive.or.alternative
+ * hasAtLeastOne.primitive.is.exitence
+ * hasAtLeastOne.primitive.is?number.greaterOrSmaller
+ * hasAtLeastOne.primitive.is?stringOrArray.length.exitence
+ * hasAtLeastOne.primitive.is?stringOrArray.length.greaterOrSmaller
+ * hasAtLeastOne.primitive.when.exitence
+ * hasAtLeastOne.primitive.when?number.greaterOrSmaller
+ * hasAtLeastOne.primitive.when?stringOrArray.length.exitence
+ * hasAtLeastOne.primitive.when?stringOrArray.length.greaterOrSmaller
+ */
+
+export type LogicalTernaryMethod = <U, V>(
   truthyOption: MaybeSignal<U>,
   falsyOption: MaybeSignal<V>,
 ) => DerivedSignal<U | V>;
 
-export type LogicalMap = { map: LogicalMapMethod };
+export type LogicalThen = { then: LogicalTernaryMethod };
 
-export type LogicalTruthiness = {
-  isTruthy: LogicalMap;
+export type LogicalCheckReturnType = DerivedSignal<boolean> | LogicalThen;
+
+export type LogicalPrimitiveMethods<
+  T extends Primitive,
+  R extends LogicalCheckReturnType,
+> = {
+  truthy: () => R;
+  falsy: () => R;
+  equalTo: (compareValue: MaybeSignal<T>) => R;
+  notEqualTo: (compareValue: MaybeSignal<T>) => R;
 };
 
-export type LogicalEquality<T extends Primitive> = {
-  equals: (compareValue: MaybeSignal<T>) => LogicalMap;
-  notEquals: (compareValue: MaybeSignal<T>) => LogicalMap;
+export type LogicalNumberOnlyMethods<R extends LogicalCheckReturnType> = {
+  greaterThan: (compareValue: MaybeSignal<number>) => R;
+  greaterThanOrEqualTo: (compareValue: MaybeSignal<number>) => R;
+  smallerThan: (compareValue: MaybeSignal<number>) => R;
+  smallerThanOrEqualTo: (compareValue: MaybeSignal<number>) => R;
 };
 
-export type LogicalNumberInequality = {
-  greaterThan: (compareValue: MaybeSignal<number>) => LogicalMap;
-  greaterThanOrEqualTo: (compareValue: MaybeSignal<number>) => LogicalMap;
-  smallerThan: (compareValue: MaybeSignal<number>) => LogicalMap;
-  smallerThanOrEqualTo: (compareValue: MaybeSignal<number>) => LogicalMap;
+// Nullable properties for any type
+export type LogicalOrMethods<T extends Primitive> = {
+  or: <U>(
+    alternativeValue: MaybeSignal<U>,
+  ) => DerivedSignal<NonNullable<T> | U>;
 };
 
-export type LogicalLengthComparison = {
-  length: LogicalEquality<number> & LogicalNumberInequality;
+export type LogicalChecker<
+  T extends Primitive,
+  R extends LogicalCheckReturnType,
+> = LogicalPrimitiveMethods<T, R> &
+  (T extends number ? LogicalNumberOnlyMethods<R> : {});
+
+export type LogicalLengthMethods<R extends LogicalCheckReturnType> = {
+  length: LogicalChecker<number, R>;
 };
 
-export type LogicalWhen<T> = //
-  ([T] extends [Falsyable] ? LogicalTruthiness : {}) &
-    ([T] extends [Primitive] ? LogicalEquality<T> : {}) &
-    ([T] extends [string | any[]] ? LogicalLengthComparison : {}) &
-    ([T] extends [number] ? LogicalNumberInequality : {});
+export type LogicalIsWhenMethods<T extends Primitive | any[]> = {
+  is: ([T] extends [Primitive]
+    ? LogicalChecker<T, DerivedSignal<boolean>>
+    : {}) &
+    ([string] extends [T]
+      ? LogicalLengthMethods<DerivedSignal<boolean>>
+      : [any[]] extends [T]
+        ? LogicalLengthMethods<DerivedSignal<boolean>>
+        : {});
+  when: ([T] extends [Primitive] ? LogicalChecker<T, LogicalThen> : {}) &
+    ([string] extends [T]
+      ? LogicalLengthMethods<LogicalThen>
+      : [any[]] extends [T]
+        ? LogicalLengthMethods<LogicalThen>
+        : {});
+};
 
-export type LogicalWhenMethodsObject<T> = [T] extends [Record<string, any>]
+export type LogicalMethods<T> = [true] extends [
+  IsExactly<T, Record<string, any>>,
+]
   ? {}
-  : {
-      when: LogicalWhen<T>;
-    };
-
-// Logical methods for booleans
-export type BooleanLogicalMethods = LogicalWhenMethodsObject<boolean>;
-
-// Logical methods for numbers
-export type NumberLogicalMethods = LogicalWhenMethodsObject<number>;
-
-// Logical methods for strings
-export type StringLogicalMethods = LogicalWhenMethodsObject<string>;
-
-// Logical methods for arrays
-export type ArrayLogicalMethods = {
-  when: LogicalWhen<any[]>;
-};
-
-// Logical methods for objects
-export type ObjectLogicalMethods = {};
+  : [true] extends [HasPrimitive<T>]
+    ? LogicalOrMethods<Extract<T, Primitive>> &
+        LogicalIsWhenMethods<Extract<T, Primitive>>
+    : LogicalIsWhenMethods<any[]>;
 
 /**
  * Intrinsic mutating methods for array signals.
@@ -257,8 +299,7 @@ export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
  */
 export type ArraySignalNonMutatingMethodsObject<T extends any[]> =
   ArraySignalIntrinsicNonMutatingMethodsObject<T> &
-    ArraySignalCustomNonMutatingMethodsObject<T> &
-    ArrayLogicalMethods;
+    ArraySignalCustomNonMutatingMethodsObject<T>;
 
 /**
  * Combined methods for array source signals.
@@ -304,7 +345,7 @@ export type ObjectSignalNonMutatingMethodsObject<
   props: () => { [key in keyof T]: DerivedSignal<T[key]> };
   /** Returns the object's keys as a derived signal. */
   keys: () => DerivedSignal<string[]>;
-} & ObjectLogicalMethods;
+};
 
 export type ObjectSourceSignalMethodsObject<T extends Record<string, any>> =
   ObjectSourceSignalMutatingMethodsObject<T> &
@@ -438,9 +479,7 @@ export type StringSignalCustomNonMutatingMethodsObject = {
  */
 export type StringSignalNonMutatingMethodsObject =
   StringSignalIntrinsicNonMutatingMethodsObject &
-    StringSignalCustomNonMutatingMethodsObject &
-    StringLogicalMethods &
-    NullableLogicalMethods<string>;
+    StringSignalCustomNonMutatingMethodsObject;
 
 /**
  * Intrinsic non-mutating methods for number signals.
@@ -493,9 +532,7 @@ export type NumberSignalCustomNonMutatingMethodsObject = {
  */
 export type NumberSignalNonMutatingMethodsObject =
   NumberSignalIntrinsicNonMutatingMethodsObject &
-    NumberSignalCustomNonMutatingMethodsObject &
-    NumberLogicalMethods &
-    NullableLogicalMethods<number>;
+    NumberSignalCustomNonMutatingMethodsObject;
 
 /**
  * Mutating methods for boolean signals.
@@ -509,6 +546,26 @@ export type BooleanSignalMutatingMethodsObject = {
 };
 
 export type BooleanSourceSignalMethodsObject =
-  BooleanSignalMutatingMethodsObject &
-    BooleanLogicalMethods &
-    NullableLogicalMethods<boolean>;
+  BooleanSignalMutatingMethodsObject;
+
+export type NonMutatingMethodsObject<T> = [true] extends [IsArray<T>]
+  ? ArraySignalNonMutatingMethodsObject<Extract<T, any[]>>
+  : [true] extends [IsObjectLiteral<T>]
+    ? ObjectSignalNonMutatingMethodsObject<Extract<T, Record<string, any>>>
+    : [true] extends [IsExactly<T, string>]
+      ? StringSignalNonMutatingMethodsObject
+      : [true] extends [IsExactly<T, number>]
+        ? NumberSignalNonMutatingMethodsObject
+        : {};
+
+export type MutatingAndNonMutatingMethodsObject<T> = [true] extends [IsArray<T>]
+  ? ArraySourceSignalMethodsObject<Extract<T, any[]>>
+  : [true] extends [IsObjectLiteral<T>]
+    ? ObjectSourceSignalMethodsObject<Extract<T, Record<string, any>>>
+    : [true] extends [IsExactly<T, string>]
+      ? StringSignalNonMutatingMethodsObject
+      : [true] extends [IsExactly<T, number>]
+        ? NumberSignalNonMutatingMethodsObject
+        : [true] extends [IsExactly<T, boolean>]
+          ? BooleanSourceSignalMethodsObject
+          : {};

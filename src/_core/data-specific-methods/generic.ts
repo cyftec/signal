@@ -6,32 +6,27 @@ import {
   type DerivedSignal,
 } from "../signals";
 import type {
-  ArrayLogicalMethods,
-  BooleanLogicalMethods,
-  LogicalEquality,
-  LogicalLengthComparison,
-  LogicalMap,
-  LogicalNumberInequality,
-  LogicalTruthiness,
-  NullableLogicalMethods,
-  NumberLogicalMethods,
-  ObjectLogicalMethods,
+  LogicalPrimitiveMethods,
+  LogicalLengthMethods,
+  LogicalThen,
+  LogicalNumberOnlyMethods,
+  LogicalOrMethods,
+  LogicalCheckReturnType,
   Primitive,
-  StringLogicalMethods,
+  LogicalMethods,
+  LogicalChecker,
 } from "./types";
 
-export const getNullableLogicalNonMutatingMethodsObject = <T>(
+export const getOrMethodsObject = <T>(
   baseSignalifiedObject: MaybeSignal<T>,
-): NullableLogicalMethods<T> => {
+): LogicalOrMethods<Primitive> => {
   return {
-    truthy: () => derive(() => !!value(baseSignalifiedObject)),
-    falsy: () => derive(() => !value(baseSignalifiedObject)),
     or: <R>(alternativeValue: MaybeSignal<R>) =>
       derive(() => {
         const altValue = value(alternativeValue);
         return value(baseSignalifiedObject) || altValue;
       }),
-  };
+  } as LogicalOrMethods<Primitive>;
 };
 
 /**
@@ -40,9 +35,9 @@ export const getNullableLogicalNonMutatingMethodsObject = <T>(
  * @param conditionSignal - The condition signal to evaluate
  * @returns A logical map object with a `map` method
  */
-const createLogicalMap = (truthyEvaluator: () => boolean): LogicalMap => {
+const getLogicalMap = (truthyEvaluator: () => boolean): LogicalThen => {
   return {
-    map: <U, V>(
+    then: <U, V>(
       truthyOption: MaybeSignal<U>,
       falsyOption: MaybeSignal<V>,
     ): DerivedSignal<U | V> => {
@@ -56,41 +51,48 @@ const createLogicalMap = (truthyEvaluator: () => boolean): LogicalMap => {
 };
 
 /**
- * Creates a logical truthiness object for truthy/falsy checks.
- *
- * @param baseSignalifiedObjectGetter - The base signal to check truthiness
- * @returns A logical truthiness object
- */
-const createLogicalTruthiness = <T>(
-  valueGetter: () => T,
-): LogicalTruthiness => {
-  const isTruthyEvaluator = () => !!valueGetter();
-  return {
-    isTruthy: createLogicalMap(isTruthyEvaluator),
-  };
-};
-
-/**
  * Creates a logical equality object for equality comparisons.
  *
  * @param baseSignalifiedObjectGetter - The base signal to compare
  * @returns A logical equality object
  */
-const createLogicalEquality = <T extends Primitive>(
+const getPrimitiveMethods = <T extends any, R extends LogicalCheckReturnType>(
   valueGetter: () => T,
-): LogicalEquality<T> => {
-  return {
-    equals: (compareValue: MaybeSignal<T>) => {
+  forTernaryMap: boolean,
+): LogicalPrimitiveMethods<Primitive, R> => {
+  const truthyEvaluator = () => !!valueGetter();
+  const falsyEvaluator = () => !valueGetter();
+
+  const truthyChecker = (forTernaryOpMap: boolean) => () =>
+    forTernaryOpMap ? getLogicalMap(truthyEvaluator) : derive(truthyEvaluator);
+
+  const falsyChecker = (forTernaryOpMap: boolean) => () =>
+    forTernaryOpMap ? getLogicalMap(falsyEvaluator) : derive(falsyEvaluator);
+
+  const equalToChecker =
+    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<T>) => {
       const equalityEvaluator = () =>
         valueGetter() === (value(compareValue) as Primitive);
-      return createLogicalMap(equalityEvaluator);
-    },
-    notEquals: (compareValue: MaybeSignal<T>) => {
+      return forTernaryOpMap
+        ? getLogicalMap(equalityEvaluator)
+        : derive(equalityEvaluator);
+    };
+
+  const notEqualToChecker =
+    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<T>) => {
       const notEqualityEvaluator = () =>
         valueGetter() !== (value(compareValue) as Primitive);
-      return createLogicalMap(notEqualityEvaluator);
-    },
-  };
+      return forTernaryOpMap
+        ? getLogicalMap(notEqualityEvaluator)
+        : derive(notEqualityEvaluator);
+    };
+
+  return {
+    truthy: truthyChecker(forTernaryMap),
+    falsy: falsyChecker(forTernaryMap),
+    equalTo: equalToChecker(forTernaryMap),
+    notEqualTo: notEqualToChecker(forTernaryMap),
+  } as LogicalPrimitiveMethods<Primitive, R>;
 };
 
 /**
@@ -99,30 +101,61 @@ const createLogicalEquality = <T extends Primitive>(
  * @param baseSignalifiedObjectGetter - The base number signal to compare
  * @returns A logical number inequality object
  */
-const createLogicalNumberInequality = (
+const getNumberOnlyMethods = <R extends LogicalCheckReturnType>(
   numberGetter: () => number,
-): LogicalNumberInequality => {
-  return {
-    greaterThan: (compareValue: MaybeSignal<number>) => {
+  forTernaryMap: boolean,
+): LogicalNumberOnlyMethods<R> => {
+  const greaterThanChecker =
+    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<number>) => {
       const greaterThanEvaluator = () =>
         numberGetter() > (value(compareValue) as number);
-      return createLogicalMap(greaterThanEvaluator);
-    },
-    greaterThanOrEqualTo: (compareValue: MaybeSignal<number>) => {
+      return forTernaryOpMap
+        ? getLogicalMap(greaterThanEvaluator)
+        : derive(greaterThanEvaluator);
+    };
+  const greaterThanOrEqualToChecker =
+    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<number>) => {
       const greaterThanOrEqualToEvaluator = () =>
         numberGetter() >= (value(compareValue) as number);
-      return createLogicalMap(greaterThanOrEqualToEvaluator);
-    },
-    smallerThan: (compareValue: MaybeSignal<number>) => {
+      return forTernaryOpMap
+        ? getLogicalMap(greaterThanOrEqualToEvaluator)
+        : derive(greaterThanOrEqualToEvaluator);
+    };
+  const smallerThanChecker =
+    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<number>) => {
       const smallerThanEvaluator = () =>
         numberGetter() < (value(compareValue) as number);
-      return createLogicalMap(smallerThanEvaluator);
-    },
-    smallerThanOrEqualTo: (compareValue: MaybeSignal<number>) => {
+      return forTernaryOpMap
+        ? getLogicalMap(smallerThanEvaluator)
+        : derive(smallerThanEvaluator);
+    };
+  const smallerThanOrEqualToChecker =
+    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<number>) => {
       const smallerThanOrEqualToEvaluator = () =>
         numberGetter() <= (value(compareValue) as number);
-      return createLogicalMap(smallerThanOrEqualToEvaluator);
-    },
+      return forTernaryOpMap
+        ? getLogicalMap(smallerThanOrEqualToEvaluator)
+        : derive(smallerThanOrEqualToEvaluator);
+    };
+
+  return {
+    greaterThan: greaterThanChecker(forTernaryMap),
+    greaterThanOrEqualTo: greaterThanOrEqualToChecker(forTernaryMap),
+    smallerThan: smallerThanChecker(forTernaryMap),
+    smallerThanOrEqualTo: smallerThanOrEqualToChecker(forTernaryMap),
+  } as LogicalNumberOnlyMethods<R>;
+};
+
+const getLogicalCheckerMethods = <
+  T extends Primitive,
+  R extends LogicalCheckReturnType,
+>(
+  valueGetter: () => T,
+  forTernaryMap: boolean,
+): LogicalChecker<T, R> => {
+  return {
+    ...getPrimitiveMethods(valueGetter, forTernaryMap),
+    ...getNumberOnlyMethods(valueGetter as () => number, forTernaryMap),
   };
 };
 
@@ -132,73 +165,12 @@ const createLogicalNumberInequality = (
  * @param baseSignalifiedObjectGetter - The base signal with length property
  * @returns A logical length comparison object
  */
-const createLogicalLengthComparison = (
+const getLengthMethods = <R extends LogicalCheckReturnType>(
   lengthGetter: () => number,
-): LogicalLengthComparison => {
+  forTernaryMap: boolean,
+): LogicalLengthMethods<R> => {
   return {
-    length: {
-      ...createLogicalEquality(lengthGetter),
-      ...createLogicalNumberInequality(lengthGetter),
-    },
-  };
-};
-
-/**
- * Creates logical methods for array signals.
- *
- * @template T - The array type
- * @param baseSignalifiedObject - The base array signal
- * @returns Logical methods for array signals
- */
-export const getArrayLogicalMethods = <T extends any[]>(
-  baseSignalifiedObject: BaseSignalifiedObject<T>,
-): ArrayLogicalMethods => {
-  const lengthGetter = () => (value(baseSignalifiedObject) as any[]).length;
-  return {
-    when: {
-      ...createLogicalLengthComparison(lengthGetter),
-    },
-  };
-};
-
-/**
- * Creates logical methods for string signals.
- *
- * @param baseSignalifiedObject - The base string signal
- * @returns Logical methods for string signals
- */
-export const getStringLogicalMethods = (
-  baseSignalifiedObject: BaseSignalifiedObject<string>,
-): StringLogicalMethods => {
-  const valueGetter = () => value(baseSignalifiedObject) as string;
-  const lengthGetter = () => (value(baseSignalifiedObject) as string).length;
-
-  return {
-    when: {
-      ...createLogicalTruthiness(valueGetter),
-      ...createLogicalEquality(valueGetter),
-      ...createLogicalLengthComparison(lengthGetter),
-    },
-  };
-};
-
-/**
- * Creates logical methods for number signals.
- *
- * @param baseSignalifiedObject - The base number signal
- * @returns Logical methods for number signals
- */
-export const getNumberLogicalMethods = (
-  baseSignalifiedObject: BaseSignalifiedObject<number>,
-): NumberLogicalMethods => {
-  const valueGetter = () => value(baseSignalifiedObject) as number;
-
-  return {
-    when: {
-      ...createLogicalTruthiness(valueGetter),
-      ...createLogicalEquality(valueGetter),
-      ...createLogicalNumberInequality(valueGetter),
-    },
+    length: getLogicalCheckerMethods(lengthGetter, forTernaryMap),
   };
 };
 
@@ -208,24 +180,29 @@ export const getNumberLogicalMethods = (
  * @param baseSignalifiedObject - The base boolean signal
  * @returns Logical methods for boolean signals
  */
-export const getBooleanLogicalMethods = (
-  baseSignalifiedObject: BaseSignalifiedObject<boolean>,
-): BooleanLogicalMethods => {
-  const valueGetter = () => value(baseSignalifiedObject) as boolean;
+export const getLogicalMethods = <T>(
+  baseSignalifiedObject: MaybeSignal<T>,
+): LogicalMethods<T> => {
+  const valueGetter = () => value(baseSignalifiedObject) as Primitive;
+  const lenghtGetter = () => {
+    const val = value(baseSignalifiedObject);
+    if (typeof val === "string" || Array.isArray(val)) return val.length;
+    return NaN;
+  };
 
   return {
-    when: {
-      ...createLogicalTruthiness(valueGetter),
-      ...createLogicalEquality(valueGetter),
+    or: <A>(alternativeValue: MaybeSignal<A>) =>
+      derive(() => {
+        const altValue = value(alternativeValue);
+        return value(baseSignalifiedObject) || altValue;
+      }),
+    is: {
+      ...getLogicalCheckerMethods(valueGetter, false),
+      ...getLengthMethods(lenghtGetter, false),
     },
-  };
+    when: {
+      ...getLogicalCheckerMethods(valueGetter, true),
+      ...getLengthMethods(lenghtGetter, false),
+    },
+  } as unknown as LogicalMethods<T>;
 };
-
-/**
- * Creates logical methods for object signals.
- *
- * @template T - The object type
- * @param baseSignalifiedObject - The base object signal
- * @returns Logical methods for object signals
- */
-export const getObjectLogicalMethods = (): ObjectLogicalMethods => ({});

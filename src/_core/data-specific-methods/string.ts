@@ -10,10 +10,6 @@ import {
   StringSignalIntrinsicNonMutatingMethodsObject,
   StringSignalNonMutatingMethodsObject,
 } from "./types";
-import {
-  getNullableLogicalNonMutatingMethodsObject,
-  getStringLogicalMethods,
-} from "./generic";
 
 /**
  * Creates intrinsic non-mutating methods for string signals.
@@ -268,6 +264,4 @@ export const getStringSignalMethodsObject = (
     baseStringSignalifiedObject,
   ),
   ...getStringSignalCustomNonMutatingMethodsObject(baseStringSignalifiedObject),
-  ...getStringLogicalMethods(baseStringSignalifiedObject),
-  ...getNullableLogicalNonMutatingMethodsObject(baseStringSignalifiedObject),
 });
