@@ -27,7 +27,7 @@ export const EntitiesList = component<EntitiesListProps>(
             expandedState: expanded,
             title: codeEntityKind,
             children: m.For({
-              subject: ["core", "api"] as CodeEntityCategory[],
+              subject: ["core", "api", "utils"] as CodeEntityCategory[],
               map: (category) => {
                 const codeEntities = derive(
                   () => codeEntitiesGroup.value[category],
