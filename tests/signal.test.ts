@@ -307,9 +307,9 @@ describe("signal - object values", () => {
     expect(obj.value).toEqual({ name: "test", count: 0 });
   });
 
-  it("should have 'prop' method returning derived signal for the accessed property", () => {
+  it("should have 'get' method returning derived signal for the accessed property", () => {
     const obj = signal({ name: "test", count: 0 });
-    const name = obj.prop("name");
+    const name = obj.get("name");
     expect(name.value).toBe("test");
     obj.set({ name: "updated" });
     expect(name.value).toBe("updated");
@@ -641,10 +641,10 @@ describe("derive - array signals", () => {
 });
 
 describe("derive - object signals", () => {
-  it("should have 'prop' method on derived object signal", () => {
+  it("should have 'get' method on derived object signal", () => {
     const obj = signal({ name: "test", count: 0 });
     const derived = derive(() => obj.value);
-    const name = derived.prop("name");
+    const name = derived.get("name");
     expect(name.value).toBe("test");
     obj.set({ name: "updated" });
     expect(name.value).toBe("updated");
@@ -1224,7 +1224,7 @@ describe("signal - nullable types", () => {
     expect(obj.value).toBeUndefined();
     // Check if methods are available even when value is undefined
     expect(typeof (obj as any).keys).toBe("function");
-    expect(typeof (obj as any).prop).toBe("function");
+    expect(typeof (obj as any).get).toBe("function");
     expect(typeof (obj as any).props).toBe("function");
   });
 
@@ -1233,7 +1233,7 @@ describe("signal - nullable types", () => {
     expect(obj.value).toBeNull();
     // Check if methods are available even when value is null
     expect(typeof (obj as any).keys).toBe("function");
-    expect(typeof (obj as any).prop).toBe("function");
+    expect(typeof (obj as any).get).toBe("function");
     expect(typeof (obj as any).props).toBe("function");
   });
 

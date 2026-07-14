@@ -53,18 +53,18 @@ export const getObjectSignalMutatingMethodsObject = <
  * @example
  * ```typescript
  * const user = signal({ name: "John", age: 30 });
- * const methods = getObjectSignalNonMutatingMethodsObject(user);
- * const nameSignal = methods.prop("name"); // DerivedSignal<string>
- * const allProps = methods.props(); // Record of derived signals for all properties
- * const keysSignal = methods.keys(); // DerivedSignal<string[]>
+ * const userSignalWithMethods = getObjectSignalNonMutatingMethodsObject(user);
+ * const keysSignal = userSignalWithMethods.keys(); // DerivedSignal<string[]>
+ * const nameSignal = userSignalWithMethods.get("name"); // DerivedSignal<string>
+ * const allProps = userSignalWithMethods.props(); // Record of derived signals for all properties
  * ```
  *
  * @remarks
  * - Throws if the input is not a plain object after unwrapping
  * - Property accessors are derived signals
- * - `prop()` returns a derived signal for a specific property
- * - `props()` returns an object with derived signals for all properties
  * - `keys()` returns a derived signal of the object's keys
+ * - `get()` returns a derived signal for a specific property
+ * - `props()` returns an object with derived signals for all properties
  */
 export const getObjectSignalNonMutatingMethodsObject = <
   T extends Record<string, any>,
@@ -72,7 +72,8 @@ export const getObjectSignalNonMutatingMethodsObject = <
   baseObjectSignalifiedObject: BaseSignalifiedObject<T>,
 ): ObjectSignalNonMutatingMethodsObject<T> => {
   return {
-    prop: <K extends keyof T>(key: K) =>
+    keys: () => derive(() => Object.keys(baseObjectSignalifiedObject.value)),
+    get: <K extends keyof T>(key: K) =>
       derive(() => baseObjectSignalifiedObject.value[key]),
     props: () => {
       const signalledPropsObj = {} as {
@@ -89,7 +90,6 @@ export const getObjectSignalNonMutatingMethodsObject = <
 
       return signalledPropsObj;
     },
-    keys: () => derive(() => Object.keys(baseObjectSignalifiedObject.value)),
   };
 };
 
@@ -103,12 +103,12 @@ export const getObjectSignalNonMutatingMethodsObject = <
  * @example
  * ```typescript
  * const user = signal({ name: "John", age: 30 });
- * const methods = getObjectSourceSignalMethodsObject(
+ * const userSignalMethods = getObjectSourceSignalMethodsObject(
  *   (mutator) => { user.value = mutator(user.value); },
  *   user
  * );
- * methods.set({ age: 31 }); // Shallow merge
- * const nameSignal = methods.prop("name"); // DerivedSignal<string>
+ * userSignalMethods.set({ age: 31 }); // Shallow merge
+ * const nameSignal = userSignalMethods.get("name"); // DerivedSignal<string>
  * ```
  *
  * @remarks

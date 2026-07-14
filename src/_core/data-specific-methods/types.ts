@@ -339,12 +339,12 @@ export type ObjectSourceSignalMutatingMethodsObject<
 export type ObjectSignalNonMutatingMethodsObject<
   T extends Record<string, any>,
 > = {
-  /** Returns a derived signal for a specific property. */
-  prop: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
-  /** Returns an object with all properties as derived signals. */
-  props: () => { [key in keyof T]: DerivedSignal<T[key]> };
   /** Returns the object's keys as a derived signal. */
   keys: () => DerivedSignal<string[]>;
+  /** Returns a derived signal for a specific property. */
+  get: <K extends keyof T>(key: K) => DerivedSignal<T[K]>;
+  /** Returns an object with all properties as derived signals. */
+  props: () => { [key in keyof T]: DerivedSignal<T[key]> };
 };
 
 export type ObjectSourceSignalMethodsObject<T extends Record<string, any>> =
