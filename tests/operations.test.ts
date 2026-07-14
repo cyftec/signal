@@ -17,7 +17,7 @@ describe("op - generic operations", () => {
 
   it("should provide ternary method", () => {
     const value = signal(1);
-    expect(op(value).ternary("yes", "no").value).toBe("yes");
+    expect(op(value).then("yes", "no").value).toBe("yes");
   });
 
   it("should provide or operation", () => {
@@ -129,9 +129,10 @@ describe("op - generic operations", () => {
   });
 
   it("should provide andThisIsGTE operation", () => {
-    const value = signal(true);
+    const value = signal(6);
     expect(op(value).andThisIsGTE(5, 5).truthy.value).toBe(true);
     expect(op(value).andThisIsGTE(5, 10).truthy.value).toBe(false);
+    expect(op(value).or(3).and(2).and(5).result.value).toBe(5);
   });
 });
 

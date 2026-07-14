@@ -21,13 +21,15 @@ type LogicWithComparisonOperation<T> = (
  */
 export type OperationResult = {
   /** Derived signal of whether the value is truthy */
+  get result(): DerivedSignal<unknown>;
+  /** Derived signal of whether the value is truthy */
   get truthy(): DerivedSignal<boolean>;
   /** Derived signal of whether the value is falsy */
   get falsy(): DerivedSignal<boolean>;
   /** Derived signal of the `[isTruthy, isFalsy]` pair. */
   get truthyFalsyPair(): DerivedSignal<readonly [boolean, boolean]>;
   /** Returns `valueIfTruthy` if truthy, otherwise `valueIfFalsy`. */
-  ternary: <Tr, Fl>(
+  then: <Tr, Fl>(
     valueIfTruthy: MaybeSignal<Tr>,
     valueIfFalsy: MaybeSignal<Fl>,
   ) => DerivedSignal<Tr | Fl>;
