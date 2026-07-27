@@ -147,10 +147,10 @@ export type SignalifiedObject<T> = NonSignal<T> | Signal<T>;
  *
  * @see {@link SignalifiedObject} - For signalified objects
  */
-export type MaybeSignal<T> =
-  | T
-  | Signal<T>
-  | NonSignal<T>
+export type MaybeSignal<T> = T | Signal<T> | NonSignal<T>;
+
+export type MaybeBaseSignalifiedObject<T> =
+  | MaybeSignal<T>
   | BaseSignalifiedObject<T>;
 
 /**

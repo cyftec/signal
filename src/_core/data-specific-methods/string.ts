@@ -150,7 +150,7 @@ export const getStringSignalIntrinsicNonMutatingMethodsObject = (
     localeCompare: (
       that: MaybeSignal<string>,
       locales?: MaybeSignal<string | string[] | undefined>,
-      options?: MaybeSignal<Intl.CollatorOptions | undefined>,
+      options?: MaybeSignal<Intl.CollatorOptions>,
     ) =>
       derive(() =>
         baseStringSignalifiedObject.value.localeCompare(

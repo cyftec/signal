@@ -1,20 +1,15 @@
 import { value } from "../../utils";
-import {
-  derive,
-  MaybeSignal,
-  type BaseSignalifiedObject,
-  type DerivedSignal,
-} from "../signals";
+import { derive, MaybeSignal, type DerivedSignal } from "../signals";
 import type {
-  LogicalPrimitiveMethods,
+  LogicalChecker,
+  LogicalCheckReturnType,
   LogicalLengthMethods,
-  LogicalThen,
+  LogicalMethods,
   LogicalNumberOnlyMethods,
   LogicalOrMethods,
-  LogicalCheckReturnType,
+  LogicalPrimitiveMethods,
+  LogicalThen,
   Primitive,
-  LogicalMethods,
-  LogicalChecker,
 } from "./types";
 
 /**
@@ -92,10 +87,13 @@ const getLogicalMap = (truthyEvaluator: () => boolean): LogicalThen => {
  * - `notEqualTo` returns true if the value does not equal the comparison value
  * - When forTernaryMap is true, methods return LogicalThen for conditional selection
  */
-const getPrimitiveMethods = <T extends any, R extends LogicalCheckReturnType>(
+const getPrimitiveMethods = <
+  T extends Primitive,
+  R extends LogicalCheckReturnType,
+>(
   valueGetter: () => T,
   forTernaryMap: boolean,
-): LogicalPrimitiveMethods<Primitive, R> => {
+): LogicalPrimitiveMethods<T, R> => {
   const truthyEvaluator = () => !!valueGetter();
   const falsyEvaluator = () => !valueGetter();
 
@@ -108,7 +106,7 @@ const getPrimitiveMethods = <T extends any, R extends LogicalCheckReturnType>(
   const equalToChecker =
     (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<T>) => {
       const equalityEvaluator = () =>
-        valueGetter() === (value(compareValue) as Primitive);
+        valueGetter() === (value(compareValue) as T);
       return forTernaryOpMap
         ? getLogicalMap(equalityEvaluator)
         : derive(equalityEvaluator);
@@ -117,7 +115,7 @@ const getPrimitiveMethods = <T extends any, R extends LogicalCheckReturnType>(
   const notEqualToChecker =
     (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<T>) => {
       const notEqualityEvaluator = () =>
-        valueGetter() !== (value(compareValue) as Primitive);
+        valueGetter() !== (value(compareValue) as T);
       return forTernaryOpMap
         ? getLogicalMap(notEqualityEvaluator)
         : derive(notEqualityEvaluator);
@@ -128,7 +126,7 @@ const getPrimitiveMethods = <T extends any, R extends LogicalCheckReturnType>(
     falsy: falsyChecker(forTernaryMap),
     equalTo: equalToChecker(forTernaryMap),
     notEqualTo: notEqualToChecker(forTernaryMap),
-  } as LogicalPrimitiveMethods<Primitive, R>;
+  } as LogicalPrimitiveMethods<T, R>;
 };
 
 /**

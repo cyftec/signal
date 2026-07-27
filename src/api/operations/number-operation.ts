@@ -33,12 +33,12 @@ export const numberOp = (
   const evaluate: () => number =
     typeof input === "function"
       ? (input as () => number)
-      : (): number => value(input as MaybeSignal<number>);
+      : (): number => value(input);
 
   return {
     ...genericOp(input),
     get result() {
-      return derive(evaluate);
+      return derive(evaluate) as any;
     },
     add: (num: MaybeSignal<number>) =>
       numberOp(() => {

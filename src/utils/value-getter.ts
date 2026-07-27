@@ -1,5 +1,9 @@
+import {
+  MaybeBaseSignalifiedObject,
+  MaybeSignal,
+  SignalifiedObject,
+} from "../_core/signals";
 import { valueIsSignalifiedObject } from "./type-checkers";
-import { MaybeSignal, SignalifiedObject } from "../_core/signals";
 
 /**
  * Extracts the plain value from a signal, non-signal, or plain value.
@@ -29,7 +33,7 @@ import { MaybeSignal, SignalifiedObject } from "../_core/signals";
  * @see {@link MaybeSignal} - For the input type
  * @see {@link SignalifiedObject} - For signalified object types
  */
-export const value = <T>(input: MaybeSignal<T>): T =>
+export const value = <T>(input: MaybeBaseSignalifiedObject<T>): T =>
   valueIsSignalifiedObject(input)
     ? ((input as SignalifiedObject<T>).value as T)
     : (input as T);
