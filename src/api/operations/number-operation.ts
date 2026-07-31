@@ -12,7 +12,7 @@ import type { NumberOperation } from "./types";
  *
  * @example
  * ```typescript
- * const count = signal(10);
+ * const count = mutable(10);
  * const op = numberOp(count);
  * op.result; // DerivedSignal<number>
  * op.add(5).result; // DerivedSignal<number> = 15

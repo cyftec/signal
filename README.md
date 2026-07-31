@@ -5,11 +5,11 @@ This library is a TypeScript implementation of signals.
 
 The implementation consists of basic building blocks like,
 <br>
-`signal` - the method to create a source signal of data
+`mutable` - the method to create a mutable signal of data
 <br>
 `derive` - the method to create a read-only signal from other signal(s).
 <br>
-`effect` - the method which takes a callback function, to be run whenever the signals (called inside the callback function's definition), changes
+`antenna` - the method which takes a callback function, to be run whenever the signals (called inside the callback function's definition), changes
 
 ## Adding to the project
 
@@ -30,9 +30,9 @@ This configures git to use the pre-commit hook in `.githooks/` which runs tests 
 ## Usage
 
 ```ts
-import { signal, effect } from "@cyftech/signal";
+import { mutable, antenna } from "@cyftech/signal";
 
-const color = signal("green");
+const color = mutable("green");
 const TRAFFIC_LIGHT_CHANGE_CUTOFF_IN_MS = 10000;
 
 setInterval(() => {
@@ -41,8 +41,8 @@ setInterval(() => {
   if (color.value === "red") color.value = "green";
 }, TRAFFIC_LIGHT_CHANGE_CUTOFF_IN_MS);
 
-// the callback in effect method gets executed every time the value of 'color' signal changes
-effect(() => {
+// the callback in antenna method gets executed every time the value of 'color' signal changes
+antenna(() => {
   if (color.value === "green")
     updateUiWithMessage("Keep moving. Don't congest the traffic.");
 

@@ -1,16 +1,16 @@
 import { describe, it, expect } from "bun:test";
-import { tmpl, signal, derive } from "../src";
+import { tmpl, mutable, derive } from "../src";
 
 describe("tmpl", () => {
   it("should create derived signal from template literal", () => {
-    const name = signal("World");
+    const name = mutable("World");
     const greeting = tmpl`Hello ${name}`;
 
     expect(greeting.value).toBe("Hello World");
   });
 
   it("should update when signal expressions change", () => {
-    const name = signal("World");
+    const name = mutable("World");
     const greeting = tmpl`Hello ${name}`;
     expect(greeting.value).toBe("Hello World");
 
@@ -19,8 +19,8 @@ describe("tmpl", () => {
   });
 
   it("should handle multiple expressions", () => {
-    const firstName = signal("John");
-    const lastName = signal("Doe");
+    const firstName = mutable("John");
+    const lastName = mutable("Doe");
     const fullName = tmpl`${firstName} ${lastName}`;
 
     expect(fullName.value).toBe("John Doe");
@@ -38,7 +38,7 @@ describe("tmpl", () => {
   });
 
   it("should handle function expressions", () => {
-    const count = signal(5);
+    const count = mutable(5);
     const doubled = tmpl`Count: ${() => count.value * 2}`;
 
     expect(doubled.value).toBe("Count: 10");
@@ -48,7 +48,7 @@ describe("tmpl", () => {
   });
 
   it("should handle mixed expressions", () => {
-    const name = signal("Alice");
+    const name = mutable("Alice");
     const age = 30;
     const info = tmpl`${name} is ${age} years old`;
 
@@ -59,21 +59,21 @@ describe("tmpl", () => {
   });
 
   it("should convert null to empty string", () => {
-    const name = signal(null);
+    const name = mutable(null);
     const greeting = tmpl`Hello ${name}`;
 
     expect(greeting.value).toBe("Hello ");
   });
 
   it("should convert undefined to empty string", () => {
-    const name = signal(undefined);
+    const name = mutable(undefined);
     const greeting = tmpl`Hello ${name}`;
 
     expect(greeting.value).toBe("Hello ");
   });
 
   it("should handle derived signal expressions", () => {
-    const count = signal(5);
+    const count = mutable(5);
     const doubled = derive(() => count.value * 2);
     const message = tmpl`Double is ${doubled}`;
 
@@ -84,7 +84,7 @@ describe("tmpl", () => {
   });
 
   it("should handle numbers in expressions", () => {
-    const count = signal(42);
+    const count = mutable(42);
     const message = tmpl`Count: ${count}`;
 
     expect(message.value).toBe("Count: 42");
@@ -94,28 +94,28 @@ describe("tmpl", () => {
   });
 
   it("should handle objects with toString", () => {
-    const date = signal(new Date("2024-01-01"));
+    const date = mutable(new Date("2024-01-01"));
     const message = tmpl`Date: ${date}`;
 
     expect(message.value).toContain(`Date: ${date.value.toString()}`);
   });
 
   it("should handle arrays in expressions", () => {
-    const items = signal([1, 2, 3]);
+    const items = mutable([1, 2, 3]);
     const message = tmpl`Items: ${items}`;
 
     expect(message.value).toBe("Items: 1,2,3");
   });
 
   it("should return a derived signal", () => {
-    const name = signal("World");
+    const name = mutable("World");
     const greeting = tmpl`Hello ${name}`;
 
     expect(greeting.type).toBe("derived-signal");
   });
 
   it("should have dispose method", () => {
-    const name = signal("World");
+    const name = mutable("World");
     const greeting = tmpl`Hello ${name}`;
 
     greeting.dispose();
@@ -124,9 +124,9 @@ describe("tmpl", () => {
   });
 
   it("should handle complex template literals", () => {
-    const firstName = signal("John");
-    const lastName = signal("Doe");
-    const age = signal(30);
+    const firstName = mutable("John");
+    const lastName = mutable("Doe");
+    const age = mutable(30);
     const bio = tmpl`Name: ${firstName} ${lastName}, Age: ${age}`;
 
     expect(bio.value).toBe("Name: John Doe, Age: 30");
@@ -143,9 +143,9 @@ describe("tmpl", () => {
   });
 
   it("should handle expressions at different positions", () => {
-    const prefix = signal("Hello");
-    const middle = signal("beautiful");
-    const suffix = signal("World");
+    const prefix = mutable("Hello");
+    const middle = mutable("beautiful");
+    const suffix = mutable("World");
     const message = tmpl`${prefix} ${middle} ${suffix}`;
 
     expect(message.value).toBe("Hello beautiful World");

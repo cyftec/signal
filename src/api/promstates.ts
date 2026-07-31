@@ -1,4 +1,4 @@
-import { type DerivedSignal, signal } from "../_core";
+import { mutable, type DerivedSignal } from "../_core";
 
 /**
  * Creates promise state signals for async operations.
@@ -71,7 +71,7 @@ export const promstates = <R, Args extends Array<any>, I>(
     result: unknown extends I ? R | undefined : R | I;
     error: Error | undefined;
   };
-  const state = signal<PromState>({
+  const state = mutable<PromState>({
     isRunning: false,
     result: (initialValue || undefined) as unknown extends I
       ? R | undefined

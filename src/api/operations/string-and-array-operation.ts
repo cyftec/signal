@@ -12,12 +12,12 @@ import type { StringAndArrayOperation } from "./types";
  *
  * @example
  * ```typescript
- * const text = signal("hello");
+ * const text = mutable("hello");
  * const op = stringAndArrayOp(text);
  * op.lengthEquals(5).truthy; // DerivedSignal<boolean>
  * op.lengthBetween(3, 10).truthy; // DerivedSignal<boolean>
  *
- * const items = signal([1, 2, 3]);
+ * const items = mutable([1, 2, 3]);
  * const arrOp = stringAndArrayOp(items);
  * arrOp.lengthGT(2).truthy; // DerivedSignal<boolean>
  * ```

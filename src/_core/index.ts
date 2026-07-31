@@ -1,3 +1,3 @@
 export * from "./dispose";
-export * from "./effect";
+export * from "./antenna";
 export * from "./signals";

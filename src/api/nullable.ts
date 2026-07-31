@@ -1,9 +1,4 @@
 import { MaybeSignal } from "../_core";
-import {
-  getLogicalMethods,
-  LogicalMethods,
-  Primitive,
-} from "../_core/data-specific-methods";
 
 /**
  * Adds logical methods to nullable primitive values.
@@ -18,7 +13,7 @@ import {
  *
  * @example
  * ```typescript
- * const count: undefined | SourceSignal<number> = signal(5);
+ * const count: undefined | MutableSignal<number> = mutable(5);
  * const logical = nullable(count);
  * logical.is.truthy; // DerivedSignal<boolean>
  * logical.or(0); // DerivedSignal<number>

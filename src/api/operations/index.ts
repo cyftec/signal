@@ -20,15 +20,15 @@ import type { Operation } from "./types";
  *
  * @example
  * ```typescript
- * const count = signal(5);
+ * const count = mutable(5);
  * const operation = op(count);
  * const doubled = operation.add(5).result; // DerivedSignal<number>
  *
- * const text = signal("hello");
+ * const text = mutable("hello");
  * const textOp = op(text);
  * const isLong = textOp.lengthGT(5).truthy; // DerivedSignal<boolean>
  *
- * const value = signal(10);
+ * const value = mutable(10);
  * const check = op(value).isBetween(5, 15).truthy; // DerivedSignal<boolean>
  * ```
  *

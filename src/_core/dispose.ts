@@ -1,29 +1,29 @@
-import { SignalsEffect } from "./effect";
+import { SignalsReceiver } from "./antenna";
 import type { DerivedSignal } from "./signals";
 
 /**
- * Disposes multiple derived signals and/or effects at once.
+ * Disposes multiple derived signals and/or antennas at once.
  *
  * This utility function calls `.dispose()` on each argument, stopping
- * dependency tracking for derived signals and marking effects for disposal.
+ * dependency tracking for derived signals and marking antennas for disposal.
  *
- * @param derivedSignalsOrEffects - Variable arguments of derived signals
- * and/or effects to dispose
+ * @param derivedSignalsOrReceivers - Variable arguments of derived signals
+ * and/or antennas to dispose
  *
  * @example
  * ```typescript
- * const count = signal(0);
+ * const count = mutable(0);
  * const doubled = derive(() => count.value * 2);
- * const eff = effect(() => console.log(count.value));
+ * const antenna = antenna(() => console.log(count.value));
  *
  * // Dispose single
  * dispose(doubled);
  *
  * // Dispose multiple
- * dispose(doubled, eff);
+ * dispose(doubled, antenna);
  *
  * // Mixed disposal
- * dispose(doubled, eff);
+ * dispose(doubled, antenna);
  *
  * // Empty (no-op)
  * dispose();
@@ -31,16 +31,18 @@ import type { DerivedSignal } from "./signals";
  *
  * @remarks
  * - Empty argument list is valid (no-op)
- * - Can mix derived signals and effects in the same call
- * - Disposing the same effect multiple times is safe (idempotent)
+ * - Can mix derived signals and antennas in the same call
+ * - Disposing the same antenna multiple times is safe (idempotent)
  * - For derived signals: stops dependency tracking
- * - For effects: marks for disposal (removed on next signal update)
+ * - For antennas: marks for disposal (removed on next signal update)
  *
  * @see {@link DerivedSignal.dispose} - For disposing individual derived signals
- * @see {@link SignalsEffect.dispose} - For disposing individual effects
+ * @see {@link SignalsReceiver.dispose} - For disposing individual antennas
  */
 export const dispose = (
-  ...derivedSignalsOrEffects: (DerivedSignal<any> | SignalsEffect)[]
+  ...derivedSignalsOrReceivers: (DerivedSignal<any> | SignalsReceiver)[]
 ): void => {
-  derivedSignalsOrEffects.forEach((dsigOrEff) => dsigOrEff.dispose());
+  derivedSignalsOrReceivers.forEach((dsigOrReceiver) =>
+    dsigOrReceiver.dispose(),
+  );
 };

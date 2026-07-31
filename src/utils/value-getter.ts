@@ -1,27 +1,23 @@
-import {
-  MaybeBaseSignalifiedObject,
-  MaybeSignal,
-  SignalifiedObject,
-} from "../_core/signals";
-import { valueIsSignalifiedObject } from "./type-checkers";
+import { MaybeSignal, Signal } from "../_core/signals";
+import { valueIsSignal } from "./type-checkers";
 
 /**
- * Extracts the plain value from a signal, non-signal, or plain value.
+ * Extracts the plain value from a signal, dead-signal, or plain value.
  *
  * This utility function unwraps signalified objects to get their underlying
  * plain values. If the input is already a plain value, it returns it as-is.
  *
  * @template T - The type of the plain value
- * @param input - A signal, non-signal, or plain value
+ * @param input - A signal, dead-signal, or plain value
  * @returns The unwrapped plain value
  *
  * @example
  * ```typescript
- * const count = signal(42);
- * const nonSig = getNonSignalObject("hello");
+ * const count = mutable(42);
+ * const deadSig = new DeadSignal(() => "hello");
  *
  * value(count); // 42
- * value(nonSig); // "hello"
+ * value(deadSig); // "hello"
  * value(100); // 100
  * ```
  *
@@ -31,9 +27,7 @@ import { valueIsSignalifiedObject } from "./type-checkers";
  * - Works with nested structures
  *
  * @see {@link MaybeSignal} - For the input type
- * @see {@link SignalifiedObject} - For signalified object types
+ * @see {@link Signal} - For signalified object types
  */
-export const value = <T>(input: MaybeBaseSignalifiedObject<T>): T =>
-  valueIsSignalifiedObject(input)
-    ? ((input as SignalifiedObject<T>).value as T)
-    : (input as T);
+export const value = <T>(input: MaybeSignal<T>): T =>
+  valueIsSignal(input) ? ((input as Signal<T>).value as T) : (input as T);

@@ -11,7 +11,7 @@ import type { GenericOperation, OperationResult } from "./types";
  *
  * @example
  * ```typescript
- * const flag = signal(true);
+ * const flag = mutable(true);
  * const op = genericOp(flag);
  * op.truthy; // DerivedSignal<boolean>
  * op.or(false).truthy; // Chained OR operation

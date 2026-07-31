@@ -1,23 +1,22 @@
 import {
   derive,
   type DerivedSignal,
-  type DerivedValueGetterWithSignals,
+  type LiveSignal,
   type Signal,
-  type SignalifiedObject,
 } from "../_core";
-import { valueIsSignalifiedObject } from "../utils";
+import { valueIsSignal } from "../utils";
 
 /**
  * The expressions allowed inside the template placeholders.
  *
  * @remarks
- * - `Signal<any>` is accepted directly
+ * - `LiveSignal<any>` is accepted directly
  * - `DerivedValueGetterWithSignals<any>` is accepted as a deferred expression
  * - Plain values are accepted as-is
  */
 export type StringSignalDeriverTemplateExpressions = (
-  | Signal<any>
-  | DerivedValueGetterWithSignals<any>
+  | LiveSignal<any>
+  | Parameters<typeof derive>
   | any
 )[];
 
@@ -33,7 +32,7 @@ export type StringSignalDeriverTemplateExpressions = (
  *
  * @example
  * ```typescript
- * const name = signal("World");
+ * const name = mutable("World");
  * const greeting = tmpl`Hello ${name}`;
  * console.log(greeting.value); // "Hello World"
  *
@@ -41,12 +40,12 @@ export type StringSignalDeriverTemplateExpressions = (
  * console.log(greeting.value); // "Hello Alice"
  *
  * // Multiple expressions
- * const firstName = signal("John");
- * const lastName = signal("Doe");
+ * const firstName = mutable("John");
+ * const lastName = mutable("Doe");
  * const fullName = tmpl`${firstName} ${lastName}`;
  *
  * // Mixed expressions
- * const count = signal(5);
+ * const count = mutable(5);
  * const message = tmpl`Count: ${count}`;
  *
  * // Function expressions
@@ -73,8 +72,8 @@ export const tmpl = (
 
       if (typeof expression === "function") {
         expValue = expression() ?? "";
-      } else if (valueIsSignalifiedObject(expression)) {
-        expValue = (expression as SignalifiedObject<any>).value ?? "";
+      } else if (valueIsSignal(expression)) {
+        expValue = (expression as Signal<any>).value ?? "";
       } else {
         expValue = (expression as any) ?? "";
       }

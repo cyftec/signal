@@ -1,11 +1,11 @@
 import { describe, expect, it } from "bun:test";
-import { derive, effect, receive, signal, transmit } from "../src";
+import { derive, antenna, receive, mutable, transmit } from "../src";
 
 describe("receive", () => {
   it("should connect multiple transmitters to a receiver", () => {
-    const transmitter1 = signal("Hello");
-    const transmitter2 = signal("World");
-    const receiver = signal("");
+    const transmitter1 = mutable("Hello");
+    const transmitter2 = mutable("World");
+    const receiver = mutable("");
 
     receive(receiver, transmitter1, transmitter2);
 
@@ -16,43 +16,43 @@ describe("receive", () => {
     expect(receiver.value).toBe("There");
   });
 
-  it("should return array of effects for disposal", () => {
-    const transmitter1 = signal("Hello");
-    const transmitter2 = signal("World");
-    const receiver = signal("");
+  it("should return array of receivers for disposal", () => {
+    const transmitter1 = mutable("Hello");
+    const transmitter2 = mutable("World");
+    const receiver = mutable("");
 
-    const effects = receive(receiver, transmitter1, transmitter2);
+    const receivers = receive(receiver, transmitter1, transmitter2);
 
-    expect(Array.isArray(effects)).toBe(true);
-    expect(effects.length).toBe(2);
-    expect(effects[0].dispose).toBeInstanceOf(Function);
-    expect(effects[1].dispose).toBeInstanceOf(Function);
+    expect(Array.isArray(receivers)).toBe(true);
+    expect(receivers.length).toBe(2);
+    expect(receivers[0].dispose).toBeInstanceOf(Function);
+    expect(receivers[1].dispose).toBeInstanceOf(Function);
   });
 
   // TODO: should throw error if no transmitters are provided
   it("should handle empty transmitters array", () => {
-    const receiver = signal("");
-    const effects = receive(receiver);
+    const receiver = mutable("");
+    const receivers = receive(receiver);
 
-    expect(effects).toEqual([]);
+    expect(receivers).toEqual([]);
   });
 
   it("should handle single transmitter", () => {
-    const transmitter = signal("Hello");
-    const receiver = signal("");
+    const transmitter = mutable("Hello");
+    const receiver = mutable("");
 
-    const effects = receive(receiver, transmitter);
+    const receivers = receive(receiver, transmitter);
 
     transmitter.value = "Hi";
     expect(receiver.value).toBe("Hi");
 
-    expect(effects.length).toBe(1);
+    expect(receivers.length).toBe(1);
   });
 
   it("should allow receiver to be updated independently", () => {
-    const transmitter1 = signal("Hello");
-    const transmitter2 = signal("World");
-    const receiver = signal("");
+    const transmitter1 = mutable("Hello");
+    const transmitter2 = mutable("World");
+    const receiver = mutable("");
 
     receive(receiver, transmitter1, transmitter2);
 
@@ -64,11 +64,11 @@ describe("receive", () => {
   });
 
   it("should work with derived signals as transmitters", () => {
-    const base1 = signal(5);
-    const base2 = signal(3);
+    const base1 = mutable(5);
+    const base2 = mutable(3);
     const derived1 = derive(() => base1.value * 2);
     const derived2 = derive(() => base2.value * 3);
-    const receiver = signal(0);
+    const receiver = mutable(0);
 
     receive(receiver, derived1, derived2);
 
@@ -79,30 +79,30 @@ describe("receive", () => {
     expect(receiver.value).toBe(15);
   });
 
-  it("should dispose connections when effects are disposed", () => {
-    const transmitter1 = signal("Hello");
-    const transmitter2 = signal("World");
-    const receiver = signal("");
+  it("should dispose connections when receivers are disposed", () => {
+    const transmitter1 = mutable("Hello");
+    const transmitter2 = mutable("World");
+    const receiver = mutable("");
 
-    const effects = receive(receiver, transmitter1, transmitter2);
+    const receivers = receive(receiver, transmitter1, transmitter2);
     expect(receiver.value).toBe("World"); // Last transmitter value
 
-    // Dispose all effects
-    effects.forEach((eff) => eff.dispose());
+    // Dispose all receivers
+    receivers.forEach((receiver) => receiver.dispose());
 
-    // Effects run once more after disposal (lazy removal)
+    // Antennas run once more after disposal (lazy removal)
     transmitter1.value = "Hi";
     expect(receiver.value).toBe("World"); // Last transmitter value
 
-    // Now effects should be removed
+    // Now receivers should be removed
     transmitter2.value = "There";
     expect(receiver.value).toBe("World"); // No longer updates
   });
 
   it("should handle number signals", () => {
-    const temp1 = signal(20);
-    const temp2 = signal(25);
-    const currentTemp = signal(0);
+    const temp1 = mutable(20);
+    const temp2 = mutable(25);
+    const currentTemp = mutable(0);
 
     receive(currentTemp, temp1, temp2);
 
@@ -114,9 +114,9 @@ describe("receive", () => {
   });
 
   it("should handle object signals", () => {
-    const event1 = signal({ type: "click", x: 10 });
-    const event2 = signal({ type: "hover", y: 20 });
-    const currentEvent = signal({});
+    const event1 = mutable({ type: "click", x: 10 });
+    const event2 = mutable({ type: "hover", y: 20 });
+    const currentEvent = mutable({});
 
     receive(currentEvent, event1, event2);
 
@@ -128,7 +128,7 @@ describe("receive", () => {
   });
 
   it("should handle plain value transmitters", () => {
-    const receiver = signal("");
+    const receiver = mutable("");
 
     receive(receiver, "Hello", "World");
 
@@ -136,7 +136,7 @@ describe("receive", () => {
   });
 
   it("should handle plain number transmitters", () => {
-    const receiver = signal(0);
+    const receiver = mutable(0);
 
     receive(receiver, 42, 100);
 
@@ -144,7 +144,7 @@ describe("receive", () => {
   });
 
   it("should handle plain object transmitters", () => {
-    const receiver = signal({});
+    const receiver = mutable({});
 
     receive(receiver, { type: "click" }, { type: "hover" });
 
@@ -152,8 +152,8 @@ describe("receive", () => {
   });
 
   it("should handle mixed signal and plain value transmitters", () => {
-    const signalTransmitter = signal("Signal value");
-    const receiver = signal("");
+    const signalTransmitter = mutable("Signal value");
+    const receiver = mutable("");
 
     receive(receiver, signalTransmitter, "Plain value");
 
@@ -164,7 +164,7 @@ describe("receive", () => {
   });
 
   it("should handle null and undefined plain transmitters", () => {
-    const receiver = signal<string | null>("initial");
+    const receiver = mutable<string | null>("initial");
 
     receive(receiver, null, "undefined");
 
@@ -174,12 +174,12 @@ describe("receive", () => {
 
 describe("transmit", () => {
   it("should broadcast from transmitter to multiple receivers", () => {
-    const transmitter = signal("Hello");
-    const receiver1 = signal("");
-    const receiver2 = signal("");
-    const receiver3 = signal("");
+    const transmitter = mutable("Hello");
+    const receiver1 = mutable("");
+    const receiver2 = mutable("");
+    const receiver3 = mutable("");
 
-    const effect = transmit(transmitter, receiver1, receiver2, receiver3);
+    const antenna = transmit(transmitter, receiver1, receiver2, receiver3);
 
     transmitter.value = "Hi";
 
@@ -188,38 +188,38 @@ describe("transmit", () => {
     expect(receiver3.value).toBe("Hi");
   });
 
-  it("should return effect for disposal", () => {
-    const transmitter = signal("Hello");
-    const receiver1 = signal("");
-    const receiver2 = signal("");
+  it("should return antenna for disposal", () => {
+    const transmitter = mutable("Hello");
+    const receiver1 = mutable("");
+    const receiver2 = mutable("");
 
-    const effect = transmit(transmitter, receiver1, receiver2);
+    const antenna = transmit(transmitter, receiver1, receiver2);
 
-    expect(effect.dispose).toBeInstanceOf(Function);
+    expect(antenna.dispose).toBeInstanceOf(Function);
   });
 
   // TODO: should throw error if no receivers are provided
   it("should handle empty receivers array", () => {
-    const transmitter = signal("Hello");
-    const effect = transmit(transmitter);
+    const transmitter = mutable("Hello");
+    const antenna = transmit(transmitter);
 
     transmitter.value = "Hi"; // Should not throw
   });
 
   it("should handle single receiver", () => {
-    const transmitter = signal("Hello");
-    const receiver = signal("");
+    const transmitter = mutable("Hello");
+    const receiver = mutable("");
 
-    const effect = transmit(transmitter, receiver);
+    const antenna = transmit(transmitter, receiver);
 
     transmitter.value = "Hi";
     expect(receiver.value).toBe("Hi");
   });
 
   it("should allow receivers to be updated independently", () => {
-    const transmitter = signal("Hello");
-    const receiver1 = signal("");
-    const receiver2 = signal("");
+    const transmitter = mutable("Hello");
+    const receiver1 = mutable("");
+    const receiver2 = mutable("");
 
     transmit(transmitter, receiver1, receiver2);
     expect(receiver1.value).toBe("Hello");
@@ -237,10 +237,10 @@ describe("transmit", () => {
   });
 
   it("should work with derived signal as transmitter", () => {
-    const base = signal(5);
+    const base = mutable(5);
     const derived = derive(() => base.value * 2);
-    const receiver1 = signal(0);
-    const receiver2 = signal(0);
+    const receiver1 = mutable(0);
+    const receiver2 = mutable(0);
 
     transmit(derived, receiver1, receiver2);
 
@@ -249,29 +249,29 @@ describe("transmit", () => {
     expect(receiver2.value).toBe(20);
   });
 
-  it("should dispose connection when effect is disposed", () => {
-    const transmitter = signal("Hello");
-    const receiver1 = signal("");
-    const receiver2 = signal("");
+  it("should dispose connection when antenna is disposed", () => {
+    const transmitter = mutable("Hello");
+    const receiver1 = mutable("");
+    const receiver2 = mutable("");
 
-    const effect = transmit(transmitter, receiver1, receiver2);
+    const antenna = transmit(transmitter, receiver1, receiver2);
 
-    // Effect runs once to set initial values
+    // Antenna runs once to set initial values
     expect(receiver1.value).toBe("Hello");
     expect(receiver2.value).toBe("Hello");
 
-    effect.dispose();
+    antenna.dispose();
 
-    // After disposal, effect doesn't run, receivers keep their values
+    // After disposal, antenna doesn't run, receivers keep their values
     transmitter.value = "Hi";
     expect(receiver1.value).toBe("Hello"); // Still "Hello", no updates
     expect(receiver2.value).toBe("Hello"); // Still "Hello", no updates
   });
 
   it("should handle number signals", () => {
-    const temperature = signal(22);
-    const display1 = signal(0);
-    const display2 = signal(0);
+    const temperature = mutable(22);
+    const display1 = mutable(0);
+    const display2 = mutable(0);
 
     transmit(temperature, display1, display2);
 
@@ -281,9 +281,9 @@ describe("transmit", () => {
   });
 
   it("should handle object signals", () => {
-    const user = signal({ name: "John", age: 30 });
-    const profile1 = signal({});
-    const profile2 = signal({});
+    const user = mutable({ name: "John", age: 30 });
+    const profile1 = mutable({});
+    const profile2 = mutable({});
 
     transmit(user, profile1, profile2);
 
@@ -293,16 +293,16 @@ describe("transmit", () => {
   });
 
   it("should update all receivers synchronously", () => {
-    const transmitter = signal(0);
+    const transmitter = mutable(0);
     const updateOrder: number[] = [];
-    const receiver1 = signal(0);
-    const receiver2 = signal(0);
+    const receiver1 = mutable(0);
+    const receiver2 = mutable(0);
 
-    effect(() => {
+    antenna(() => {
       if (receiver1.value !== 0) updateOrder.push(1);
     });
 
-    effect(() => {
+    antenna(() => {
       if (receiver2.value !== 0) updateOrder.push(2);
     });
 
@@ -324,8 +324,8 @@ describe("transmit", () => {
   });
 
   it("should handle plain value transmitter", () => {
-    const receiver1 = signal("");
-    const receiver2 = signal("");
+    const receiver1 = mutable("");
+    const receiver2 = mutable("");
 
     transmit("Hello", receiver1, receiver2);
 
@@ -334,8 +334,8 @@ describe("transmit", () => {
   });
 
   it("should handle plain number transmitter", () => {
-    const receiver1 = signal(0);
-    const receiver2 = signal(0);
+    const receiver1 = mutable(0);
+    const receiver2 = mutable(0);
 
     transmit(42, receiver1, receiver2);
 
@@ -344,8 +344,8 @@ describe("transmit", () => {
   });
 
   it("should handle plain object transmitter", () => {
-    const receiver1 = signal({});
-    const receiver2 = signal({});
+    const receiver1 = mutable({});
+    const receiver2 = mutable({});
 
     transmit({ type: "click", x: 10 }, receiver1, receiver2);
 
@@ -354,8 +354,8 @@ describe("transmit", () => {
   });
 
   it("should handle null and undefined plain transmitter", () => {
-    const receiver1 = signal<string | null>("initial");
-    const receiver2 = signal<string | undefined>("initial");
+    const receiver1 = mutable<string | null>("initial");
+    const receiver2 = mutable<string | undefined>("initial");
 
     transmit(null, receiver1);
     expect(receiver1.value).toBe(null);

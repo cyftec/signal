@@ -20,8 +20,8 @@ import { value } from "../utils";
  *
  * @example
  * ```typescript
- * const a = signal(5);
- * const b = signal(3);
+ * const a = mutable(5);
+ * const b = mutable(3);
  * const sum = compute((x: number, y: number) => x + y, a, b);
  * console.log(sum.value); // 8
  *
@@ -30,9 +30,9 @@ import { value } from "../utils";
  * console.log(sum2.value); // 15
  *
  * // Complex computation
- * const base = signal(100);
- * const rate = signal(0.1);
- * const years = signal(5);
+ * const base = mutable(100);
+ * const rate = mutable(0.1);
+ * const years = mutable(5);
  * const interest = compute(
  *   (b: number, r: number, y: number) => b * Math.pow(1 + r, y),
  *   base, rate, years

@@ -1,25 +1,26 @@
-import { effect, MaybeSignal, SignalsEffect, SourceSignal } from "../_core";
+import { MaybeSignal, MutableSignal } from "../_core";
+import { antenna, SignalsReceiver } from "../_core/antenna";
 import { value } from "../utils";
 
 /**
- * Connects multiple transmitter signals to a single receiver signal.
+ * Connects multiple source signals to a single signal-transmittor signal.
  *
- * Whenever any transmitter changes, the receiver is updated to match that
- * transmitter's current value. If more than one transmitter changes in the same
- * propagation chain, the final receiver value follows effect execution order.
+ * Whenever any source changes, the signal-transmittor is updated to match that
+ * source's current value. If more than one source changes in the same
+ * propagation chain, the final signal-transmittor value follows signal-transmittor execution order.
  *
  * @template T - The type of value the signals hold
- * @param receiver - A source signal that will receive updates
- * @param transmittors - Multiple signals (source or derived) of the same type
- * @returns Array of effects that can be disposed to disconnect the bindings
+ * @param transmittor - A source signal that will receive updates
+ * @param sources - Multiple signals (source or derived) of the same type
+ * @returns Array of signal-transmittors that can be disposed to disconnect the bindings
  *
  * @example
  * ```typescript
- * const sportsEvent = signal("cricket @ 9am");
- * const mediaEvent = signal("movie @ 3pm");
- * const noticeBoard = signal("");
+ * const sportsEvent = mutable("cricket @ 9am");
+ * const mediaEvent = mutable("movie @ 3pm");
+ * const noticeBoard = mutable("");
  *
- * const effects = receive(noticeBoard, sportsEvent, mediaEvent);
+ * const receivers = receive(noticeBoard, sportsEvent, mediaEvent);
  *
  * sportsEvent.value = "football @ 1pm";
  * console.log(noticeBoard.value); // "football @ 1pm"
@@ -31,48 +32,48 @@ import { value } from "../utils";
  * noticeBoard.value = "No events";
  *
  * // Dispose connections
- * effects.forEach(eff => eff.dispose());
+ * transmittors.forEach(eff => eff.dispose());
  * ```
  *
  * @remarks
- * - Each transmitter gets its own effect that updates the receiver
+ * - Each source gets its own signal-transmittor that updates the signal-transmittor
  * - Transmitters can be source or derived signals
  * - Receiver must be a source signal
- * - Passing no transmitters returns an empty effects array
- * - The receiver remains independently mutable
+ * - Passing no sources returns an empty signal-transmittors array
+ * - The signal-transmittor remains independently mutable
  *
- * @see {@link transmit} - For broadcasting from one transmitter to multiple receivers
- * @see {@link effect} - For the underlying effect primitive
+ * @see {@link transmit} - For broadcasting from one source to multiple signal-transmittors
+ * @see {@link signal-transmittor} - For the underlying signal-transmittor primitive
  */
 export const receive = <T>(
-  receiver: SourceSignal<T>,
-  ...transmittors: MaybeSignal<T>[]
-): SignalsEffect[] => {
-  const effects = transmittors.map((transmittor) =>
-    effect(() => (receiver.value = value(transmittor))),
+  transmittor: MutableSignal<T>,
+  ...sources: MaybeSignal<T>[]
+): SignalsReceiver[] => {
+  const receivers = sources.map((source) =>
+    antenna(() => (transmittor.value = value(source))),
   );
-  return effects;
+  return receivers;
 };
 
 /**
- * Broadcasts changes from one transmitter signal to multiple receiver signals.
+ * Broadcasts changes from one source signal to multiple signal-transmittor signals.
  *
- * When the transmitter changes, all receivers are updated synchronously to the
- * same value. Each receiver remains independently mutable.
+ * When the source changes, all signal-transmittors are updated synchronously to the
+ * same value. Each signal-transmittor remains independently mutable.
  *
  * @template T - The type of value the signals hold
- * @param transmittor - A signal (source or derived) that broadcasts changes
- * @param receivers - Multiple source signals that will receive updates
- * @returns A single effect that can be disposed to disconnect the broadcast
+ * @param source - A signal (source or derived) that broadcasts changes
+ * @param transmittors - Multiple source signals that will receive updates
+ * @returns A single antenna that can be disposed to disconnect the broadcast
  *
  * @example
  * ```typescript
- * const temperature = signal(22);
- * const display1 = signal(0);
- * const display2 = signal(0);
- * const display3 = signal(0);
+ * const temperature = mutable(22);
+ * const display1 = mutable(0);
+ * const display2 = mutable(0);
+ * const display3 = mutable(0);
  *
- * const effect = transmit(temperature, display1, display2, display3);
+ * const antenna = transmit(temperature, display1, display2, display3);
  *
  * temperature.value = 25;
  * console.log(display1.value); // 25
@@ -83,23 +84,23 @@ export const receive = <T>(
  * display1.value = 30;
  *
  * // Dispose connection
- * effect.dispose();
+ * antenna.dispose();
  * ```
  *
  * @remarks
- * - A single effect manages all receiver updates
+ * - A single signal-transmittor manages all signal-transmittor updates
  * - Transmitter can be source or derived signal
  * - Receivers must be source signals
- * - Passing no receivers creates a no-op effect
- * - The order of receiver updates is not guaranteed
+ * - Passing no signal-transmittors creates a no-op signal-transmittor
+ * - The order of signal-transmittor updates is not guaranteed
  *
- * @see {@link receive} - For connecting multiple transmitters to a receiver
- * @see {@link effect} - For the underlying effect primitive
+ * @see {@link receive} - For connecting multiple sources to a signal-transmittor
+ * @see {@link antenna} - For the underlying antenna primitive
  */
 export const transmit = <T>(
-  transmittor: MaybeSignal<T>,
-  ...receivers: SourceSignal<T>[]
-): SignalsEffect =>
-  effect(() => {
-    receivers.forEach((receiver) => (receiver.value = value(transmittor)));
+  source: MaybeSignal<T>,
+  ...transmittors: MutableSignal<T>[]
+): SignalsReceiver =>
+  antenna(() => {
+    transmittors.forEach((transmittor) => (transmittor.value = value(source)));
   });

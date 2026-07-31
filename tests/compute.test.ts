@@ -1,18 +1,18 @@
 import { describe, it, expect } from "bun:test";
-import { compute, signal, derive } from "../src";
+import { compute, mutable, derive } from "../src";
 
 describe("compute", () => {
   it("should create derived signal from function with signal arguments", () => {
-    const a = signal(5);
-    const b = signal(3);
+    const a = mutable(5);
+    const b = mutable(3);
     const sum = compute((x: number, y: number) => x + y, a, b);
 
     expect(sum.value).toBe(8);
   });
 
   it("should recompute when signal arguments change", () => {
-    const a = signal(5);
-    const b = signal(3);
+    const a = mutable(5);
+    const b = mutable(3);
     const sum = compute((x: number, y: number) => x + y, a, b);
 
     a.value = 10;
@@ -23,7 +23,7 @@ describe("compute", () => {
   });
 
   it("should handle plain value arguments", () => {
-    const a = signal(5);
+    const a = mutable(5);
     const sum = compute((x: number, y: number) => x + y, a, 3);
 
     expect(sum.value).toBe(8);
@@ -33,7 +33,7 @@ describe("compute", () => {
   });
 
   it("should recompute only when signal arguments change", () => {
-    const a = signal(5);
+    const a = mutable(5);
     let plainB = 3;
     let computeCount = 0;
 
@@ -62,8 +62,8 @@ describe("compute", () => {
   });
 
   it("should handle mixed signal and plain value arguments", () => {
-    const a = signal(5);
-    const b = signal(3);
+    const a = mutable(5);
+    const b = mutable(3);
     const sum = compute(
       (x: number, y: number, z: number) => x + y + z,
       a,
@@ -81,12 +81,12 @@ describe("compute", () => {
   });
 
   it("should work with functions of different arities", () => {
-    const a = signal(5);
+    const a = mutable(5);
     const single = compute((x: number) => x * 2, a);
     expect(single.value).toBe(10);
 
-    const b = signal(3);
-    const c = signal(2);
+    const b = mutable(3);
+    const c = mutable(2);
     const triple = compute(
       (x: number, y: number, z: number) => x + y + z,
       a,
@@ -101,8 +101,8 @@ describe("compute", () => {
   });
 
   it("should work with string arguments", () => {
-    const firstName = signal("John");
-    const lastName = signal("Doe");
+    const firstName = mutable("John");
+    const lastName = mutable("Doe");
     const fullName = compute(
       (first: string, last: string) => `${first} ${last}`,
       firstName,
@@ -116,8 +116,8 @@ describe("compute", () => {
   });
 
   it("should work with array arguments", () => {
-    const arr1 = signal([1, 2, 3]);
-    const arr2 = signal([4, 5]);
+    const arr1 = mutable([1, 2, 3]);
+    const arr2 = mutable([4, 5]);
     const combined = compute(
       (a: number[], b: number[]) => [...a, ...b],
       arr1,
@@ -131,7 +131,7 @@ describe("compute", () => {
   });
 
   it("should work with object arguments", () => {
-    const name = signal({ first: "John", last: "Doe" });
+    const name = mutable({ first: "John", last: "Doe" });
     const age = 30; // Plain value, not a signal
     const fn = (name: { first: string; last: string }, age: number) => ({
       ...name,
@@ -146,14 +146,14 @@ describe("compute", () => {
   });
 
   it("should return a derived signal", () => {
-    const a = signal(5);
+    const a = mutable(5);
     const sum = compute((x: number, y: number) => x + y, a, 3);
 
     expect(sum.type).toBe("derived-signal");
   });
 
   it("should have dispose method", () => {
-    const a = signal(5);
+    const a = mutable(5);
     const sum = compute((x: number, y: number) => x + y, a, 3);
     expect(sum.value).toBe(8); // Initial value
 
@@ -163,7 +163,7 @@ describe("compute", () => {
   });
 
   it("should handle derived signal arguments", () => {
-    const a = signal(5);
+    const a = mutable(5);
     const doubled = derive(() => a.value * 2);
     const twoAPlusThree = compute((x: number, y: number) => x + y, doubled, 3);
 
@@ -174,9 +174,9 @@ describe("compute", () => {
   });
 
   it("should handle complex computations", () => {
-    const base = signal(100);
-    const rate = signal(0.1);
-    const years = signal(5);
+    const base = mutable(100);
+    const rate = mutable(0.1);
+    const years = mutable(5);
 
     const interest = compute(
       (b: number, r: number, y: number) => {
