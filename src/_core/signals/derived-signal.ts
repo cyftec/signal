@@ -1,192 +1,201 @@
 import { isPlainObject } from "@cyftec/immut";
 import { antenna } from "../antenna";
 import { BaseSignal } from "./base-signal";
-import { Primitive, SignalType } from "./types";
+import { MaybeSignal, MaybeSignalsArray, Primitive, SignalType } from "./types";
+import { getPlainMethodParams, value } from "../../utils";
+import { DeadSignal } from "./dead-signal";
 
-type SignalInput<T> = T | BaseSignal<T>;
-type Present<T> = NonNullable<T>;
-type ArrayItem<T> = Present<T> extends readonly (infer Item)[] ? Item : never;
-type SignalPredicate<T> = (item: T, index: number, array: T[]) => unknown;
+type ArrayItem<T> =
+  NonNullable<T> extends readonly (infer Item)[] ? Item : never;
+type SignalPredicate<T> = (item: T, index: number, array: T[]) => boolean;
 
 type ThenMethods = {
   then: <Truthy, Falsy>(
-    truthyOption: SignalInput<Truthy>,
-    falsyOption: SignalInput<Falsy>,
+    truthyOption: MaybeSignal<Truthy>,
+    falsyOption: MaybeSignal<Falsy>,
   ) => DerivedSignal<Truthy | Falsy>;
 };
 
-type LogicalChecks<ReturnThen extends boolean> = {
-  readonly isTruthy: ReturnThen extends true
-    ? ThenMethods
-    : DerivedSignal<boolean>;
-  readonly isFalsy: ReturnThen extends true
-    ? ThenMethods
-    : DerivedSignal<boolean>;
+type LogicalChecks<
+  ReturnThen extends boolean,
+  Deriver extends DerivedSignal<boolean> | DeadSignal<boolean>,
+> = {
+  readonly isTruthy: ReturnThen extends true ? ThenMethods : Deriver;
+  readonly isFalsy: ReturnThen extends true ? ThenMethods : Deriver;
   isEqualTo: (
-    compareValue: SignalInput<Primitive>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<Primitive>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   isNotEqualTo: (
-    compareValue: SignalInput<Primitive>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<Primitive>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   isGreaterThan: (
-    compareValue: SignalInput<number>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<number>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   isGreaterThanOrEqualTo: (
-    compareValue: SignalInput<number>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<number>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   isSmallerThan: (
-    compareValue: SignalInput<number>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<number>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   isSmallerThanOrEqualTo: (
-    compareValue: SignalInput<number>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<number>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
 };
 
-type PublicLogicalChecks<ReturnThen extends boolean> = {
-  truthy: () => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
-  falsy: () => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+type PublicLogicalChecks<
+  ReturnThen extends boolean,
+  Deriver extends DerivedSignal<boolean> | DeadSignal<boolean>,
+> = {
+  truthy: () => ReturnThen extends true ? ThenMethods : Deriver;
+  falsy: () => ReturnThen extends true ? ThenMethods : Deriver;
   equalTo: (
-    compareValue: SignalInput<Primitive>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<Primitive>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   notEqualTo: (
-    compareValue: SignalInput<Primitive>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<Primitive>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   greaterThan: (
-    compareValue: SignalInput<number>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<number>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   greaterThanOrEqualTo: (
-    compareValue: SignalInput<number>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<number>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   smallerThan: (
-    compareValue: SignalInput<number>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<number>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
   smallerThanOrEqualTo: (
-    compareValue: SignalInput<number>,
-  ) => ReturnThen extends true ? ThenMethods : DerivedSignal<boolean>;
+    compareValue: MaybeSignal<number>,
+  ) => ReturnThen extends true ? ThenMethods : Deriver;
 };
 
-type WithLengthChecks<T, ReturnThen extends boolean> =
-  Present<T> extends string | readonly unknown[]
-    ? { length: PublicLogicalChecks<ReturnThen> }
+type WithLengthChecks<
+  T,
+  ReturnThen extends boolean,
+  Deriver extends DerivedSignal<boolean> | DeadSignal<boolean>,
+> =
+  NonNullable<T> extends string | readonly unknown[]
+    ? { length: PublicLogicalChecks<ReturnThen, Deriver> }
     : {};
 
 type PublicLogicalMethods<
   T,
   ReturnThen extends boolean,
-> = PublicLogicalChecks<ReturnThen> & WithLengthChecks<T, ReturnThen>;
+  Deriver extends DerivedSignal<boolean> | DeadSignal<boolean>,
+> = PublicLogicalChecks<ReturnThen, Deriver> &
+  WithLengthChecks<T, ReturnThen, Deriver>;
 
 type StringDerivedMethods<T> =
-  Present<T> extends string
+  NonNullable<T> extends string
     ? {
         at: (
-          ...args: Parameters<string["at"]>
+          ...args: MaybeSignalsArray<Parameters<string["at"]>>
         ) => DerivedSignal<string | undefined>;
         charAt: (
-          ...args: Parameters<string["charAt"]>
+          ...args: MaybeSignalsArray<Parameters<string["charAt"]>>
         ) => DerivedSignal<string>;
         charCodeAt: (
-          ...args: Parameters<string["charCodeAt"]>
+          ...args: MaybeSignalsArray<Parameters<string["charCodeAt"]>>
         ) => DerivedSignal<number>;
         codePointAt: (
-          ...args: Parameters<string["codePointAt"]>
+          ...args: MaybeSignalsArray<Parameters<string["codePointAt"]>>
         ) => DerivedSignal<number | undefined>;
         concat: (
-          ...args: Parameters<string["concat"]>
+          ...args: MaybeSignalsArray<Parameters<string["concat"]>>
         ) => DerivedSignal<string>;
         endsWith: (
-          ...args: Parameters<string["endsWith"]>
+          ...args: MaybeSignalsArray<Parameters<string["endsWith"]>>
         ) => DerivedSignal<boolean>;
         includes: (
-          ...args: Parameters<string["includes"]>
+          ...args: MaybeSignalsArray<Parameters<string["includes"]>>
         ) => DerivedSignal<boolean>;
         indexOf: (
-          ...args: Parameters<string["indexOf"]>
+          ...args: MaybeSignalsArray<Parameters<string["indexOf"]>>
         ) => DerivedSignal<number>;
         lastIndexOf: (
-          ...args: Parameters<string["lastIndexOf"]>
+          ...args: MaybeSignalsArray<Parameters<string["lastIndexOf"]>>
         ) => DerivedSignal<number>;
-        length: () => DerivedSignal<number>;
+        get length(): DerivedSignal<number>;
         localeCompare: (
-          ...args: Parameters<string["localeCompare"]>
+          ...args: MaybeSignalsArray<Parameters<string["localeCompare"]>>
         ) => DerivedSignal<number>;
         normalize: (
-          ...args: Parameters<string["normalize"]>
+          ...args: MaybeSignalsArray<Parameters<string["normalize"]>>
         ) => DerivedSignal<string>;
         padEnd: (
-          ...args: Parameters<string["padEnd"]>
+          ...args: MaybeSignalsArray<Parameters<string["padEnd"]>>
         ) => DerivedSignal<string>;
         padStart: (
-          ...args: Parameters<string["padStart"]>
+          ...args: MaybeSignalsArray<Parameters<string["padStart"]>>
         ) => DerivedSignal<string>;
         repeat: (
-          ...args: Parameters<string["repeat"]>
+          ...args: MaybeSignalsArray<Parameters<string["repeat"]>>
         ) => DerivedSignal<string>;
         replace: (
-          ...args: Parameters<string["replace"]>
+          ...args: MaybeSignalsArray<Parameters<string["replace"]>>
         ) => DerivedSignal<string>;
         replaceAll: (
-          ...args: Parameters<string["replaceAll"]>
+          ...args: MaybeSignalsArray<Parameters<string["replaceAll"]>>
         ) => DerivedSignal<string>;
         search: (
-          ...args: Parameters<string["search"]>
+          ...args: MaybeSignalsArray<Parameters<string["search"]>>
         ) => DerivedSignal<number>;
-        slice: (...args: Parameters<string["slice"]>) => DerivedSignal<string>;
+        slice: (
+          ...args: MaybeSignalsArray<Parameters<string["slice"]>>
+        ) => DerivedSignal<string>;
         split: (
-          ...args: Parameters<string["split"]>
+          ...args: MaybeSignalsArray<Parameters<string["split"]>>
         ) => DerivedSignal<string[]>;
         startsWith: (
-          ...args: Parameters<string["startsWith"]>
+          ...args: MaybeSignalsArray<Parameters<string["startsWith"]>>
         ) => DerivedSignal<boolean>;
         substring: (
-          ...args: Parameters<string["substring"]>
+          ...args: MaybeSignalsArray<Parameters<string["substring"]>>
         ) => DerivedSignal<string>;
         toLocaleLowerCase: (
-          ...args: Parameters<string["toLocaleLowerCase"]>
+          ...args: MaybeSignalsArray<Parameters<string["toLocaleLowerCase"]>>
         ) => DerivedSignal<string>;
         toLocaleUpperCase: (
-          ...args: Parameters<string["toLocaleUpperCase"]>
+          ...args: MaybeSignalsArray<Parameters<string["toLocaleUpperCase"]>>
         ) => DerivedSignal<string>;
-        trim: (...args: Parameters<string["trim"]>) => DerivedSignal<string>;
+        trim: (
+          ...args: MaybeSignalsArray<Parameters<string["trim"]>>
+        ) => DerivedSignal<string>;
         trimEnd: (
-          ...args: Parameters<string["trimEnd"]>
+          ...args: MaybeSignalsArray<Parameters<string["trimEnd"]>>
         ) => DerivedSignal<string>;
         trimStart: (
-          ...args: Parameters<string["trimStart"]>
+          ...args: MaybeSignalsArray<Parameters<string["trimStart"]>>
         ) => DerivedSignal<string>;
         deepTrim: () => DerivedSignal<string>;
-        lowercase: () => DerivedSignal<string>;
-        Sentencecase: () => DerivedSignal<string>;
-        TitleCase: () => DerivedSignal<string>;
         toLowerCase: () => DerivedSignal<string>;
-        UPPERCASE: () => DerivedSignal<string>;
         toUpperCase: () => DerivedSignal<string>;
       }
     : {};
 
 type NumberDerivedMethods<T> =
-  Present<T> extends number
+  NonNullable<T> extends number
     ? {
         toExponential: (
-          ...args: Parameters<number["toExponential"]>
+          ...args: MaybeSignalsArray<Parameters<number["toExponential"]>>
         ) => DerivedSignal<string>;
         toFixed: (
-          ...args: Parameters<number["toFixed"]>
+          ...args: MaybeSignalsArray<Parameters<number["toFixed"]>>
         ) => DerivedSignal<string>;
         toLocaleString: (
-          ...args: Parameters<number["toLocaleString"]>
+          ...args: MaybeSignalsArray<Parameters<number["toLocaleString"]>>
         ) => DerivedSignal<string>;
         toPrecision: (
-          ...args: Parameters<number["toPrecision"]>
+          ...args: MaybeSignalsArray<Parameters<number["toPrecision"]>>
         ) => DerivedSignal<string>;
         toConfined: (
-          start: SignalInput<number>,
-          end: SignalInput<number>,
+          start: MaybeSignal<number>,
+          end: MaybeSignal<number>,
         ) => DerivedSignal<number>;
       }
     : {};
 
 type ArrayDerivedMethods<T> =
-  Present<T> extends readonly unknown[]
+  NonNullable<T> extends readonly unknown[]
     ? {
         at: (index: number) => DerivedSignal<ArrayItem<T> | undefined>;
         concat: (
@@ -216,7 +225,7 @@ type ArrayDerivedMethods<T> =
           predicate: SignalPredicate<ArrayItem<T>>,
           thisArg?: any,
         ) => DerivedSignal<number>;
-        length: () => DerivedSignal<number>;
+        get length(): DerivedSignal<number>;
         map: <Mapped>(
           callbackfn: (
             value: ArrayItem<T>,
@@ -264,125 +273,27 @@ type ArrayDerivedMethods<T> =
     : {};
 
 type ObjectDerivedMethods<T> =
-  Present<T> extends object
-    ? Present<T> extends readonly unknown[]
+  NonNullable<T> extends object
+    ? NonNullable<T> extends readonly unknown[]
       ? {}
       : {
           keys: () => DerivedSignal<string[]>;
-          get: <K extends keyof Present<T>>(
+          get: <K extends keyof NonNullable<T>>(
             key: K,
-          ) => DerivedSignal<Present<T>[K]>;
+          ) => DerivedSignal<NonNullable<T>[K]>;
           props: () => {
-            [K in keyof Present<T>]: DerivedSignal<Present<T>[K]>;
+            [K in keyof NonNullable<T>]: DerivedSignal<NonNullable<T>[K]>;
           };
         }
     : {};
 
-type DerivedSignalMethods<T> = StringDerivedMethods<T> &
+export type DerivedSignalMethods<T> = StringDerivedMethods<T> &
   NumberDerivedMethods<T> &
   ArrayDerivedMethods<T> &
   ObjectDerivedMethods<T>;
 
-type SignalMethod<
-  T,
-  K extends PropertyKey,
-> = K extends keyof DerivedSignalMethods<T>
-  ? DerivedSignalMethods<T>[K]
-  : never;
-
 export class DerivedSignal<T> extends BaseSignal<T> {
   readonly type: SignalType = "derived-signal";
-  declare or: Present<T> extends readonly unknown[]
-    ? never
-    : <U>(alternativeValue: SignalInput<U>) => DerivedSignal<Present<T> | U>;
-  declare isTruthy: Present<T> extends object
-    ? never
-    : LogicalChecks<false>["isTruthy"];
-  declare isFalsy: Present<T> extends object
-    ? never
-    : LogicalChecks<false>["isFalsy"];
-  declare isEqualTo: Present<T> extends object
-    ? never
-    : LogicalChecks<false>["isEqualTo"];
-  declare isNotEqualTo: Present<T> extends object
-    ? never
-    : LogicalChecks<false>["isNotEqualTo"];
-  declare isGreaterThan: Present<T> extends object
-    ? never
-    : LogicalChecks<false>["isGreaterThan"];
-  declare isGreaterThanOrEqualTo: Present<T> extends object
-    ? never
-    : LogicalChecks<false>["isGreaterThanOrEqualTo"];
-  declare isSmallerThan: Present<T> extends object
-    ? never
-    : LogicalChecks<false>["isSmallerThan"];
-  declare isSmallerThanOrEqualTo: Present<T> extends object
-    ? never
-    : LogicalChecks<false>["isSmallerThanOrEqualTo"];
-  declare when: Present<T> extends object
-    ? never
-    : LogicalChecks<true> &
-        (Present<T> extends string | readonly unknown[]
-          ? { length: LogicalChecks<true> }
-          : {});
-  declare is: PublicLogicalMethods<T, false>;
-  declare at: SignalMethod<T, "at">;
-  declare charAt: SignalMethod<T, "charAt">;
-  declare charCodeAt: SignalMethod<T, "charCodeAt">;
-  declare codePointAt: SignalMethod<T, "codePointAt">;
-  declare concat: SignalMethod<T, "concat">;
-  declare endsWith: SignalMethod<T, "endsWith">;
-  declare every: SignalMethod<T, "every">;
-  declare filter: SignalMethod<T, "filter">;
-  declare find: SignalMethod<T, "find">;
-  declare findIndex: SignalMethod<T, "findIndex">;
-  declare findLast: SignalMethod<T, "findLast">;
-  declare findLastIndex: SignalMethod<T, "findLastIndex">;
-  declare get: SignalMethod<T, "get">;
-  declare includes: SignalMethod<T, "includes">;
-  declare indexOf: SignalMethod<T, "indexOf">;
-  declare keys: SignalMethod<T, "keys">;
-  declare lastIndexOf: SignalMethod<T, "lastIndexOf">;
-  declare lastItem: SignalMethod<T, "lastItem">;
-  declare length: SignalMethod<T, "length">;
-  declare localeCompare: SignalMethod<T, "localeCompare">;
-  declare map: SignalMethod<T, "map">;
-  declare normalize: SignalMethod<T, "normalize">;
-  declare padEnd: SignalMethod<T, "padEnd">;
-  declare padStart: SignalMethod<T, "padStart">;
-  declare partition: SignalMethod<T, "partition">;
-  declare props: SignalMethod<T, "props">;
-  declare reduce: SignalMethod<T, "reduce">;
-  declare reduceRight: SignalMethod<T, "reduceRight">;
-  declare repeat: SignalMethod<T, "repeat">;
-  declare replace: SignalMethod<T, "replace">;
-  declare replaceAll: SignalMethod<T, "replaceAll">;
-  declare search: SignalMethod<T, "search">;
-  declare slice: SignalMethod<T, "slice">;
-  declare some: SignalMethod<T, "some">;
-  declare split: SignalMethod<T, "split">;
-  declare startsWith: SignalMethod<T, "startsWith">;
-  declare substring: SignalMethod<T, "substring">;
-  declare toExponential: SignalMethod<T, "toExponential">;
-  declare toFixed: SignalMethod<T, "toFixed">;
-  declare toLocaleLowerCase: SignalMethod<T, "toLocaleLowerCase">;
-  declare toLocaleString: SignalMethod<T, "toLocaleString">;
-  declare toLocaleUpperCase: SignalMethod<T, "toLocaleUpperCase">;
-  declare toPrecision: SignalMethod<T, "toPrecision">;
-  declare toReversed: SignalMethod<T, "toReversed">;
-  declare toSorted: SignalMethod<T, "toSorted">;
-  declare toSpliced: SignalMethod<T, "toSpliced">;
-  declare trim: SignalMethod<T, "trim">;
-  declare trimEnd: SignalMethod<T, "trimEnd">;
-  declare trimStart: SignalMethod<T, "trimStart">;
-  declare deepTrim: SignalMethod<T, "deepTrim">;
-  declare lowercase: SignalMethod<T, "lowercase">;
-  declare Sentencecase: SignalMethod<T, "Sentencecase">;
-  declare TitleCase: SignalMethod<T, "TitleCase">;
-  declare toLowerCase: SignalMethod<T, "toLowerCase">;
-  declare UPPERCASE: SignalMethod<T, "UPPERCASE">;
-  declare toUpperCase: SignalMethod<T, "toUpperCase">;
-  declare toConfined: SignalMethod<T, "toConfined">;
 
   constructor(
     signalsCatcher: (prevValue: T | undefined) => T,
@@ -421,8 +332,8 @@ export class DerivedSignal<T> extends BaseSignal<T> {
     return derivedSignal;
   }
 
-  private _valueOf<R>(input: R | BaseSignal<R>): R {
-    return input instanceof DerivedSignal ? input.value : (input as R);
+  private _valueOf<R>(input: MaybeSignal<R>): R {
+    return value(input);
   }
 
   protected _deepTrimString(value: string): string {
@@ -431,10 +342,7 @@ export class DerivedSignal<T> extends BaseSignal<T> {
 
   private _logicalThen(predicate: () => boolean): any {
     return {
-      then: <U, V>(
-        truthyOption: U | BaseSignal<U>,
-        falsyOption: V | BaseSignal<V>,
-      ) =>
+      then: <U, V>(truthyOption: MaybeSignal<U>, falsyOption: MaybeSignal<V>) =>
         this._derive(() =>
           predicate()
             ? this._valueOf(truthyOption)
@@ -458,12 +366,12 @@ export class DerivedSignal<T> extends BaseSignal<T> {
       get isFalsy() {
         return this._logicalResult(() => !valueGetter(), returnThen);
       },
-      isEqualTo: (compareValue: Primitive | BaseSignal<Primitive>) =>
+      isEqualTo: (compareValue: MaybeSignal<Primitive>) =>
         this._logicalResult(
           () => valueGetter() === this._valueOf(compareValue),
           returnThen,
         ),
-      isNotEqualTo: (compareValue: Primitive | BaseSignal<Primitive>) =>
+      isNotEqualTo: (compareValue: MaybeSignal<Primitive>) =>
         this._logicalResult(
           () => valueGetter() !== this._valueOf(compareValue),
           returnThen,
@@ -476,22 +384,22 @@ export class DerivedSignal<T> extends BaseSignal<T> {
     returnThen: boolean,
   ): Record<string, any> {
     return {
-      isGreaterThan: (compareValue: number | BaseSignal<number>) =>
+      isGreaterThan: (compareValue: MaybeSignal<number>) =>
         this._logicalResult(
           () => valueGetter() > this._valueOf(compareValue),
           returnThen,
         ),
-      isGreaterThanOrEqualTo: (compareValue: number | BaseSignal<number>) =>
+      isGreaterThanOrEqualTo: (compareValue: MaybeSignal<number>) =>
         this._logicalResult(
           () => valueGetter() >= this._valueOf(compareValue),
           returnThen,
         ),
-      isSmallerThan: (compareValue: number | BaseSignal<number>) =>
+      isSmallerThan: (compareValue: MaybeSignal<number>) =>
         this._logicalResult(
           () => valueGetter() < this._valueOf(compareValue),
           returnThen,
         ),
-      isSmallerThanOrEqualTo: (compareValue: number | BaseSignal<number>) =>
+      isSmallerThanOrEqualTo: (compareValue: MaybeSignal<number>) =>
         this._logicalResult(
           () => valueGetter() <= this._valueOf(compareValue),
           returnThen,
@@ -512,7 +420,7 @@ export class DerivedSignal<T> extends BaseSignal<T> {
     };
   }
 
-  private _lengthCheckerMethods(
+  private _logicalLengthCheckerMethods(
     lengthGetter: () => number,
     returnThen: boolean,
   ): Record<string, any> {
@@ -534,7 +442,7 @@ export class DerivedSignal<T> extends BaseSignal<T> {
     };
 
     if (!Array.isArray(initialValue)) {
-      methods.or = <U>(alternativeValue: U | BaseSignal<U>) =>
+      methods.or = <U>(alternativeValue: MaybeSignal<U>) =>
         this._derive(() => this.value || this._valueOf(alternativeValue));
     }
 
@@ -544,7 +452,7 @@ export class DerivedSignal<T> extends BaseSignal<T> {
     if (typeof initialValue === "string" || Array.isArray(initialValue)) {
       Object.assign(
         methods.when,
-        this._lengthCheckerMethods(lengthGetter, true),
+        this._logicalLengthCheckerMethods(lengthGetter, true),
       );
     }
   }
@@ -552,39 +460,71 @@ export class DerivedSignal<T> extends BaseSignal<T> {
   private _addArrayNonMutatingMethods(): void {
     const self = this as any;
 
-    self.at = (...args: Parameters<unknown[]["at"]>) =>
-      this._derive(() => self.value.at(...args));
-    self.concat = (...args: Parameters<unknown[]["concat"]>) =>
-      this._derive(() => self.value.concat(...args));
-    self.every = (...args: Parameters<unknown[]["every"]>) =>
-      this._derive(() => self.value.every(...args));
-    self.filter = (...args: Parameters<unknown[]["filter"]>) =>
-      this._derive(() => self.value.filter(...args));
-    self.find = (...args: Parameters<unknown[]["find"]>) =>
-      this._derive(() => self.value.find(...args));
-    self.findIndex = (...args: Parameters<unknown[]["findIndex"]>) =>
-      this._derive(() => self.value.findIndex(...args));
-    self.findLast = (...args: Parameters<unknown[]["findLast"]>) =>
-      this._derive(() => self.value.findLast(...args));
-    self.findLastIndex = (...args: Parameters<unknown[]["findLastIndex"]>) =>
-      this._derive(() => self.value.findLastIndex(...args));
+    self.at = (...args: MaybeSignalsArray<Parameters<unknown[]["at"]>>) =>
+      this._derive(() => self.value.at(...getPlainMethodParams(...args)));
+    self.concat = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["concat"]>>
+    ) =>
+      this._derive(() => self.value.concat(...getPlainMethodParams(...args)));
+    self.every = (...args: MaybeSignalsArray<Parameters<unknown[]["every"]>>) =>
+      this._derive(() => self.value.every(...getPlainMethodParams(...args)));
+    self.filter = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["filter"]>>
+    ) =>
+      this._derive(() => self.value.filter(...getPlainMethodParams(...args)));
+    self.find = (...args: MaybeSignalsArray<Parameters<unknown[]["find"]>>) =>
+      this._derive(() => self.value.find(...getPlainMethodParams(...args)));
+    self.findIndex = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["findIndex"]>>
+    ) =>
+      this._derive(() =>
+        self.value.findIndex(...getPlainMethodParams(...args)),
+      );
+    self.findLast = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["findLast"]>>
+    ) =>
+      this._derive(() => self.value.findLast(...getPlainMethodParams(...args)));
+    self.findLastIndex = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["findLastIndex"]>>
+    ) =>
+      this._derive(() =>
+        self.value.findLastIndex(...getPlainMethodParams(...args)),
+      );
     this._addDerivedGetterProperty("length", () => self.value.length);
-    self.map = (...args: Parameters<unknown[]["map"]>) =>
-      this._derive(() => self.value.map(...args));
-    self.reduce = (...args: Parameters<unknown[]["reduce"]>) =>
-      this._derive(() => self.value.reduce(...args));
-    self.reduceRight = (...args: Parameters<unknown[]["reduceRight"]>) =>
-      this._derive(() => self.value.reduceRight(...args));
-    self.some = (...args: Parameters<unknown[]["some"]>) =>
-      this._derive(() => self.value.some(...args));
-    self.toReversed = (...args: Parameters<unknown[]["toReversed"]>) =>
-      this._derive(() => self.value.toReversed(...args));
-    self.toSorted = (...args: Parameters<unknown[]["toSorted"]>) =>
-      this._derive(() => self.value.toSorted(...args));
-    self.toSpliced = (...args: Parameters<unknown[]["toSpliced"]>) =>
-      this._derive(() => self.value.toSpliced(...args));
+    self.map = (...args: MaybeSignalsArray<Parameters<unknown[]["map"]>>) =>
+      this._derive(() => self.value.map(...getPlainMethodParams(...args)));
+    self.reduce = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["reduce"]>>
+    ) =>
+      this._derive(() => self.value.reduce(...getPlainMethodParams(...args)));
+    self.reduceRight = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["reduceRight"]>>
+    ) =>
+      this._derive(() =>
+        self.value.reduceRight(...getPlainMethodParams(...args)),
+      );
+    self.some = (...args: MaybeSignalsArray<Parameters<unknown[]["some"]>>) =>
+      this._derive(() => self.value.some(...getPlainMethodParams(...args)));
+    self.toReversed = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["toReversed"]>>
+    ) =>
+      this._derive(() =>
+        self.value.toReversed(...getPlainMethodParams(...args)),
+      );
+    self.toSorted = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["toSorted"]>>
+    ) =>
+      this._derive(() => self.value.toSorted(...getPlainMethodParams(...args)));
+    self.toSpliced = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["toSpliced"]>>
+    ) =>
+      this._derive(() =>
+        self.value.toSpliced(...getPlainMethodParams(...args)),
+      );
     self.lastItem = () => this._derive(() => self.value.at(-1));
-    self.partition = (...args: Parameters<unknown[]["filter"]>) => [
+    self.partition = (
+      ...args: MaybeSignalsArray<Parameters<unknown[]["filter"]>>
+    ) => [
       this._derive(() => self.value.filter(...args)),
       this._derive(() =>
         self.value.filter(
@@ -612,61 +552,115 @@ export class DerivedSignal<T> extends BaseSignal<T> {
   private _addStringNonMutatingMethods(): void {
     const self = this as any;
 
-    self.at = (...args: Parameters<string["at"]>) =>
-      this._derive(() => self.value.at(...args));
-    self.charAt = (...args: Parameters<string["charAt"]>) =>
-      this._derive(() => self.value.charAt(...args));
-    self.charCodeAt = (...args: Parameters<string["charCodeAt"]>) =>
-      this._derive(() => self.value.charCodeAt(...args));
-    self.codePointAt = (...args: Parameters<string["codePointAt"]>) =>
-      this._derive(() => self.value.codePointAt(...args));
-    self.concat = (...args: Parameters<string["concat"]>) =>
-      this._derive(() => self.value.concat(...args));
-    self.endsWith = (...args: Parameters<string["endsWith"]>) =>
-      this._derive(() => self.value.endsWith(...args));
-    self.includes = (...args: Parameters<string["includes"]>) =>
-      this._derive(() => self.value.includes(...args));
-    self.indexOf = (...args: Parameters<string["indexOf"]>) =>
-      this._derive(() => self.value.indexOf(...args));
-    self.lastIndexOf = (...args: Parameters<string["lastIndexOf"]>) =>
-      this._derive(() => self.value.lastIndexOf(...args));
+    self.at = (...args: MaybeSignalsArray<Parameters<string["at"]>>) =>
+      this._derive(() => self.value.at(...getPlainMethodParams(...args)));
+    self.charAt = (...args: MaybeSignalsArray<Parameters<string["charAt"]>>) =>
+      this._derive(() => self.value.charAt(...getPlainMethodParams(...args)));
+    self.charCodeAt = (
+      ...args: MaybeSignalsArray<Parameters<string["charCodeAt"]>>
+    ) =>
+      this._derive(() =>
+        self.value.charCodeAt(...getPlainMethodParams(...args)),
+      );
+    self.codePointAt = (
+      ...args: MaybeSignalsArray<Parameters<string["codePointAt"]>>
+    ) =>
+      this._derive(() =>
+        self.value.codePointAt(...getPlainMethodParams(...args)),
+      );
+    self.concat = (...args: MaybeSignalsArray<Parameters<string["concat"]>>) =>
+      this._derive(() => self.value.concat(...getPlainMethodParams(...args)));
+    self.endsWith = (
+      ...args: MaybeSignalsArray<Parameters<string["endsWith"]>>
+    ) =>
+      this._derive(() => self.value.endsWith(...getPlainMethodParams(...args)));
+    self.includes = (
+      ...args: MaybeSignalsArray<Parameters<string["includes"]>>
+    ) =>
+      this._derive(() => self.value.includes(...getPlainMethodParams(...args)));
+    self.indexOf = (
+      ...args: MaybeSignalsArray<Parameters<string["indexOf"]>>
+    ) =>
+      this._derive(() => self.value.indexOf(...getPlainMethodParams(...args)));
+    self.lastIndexOf = (
+      ...args: MaybeSignalsArray<Parameters<string["lastIndexOf"]>>
+    ) =>
+      this._derive(() =>
+        self.value.lastIndexOf(...getPlainMethodParams(...args)),
+      );
     this._addDerivedGetterProperty("length", () => self.value.length);
-    self.localeCompare = (...args: Parameters<string["localeCompare"]>) =>
-      this._derive(() => self.value.localeCompare(...args));
-    self.normalize = (...args: Parameters<string["normalize"]>) =>
-      this._derive(() => self.value.normalize(...args));
-    self.padEnd = (...args: Parameters<string["padEnd"]>) =>
-      this._derive(() => self.value.padEnd(...args));
-    self.padStart = (...args: Parameters<string["padStart"]>) =>
-      this._derive(() => self.value.padStart(...args));
-    self.repeat = (...args: Parameters<string["repeat"]>) =>
-      this._derive(() => self.value.repeat(...args));
-    self.replace = (...args: Parameters<string["replace"]>) =>
-      this._derive(() => self.value.replace(...args));
-    self.replaceAll = (...args: Parameters<string["replaceAll"]>) =>
-      this._derive(() => self.value.replaceAll(...args));
-    self.search = (...args: Parameters<string["search"]>) =>
-      this._derive(() => self.value.search(...args));
-    self.slice = (...args: Parameters<string["slice"]>) =>
-      this._derive(() => self.value.slice(...args));
-    self.split = (...args: Parameters<string["split"]>) =>
-      this._derive(() => self.value.split(...args));
-    self.startsWith = (...args: Parameters<string["startsWith"]>) =>
-      this._derive(() => self.value.startsWith(...args));
-    self.substring = (...args: Parameters<string["substring"]>) =>
-      this._derive(() => self.value.substring(...args));
+    self.localeCompare = (
+      ...args: MaybeSignalsArray<Parameters<string["localeCompare"]>>
+    ) =>
+      this._derive(() =>
+        self.value.localeCompare(...getPlainMethodParams(...args)),
+      );
+    self.normalize = (
+      ...args: MaybeSignalsArray<Parameters<string["normalize"]>>
+    ) =>
+      this._derive(() =>
+        self.value.normalize(...getPlainMethodParams(...args)),
+      );
+    self.padEnd = (...args: MaybeSignalsArray<Parameters<string["padEnd"]>>) =>
+      this._derive(() => self.value.padEnd(...getPlainMethodParams(...args)));
+    self.padStart = (
+      ...args: MaybeSignalsArray<Parameters<string["padStart"]>>
+    ) =>
+      this._derive(() => self.value.padStart(...getPlainMethodParams(...args)));
+    self.repeat = (...args: MaybeSignalsArray<Parameters<string["repeat"]>>) =>
+      this._derive(() => self.value.repeat(...getPlainMethodParams(...args)));
+    self.replace = (
+      ...args: MaybeSignalsArray<Parameters<string["replace"]>>
+    ) =>
+      this._derive(() => self.value.replace(...getPlainMethodParams(...args)));
+    self.replaceAll = (
+      ...args: MaybeSignalsArray<Parameters<string["replaceAll"]>>
+    ) =>
+      this._derive(() =>
+        self.value.replaceAll(...getPlainMethodParams(...args)),
+      );
+    self.search = (...args: MaybeSignalsArray<Parameters<string["search"]>>) =>
+      this._derive(() => self.value.search(...getPlainMethodParams(...args)));
+    self.slice = (...args: MaybeSignalsArray<Parameters<string["slice"]>>) =>
+      this._derive(() => self.value.slice(...getPlainMethodParams(...args)));
+    self.split = (...args: MaybeSignalsArray<Parameters<string["split"]>>) =>
+      this._derive(() => self.value.split(...getPlainMethodParams(...args)));
+    self.startsWith = (
+      ...args: MaybeSignalsArray<Parameters<string["startsWith"]>>
+    ) =>
+      this._derive(() =>
+        self.value.startsWith(...getPlainMethodParams(...args)),
+      );
+    self.substring = (
+      ...args: MaybeSignalsArray<Parameters<string["substring"]>>
+    ) =>
+      this._derive(() =>
+        self.value.substring(...getPlainMethodParams(...args)),
+      );
     self.toLocaleLowerCase = (
-      ...args: Parameters<string["toLocaleLowerCase"]>
-    ) => this._derive(() => self.value.toLocaleLowerCase(...args));
+      ...args: MaybeSignalsArray<Parameters<string["toLocaleLowerCase"]>>
+    ) =>
+      this._derive(() =>
+        self.value.toLocaleLowerCase(...getPlainMethodParams(...args)),
+      );
     self.toLocaleUpperCase = (
-      ...args: Parameters<string["toLocaleUpperCase"]>
-    ) => this._derive(() => self.value.toLocaleUpperCase(...args));
-    self.trim = (...args: Parameters<string["trim"]>) =>
-      this._derive(() => self.value.trim(...args));
-    self.trimEnd = (...args: Parameters<string["trimEnd"]>) =>
-      this._derive(() => self.value.trimEnd(...args));
-    self.trimStart = (...args: Parameters<string["trimStart"]>) =>
-      this._derive(() => self.value.trimStart(...args));
+      ...args: MaybeSignalsArray<Parameters<string["toLocaleUpperCase"]>>
+    ) =>
+      this._derive(() =>
+        self.value.toLocaleUpperCase(...getPlainMethodParams(...args)),
+      );
+    self.trim = (...args: MaybeSignalsArray<Parameters<string["trim"]>>) =>
+      this._derive(() => self.value.trim(...getPlainMethodParams(...args)));
+    self.trimEnd = (
+      ...args: MaybeSignalsArray<Parameters<string["trimEnd"]>>
+    ) =>
+      this._derive(() => self.value.trimEnd(...getPlainMethodParams(...args)));
+    self.trimStart = (
+      ...args: MaybeSignalsArray<Parameters<string["trimStart"]>>
+    ) =>
+      this._derive(() =>
+        self.value.trimStart(...getPlainMethodParams(...args)),
+      );
     self.deepTrim = () => this._derive(() => this._deepTrimString(self.value));
     self.toLowerCase = () => this._derive(() => self.value.toLowerCase());
     self.toUpperCase = () => this._derive(() => self.value.toUpperCase());
@@ -676,15 +670,28 @@ export class DerivedSignal<T> extends BaseSignal<T> {
     const self = this as unknown as DerivedSignal<number>;
     const methods = this as Record<string, any>;
 
-    methods.toExponential = (...args: Parameters<number["toExponential"]>) =>
-      this._derive(() => self.value.toExponential(...args));
-    methods.toFixed = (...args: Parameters<number["toFixed"]>) =>
-      this._derive(() => self.value.toFixed(...args));
+    methods.toExponential = (
+      ...args: MaybeSignalsArray<Parameters<number["toExponential"]>>
+    ) =>
+      this._derive(() =>
+        self.value.toExponential(...getPlainMethodParams(...args)),
+      );
+    methods.toFixed = (
+      ...args: MaybeSignalsArray<Parameters<number["toFixed"]>>
+    ) =>
+      this._derive(() => self.value.toFixed(...getPlainMethodParams(...args)));
     methods["toLocaleString"] = (
-      ...args: Parameters<number["toLocaleString"]>
-    ) => this._derive(() => self.value.toLocaleString(...args));
-    methods.toPrecision = (...args: Parameters<number["toPrecision"]>) =>
-      this._derive(() => self.value.toPrecision(...args));
+      ...args: MaybeSignalsArray<Parameters<number["toLocaleString"]>>
+    ) =>
+      this._derive(() =>
+        self.value.toLocaleString(...getPlainMethodParams(...args)),
+      );
+    methods.toPrecision = (
+      ...args: MaybeSignalsArray<Parameters<number["toPrecision"]>>
+    ) =>
+      this._derive(() =>
+        self.value.toPrecision(...getPlainMethodParams(...args)),
+      );
     methods.toConfined = (start: number, end: number) =>
       this._derive(() =>
         self.value < start ? start : self.value > end ? end : self.value,
@@ -713,5 +720,11 @@ export class DerivedSignal<T> extends BaseSignal<T> {
   }
 }
 
-export const derive = <T>(signalsCatcher: (prevValue: T | undefined) => T) =>
-  new DerivedSignal(signalsCatcher);
+export const derive = <T>(
+  signalsCatcher: (prevValue: T | undefined) => T,
+): DerivedSignal<T> & DerivedSignalMethods<T> =>
+  new DerivedSignal(signalsCatcher) as DerivedSignal<T> &
+    DerivedSignalMethods<T>;
+
+const der = derive(() => `[""]`);
+der;

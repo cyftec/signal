@@ -16,3 +16,6 @@ export class DeadSignal<T> extends DerivedSignal<T> {
     return this._value;
   }
 }
+
+const dead = new DeadSignal(() => 42);
+dead;

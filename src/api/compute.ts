@@ -1,8 +1,8 @@
 import {
   derive,
   type DerivedSignal,
-  type MaybeSignalValues,
-  type PlainValues,
+  type MaybeSignalsArray,
+  type PlainValuesArray,
 } from "../_core";
 import { value } from "../utils";
 
@@ -50,10 +50,10 @@ import { value } from "../utils";
  */
 export const compute = <F extends (...args: any[]) => any>(
   computerFn: F,
-  ...restArgs: MaybeSignalValues<Parameters<F>>
+  ...restArgs: MaybeSignalsArray<Parameters<F>>
 ): DerivedSignal<ReturnType<F>> => {
   return derive<ReturnType<F>>(() => {
-    const plainArgs = restArgs.map((arg) => value(arg)) as PlainValues<
+    const plainArgs = restArgs.map((arg) => value(arg)) as PlainValuesArray<
       typeof restArgs
     >;
     return computerFn(...plainArgs);

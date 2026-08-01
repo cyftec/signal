@@ -1,13 +1,13 @@
 import { isPlainObject } from "@cyftec/immut";
-import { DerivedSignal } from "./derived-signal";
+import { DerivedSignal, DerivedSignalMethods } from "./derived-signal";
 import { SignalType } from "./types";
 
-type Present<T> = NonNullable<T>;
-type ArrayItem<T> = Present<T> extends readonly (infer Item)[] ? Item : never;
-type SignalPredicate<T> = (item: T, index: number, array: T[]) => unknown;
+type ArrayItem<T> =
+  NonNullable<T> extends readonly (infer Item)[] ? Item : never;
+type SignalPredicate<T> = (item: T, index: number, array: T[]) => boolean;
 
 type ArrayMutatingMethods<T> =
-  Present<T> extends readonly unknown[]
+  NonNullable<T> extends readonly unknown[]
     ? {
         concat: (...items: ConcatArray<ArrayItem<T>>[]) => void;
         copyWithin: (target: number, start: number, end?: number) => void;
@@ -31,14 +31,14 @@ type ArrayMutatingMethods<T> =
     : {};
 
 type ObjectMutatingMethods<T> =
-  Present<T> extends object
-    ? Present<T> extends readonly unknown[]
+  NonNullable<T> extends object
+    ? NonNullable<T> extends readonly unknown[]
       ? {}
-      : { set: (partiallyNewObjectValue: Partial<Present<T>>) => void }
+      : { set: (partiallyNewObjectValue: Partial<NonNullable<T>>) => void }
     : {};
 
 type StringMutatingMethods<T> =
-  Present<T> extends string
+  NonNullable<T> extends string
     ? {
         toLocaleLowerCase: (
           ...args: Parameters<string["toLocaleLowerCase"]>
@@ -63,33 +63,16 @@ type StringMutatingMethods<T> =
     : {};
 
 type BooleanMutatingMethods<T> =
-  Present<T> extends boolean ? { toggle: () => void } : {};
+  NonNullable<T> extends boolean ? { toggle: () => void } : {};
 
 type MutableMethods<T> = ArrayMutatingMethods<T> &
   ObjectMutatingMethods<T> &
   StringMutatingMethods<T> &
   BooleanMutatingMethods<T>;
 
-type MutableMethod<T, K extends PropertyKey> = K extends keyof MutableMethods<T>
-  ? MutableMethods<T>[K]
-  : never;
-
 export class MutableSignal<T> extends DerivedSignal<T> {
   readonly type: SignalType = "mutable-signal";
   declare mutate: MutableMethods<T>;
-  declare copyWithin: MutableMethod<T, "copyWithin">;
-  declare fill: MutableMethod<T, "fill">;
-  declare pop: MutableMethod<T, "pop">;
-  declare push: MutableMethod<T, "push">;
-  declare reverse: MutableMethod<T, "reverse">;
-  declare shift: MutableMethod<T, "shift">;
-  declare sort: MutableMethod<T, "sort">;
-  declare splice: MutableMethod<T, "splice">;
-  declare unshift: MutableMethod<T, "unshift">;
-  declare keep: MutableMethod<T, "keep">;
-  declare remove: MutableMethod<T, "remove">;
-  declare set: MutableMethod<T, "set">;
-  declare toggle: MutableMethod<T, "toggle">;
 
   constructor(initialValue: T, nonNullableInitialValue?: NonNullable<T>) {
     const sureInitialValue =
@@ -255,4 +238,9 @@ export class MutableSignal<T> extends DerivedSignal<T> {
 export const mutable = <T>(
   initialValue: T,
   nonNullableInitialValue?: NonNullable<T>,
-) => new MutableSignal(initialValue, nonNullableInitialValue);
+) =>
+  new MutableSignal(initialValue, nonNullableInitialValue) as MutableSignal<T> &
+    DerivedSignalMethods<T>;
+
+const mut = mutable([true]);
+mut.mutate.unshift();

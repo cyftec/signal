@@ -1,4 +1,4 @@
-import { MaybeSignalValues, PlainValues } from "../_core/signals/types";
+import { MaybeSignalsArray, PlainValuesArray } from "../_core/signals/types";
 import { value } from "./value-getter";
 
 /**
@@ -18,7 +18,7 @@ import { value } from "./value-getter";
  * // Calling string.includes with a signalified search term
  * const search = mutable("world");
  * const text = mutable("hello world");
- * const params = getDesignalifiedMethodParams(search);
+ * const params = getPlainMethodParams(search);
  * // params is ["world"], which can be passed to text.includes("world")
  *
  * @remarks
@@ -27,11 +27,9 @@ import { value } from "./value-getter";
  * - Returns an array of plain values matching the input parameter order
  *
  * @see {@link value} - For unwrapping individual signalified values
- * @see {@link MaybeSignalValues} - For the input type
- * @see {@link PlainValues} - For the output type
+ * @see {@link MaybeSignalsArray} - For the input type
+ * @see {@link PlainValuesArray} - For the output type
  */
-export const getDesignalifiedMethodParams = <
-  T extends MaybeSignalValues<any[]>,
->(
+export const getPlainMethodParams = <T extends MaybeSignalsArray<any[]>>(
   ...methodParams: T
-) => methodParams.map((p) => value(p)) as PlainValues<T>;
+) => methodParams.map((p) => value(p)) as PlainValuesArray<T>;

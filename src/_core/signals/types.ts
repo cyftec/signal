@@ -90,7 +90,7 @@ export type NonNullSignalValue<S> = S extends null | undefined
  *
  * @see {@link MaybeSignal} - For the MaybeSignal type
  */
-export type MaybeSignalValues<T extends any[]> = {
+export type MaybeSignalsArray<T extends any[]> = {
   [K in keyof T]: T[K] extends (...args: any[]) => any
     ? T[K]
     : MaybeSignal<T[K]>;
@@ -111,15 +111,15 @@ export type PlainValue<I extends MaybeSignal<unknown>> =
   I extends Signal<infer T> ? T : I;
 
 /**
- * Extracts plain values from a `MaybeSignalValues` tuple.
+ * Extracts plain values from a `MaybeSignalsArray` tuple.
  *
- * This is the inverse of MaybeSignalValues, converting signalified values
+ * This is the inverse of MaybeSignalsArray, converting signalified values
  * back to their plain types.
  *
- * @template T - The MaybeSignalValues tuple to extract from
+ * @template T - The MaybeSignalsArray tuple to extract from
  *
- * @see {@link MaybeSignalValues} - For the MaybeSignalValues type
+ * @see {@link MaybeSignalsArray} - For the MaybeSignalsArray type
  */
-export type PlainValues<T extends MaybeSignalValues<any[]>> = {
+export type PlainValuesArray<T extends MaybeSignalsArray<any[]>> = {
   [K in keyof T]: T[K] extends MaybeSignal<infer V> ? V : never;
 };
