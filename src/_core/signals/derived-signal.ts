@@ -302,8 +302,7 @@ export class DerivedSignal<T> extends BaseSignal<T> {
     super(undefined as T);
     if (noSignalsInSignalsCatcher) {
       const initialValue = signalsCatcher(this.prevValue);
-      this._addNonMutatingMethodsFor(initialValue);
-      this._addNonMutatingLogicalCheckerMethods(initialValue);
+      this._addDeriverMethods(initialValue);
       this._setValueAndCallReceivers(initialValue);
       return;
     }
@@ -312,8 +311,12 @@ export class DerivedSignal<T> extends BaseSignal<T> {
       this._setValueAndCallReceivers(signalsCatcher(this.prevValue));
     });
     reciver.registerDependentSignal(this);
-    this._addNonMutatingMethodsFor(this._value);
-    this._addNonMutatingLogicalCheckerMethods(this._value);
+    this._addDeriverMethods(this._value);
+  }
+
+  protected _addDeriverMethods(initialValue: T) {
+    this._addNonMutatingMethodsFor(initialValue);
+    this._addNonMutatingLogicalCheckerMethods(initialValue);
   }
 
   protected _derive<R>(valueGetter: () => R): DerivedSignal<R> {
