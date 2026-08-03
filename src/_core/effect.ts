@@ -8,7 +8,7 @@
  *
  * @see effect function in effect.ts
  */
-let _currentSignalEffect: SignalsEffect | null = null;
+let _currentSignalsCatcherEffect: Effect | null = null;
 
 /**
  * Gets the currently executing effect.
@@ -35,10 +35,10 @@ let _currentSignalEffect: SignalsEffect | null = null;
  *
  * @see {@link setCurrentEffect} - For setting the current effect
  * @see {@link effect} - For creating effects
- * @see {@link SignalsEffect} - For the effect type
+ * @see {@link Effect} - For the effect type
  */
-export const getCurrentEffect = (): SignalsEffect | null =>
-  _currentSignalEffect;
+export const getCurrentEffect = (): Effect | null =>
+  _currentSignalsCatcherEffect;
 
 /**
  * Sets the currently executing effect.
@@ -57,8 +57,8 @@ export const getCurrentEffect = (): SignalsEffect | null =>
  * @see {@link getCurrentEffect} - For getting the current effect
  * @see {@link effect} - For creating effects
  */
-export const setCurrentEffect = (effect: SignalsEffect | null) =>
-  (_currentSignalEffect = effect);
+export const setCurrentEffect = (effect: Effect | null) =>
+  (_currentSignalsCatcherEffect = effect);
 
 /**
  * A function that can be registered to run when signal values change.
@@ -74,7 +74,7 @@ export const setCurrentEffect = (effect: SignalsEffect | null) =>
  *
  * @see {@link effect} - For creating effects
  */
-export type SignalsEffect = {
+export type Effect = {
   /** The effect function body */
   (): void;
   /** Flag indicating whether the effect is marked for disposal */
@@ -97,7 +97,7 @@ export type SignalsEffect = {
  * - Effects run synchronously when dependencies change
  * - Disposal is lazy - effects are removed on the next signal update, not immediately
  *
- * @param fn - A function that should access `.value` on signals to establish
+ * @param signalsCatcherFn - A function that should access `.value` on signals to establish
  * dependencies. Contains side effects (logging, DOM updates, etc.).
  *
  * @returns The input function augmented with `canDisposeNow` and `dispose()`
@@ -131,16 +131,16 @@ export type SignalsEffect = {
  * @see {@link derive} - For creating derived signals
  * @see {@link dispose} - For disposing multiple effects or derived signals
  */
-export const effect = (fn: () => void): SignalsEffect => {
-  const signalsEffect = fn as SignalsEffect;
-  signalsEffect.canDisposeNow = false;
-  signalsEffect.dispose = () => {
-    signalsEffect.canDisposeNow = true;
+export const effect = (signalsCatcherFn: () => void): Effect => {
+  const signalsCatcherEffect = signalsCatcherFn as Effect;
+  signalsCatcherEffect.canDisposeNow = false;
+  signalsCatcherEffect.dispose = () => {
+    signalsCatcherEffect.canDisposeNow = true;
   };
 
-  setCurrentEffect(signalsEffect);
-  fn();
+  setCurrentEffect(signalsCatcherEffect);
+  signalsCatcherFn();
   setCurrentEffect(null);
 
-  return signalsEffect;
+  return signalsCatcherEffect;
 };

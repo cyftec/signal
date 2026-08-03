@@ -9,7 +9,7 @@ import {
   LogicalMethods,
   MutatingAndNonMutatingMethodsObject,
 } from "../data-specific-methods";
-import { getCurrentEffect, SignalsEffect } from "../effect";
+import { getCurrentEffect, Effect } from "../effect";
 import { BaseSourceSignal } from "./types";
 
 /**
@@ -81,7 +81,7 @@ export const signal = <T>(
   nonNullableInitialValue?: NonNullable<T extends Record<string, any> ? {} : T>,
 ): SourceSignal<T> => {
   let _value = immut(initialValue);
-  const _effects = new Set<SignalsEffect>();
+  const _effects = new Set<Effect>();
 
   /**
    * Runs all registered effects when the signal's value changes.

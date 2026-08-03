@@ -1,4 +1,4 @@
-import { effect, MaybeSignal, SignalsEffect, SourceSignal } from "../_core";
+import { effect, MaybeSignal, Effect, SourceSignal } from "../_core";
 import { value } from "../utils";
 
 /**
@@ -47,7 +47,7 @@ import { value } from "../utils";
 export const receive = <T>(
   receiver: SourceSignal<T>,
   ...transmittors: MaybeSignal<T>[]
-): SignalsEffect[] => {
+): Effect[] => {
   const effects = transmittors.map((transmittor) =>
     effect(() => (receiver.value = value(transmittor))),
   );
@@ -99,7 +99,7 @@ export const receive = <T>(
 export const transmit = <T>(
   transmittor: MaybeSignal<T>,
   ...receivers: SourceSignal<T>[]
-): SignalsEffect =>
+): Effect =>
   effect(() => {
     receivers.forEach((receiver) => (receiver.value = value(transmittor)));
   });
