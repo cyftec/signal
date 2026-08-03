@@ -6,7 +6,7 @@ import type { GenericOperation, OperationResult } from "./types";
  * Creates the generic operation chain for a value.
  *
  * @template T - The value type
- * @param input - A signalified value or value-producing function
+ * @param input - A signal or value-producing function
  * @returns A generic operation object with composable logical methods
  *
  * @example

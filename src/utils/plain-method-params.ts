@@ -2,23 +2,23 @@ import { MaybeSignalValues, PlainValues } from "../_core/signals/types";
 import { value } from "./value-getter";
 
 /**
- * Converts signalified method parameters to plain values.
+ * Converts signal method parameters to plain values.
  *
  * This helper function is used by trap methods to unwrap parameters that may be
- * signals, plain values, or non-signals into their plain values before passing
+ * signals, plain values, or dead-signals into their plain values before passing
  * them to the underlying JavaScript methods (e.g., string methods, array methods).
  *
- * This allows trap methods to accept signalified parameters while still being
+ * This allows trap methods to accept signal parameters while still being
  * able to call standard JavaScript methods that expect plain values.
  *
- * @param methodParams - Signalified parameters (signals, plain values, or non-signals)
- * @returns Array of plain values extracted from the signalified parameters
+ * @param methodParams - Signal parameters (signals, plain values, or dead-signals)
+ * @returns Array of plain values extracted from the signal parameters
  *
  * @example
- * // Calling string.includes with a signalified search term
+ * // Calling string.includes with a signal search term
  * const search = signal("world");
  * const text = signal("hello world");
- * const params = getDesignalifiedMethodParams(search);
+ * const params = getPlainMethodParams(search);
  * // params is ["world"], which can be passed to text.includes("world")
  *
  * @remarks
@@ -26,12 +26,10 @@ import { value } from "./value-getter";
  * - Unwraps each parameter using the `value()` helper
  * - Returns an array of plain values matching the input parameter order
  *
- * @see {@link value} - For unwrapping individual signalified values
+ * @see {@link value} - For unwrapping individual signals
  * @see {@link MaybeSignalValues} - For the input type
  * @see {@link PlainValues} - For the output type
  */
-export const getDesignalifiedMethodParams = <
-  T extends MaybeSignalValues<any[]>,
->(
+export const getPlainMethodParams = <T extends MaybeSignalValues<any[]>>(
   ...methodParams: T
 ) => methodParams.map((p) => value(p)) as PlainValues<T>;

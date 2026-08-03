@@ -1,4 +1,4 @@
-import { type BaseSignalifiedObject } from "../signals";
+import { type BaseSignal } from "../signals";
 import {
   BooleanSignalMutatingMethodsObject,
   BooleanSourceSignalMethodsObject,
@@ -34,7 +34,7 @@ export const getBooleanSignalMutatingMethodsObject = (
  * Combines mutating methods for boolean source signals.
  *
  * @param valueSetter - Updates the signal value and triggers effects
- * @param baseSignalifiedObject - The base boolean signal to access values from
+ * @param baseSignal - The base boolean signal to access values from
  * @returns Combined methods for boolean source signals
  *
  * @remarks
@@ -53,7 +53,7 @@ export const getBooleanSignalMutatingMethodsObject = (
  */
 export const getBooleanSignalMethodsObject = (
   valueSetter: (mutatorMethod: (oldValue: boolean) => boolean) => void,
-  baseSignalifiedObject: BaseSignalifiedObject<boolean>,
+  baseSignal: BaseSignal<boolean>,
 ): BooleanSourceSignalMethodsObject => ({
   ...getBooleanSignalMutatingMethodsObject(valueSetter),
 });

@@ -1,8 +1,4 @@
-import {
-  type BaseSignalifiedObject,
-  type DerivedSignal,
-  derive,
-} from "../signals";
+import { type BaseSignal, type DerivedSignal, derive } from "../signals";
 import {
   ObjectSignalNonMutatingMethodsObject,
   ObjectSourceSignalMethodsObject,
@@ -44,10 +40,10 @@ export const getObjectSignalMutatingMethodsObject = <
 });
 
 /**
- * Creates the object trap for signalified plain objects.
+ * Creates the object trap for a signal.
  *
  * @template T - The object type
- * @param input - A signalified plain object
+ * @param input - A signal
  * @returns A record trap exposing derived property accessors
  *
  * @example
@@ -69,24 +65,20 @@ export const getObjectSignalMutatingMethodsObject = <
 export const getObjectSignalNonMutatingMethodsObject = <
   T extends Record<string, any>,
 >(
-  baseObjectSignalifiedObject: BaseSignalifiedObject<T>,
+  baseObjectSignal: BaseSignal<T>,
 ): ObjectSignalNonMutatingMethodsObject<T> => {
   return {
-    keys: () => derive(() => Object.keys(baseObjectSignalifiedObject.value)),
+    keys: () => derive(() => Object.keys(baseObjectSignal.value)),
     get: <K extends keyof T>(key: K) =>
-      derive(() => baseObjectSignalifiedObject.value[key]),
+      derive(() => baseObjectSignal.value[key]),
     props: () => {
       const signalledPropsObj = {} as {
         [key in keyof T]: DerivedSignal<T[key]>;
       };
 
-      (Object.keys(baseObjectSignalifiedObject.value) as (keyof T)[]).forEach(
-        (key) => {
-          signalledPropsObj[key] = derive(
-            () => baseObjectSignalifiedObject.value[key],
-          );
-        },
-      );
+      (Object.keys(baseObjectSignal.value) as (keyof T)[]).forEach((key) => {
+        signalledPropsObj[key] = derive(() => baseObjectSignal.value[key]);
+      });
 
       return signalledPropsObj;
     },
@@ -123,8 +115,8 @@ export const getObjectSourceSignalMethodsObject = <
   T extends Record<string, any>,
 >(
   valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
-  baseObjectSignalifiedObject: BaseSignalifiedObject<T>,
+  baseObjectSignal: BaseSignal<T>,
 ): ObjectSourceSignalMethodsObject<T> => ({
   ...getObjectSignalMutatingMethodsObject(valueSetter),
-  ...getObjectSignalNonMutatingMethodsObject(baseObjectSignalifiedObject),
+  ...getObjectSignalNonMutatingMethodsObject(baseObjectSignal),
 });

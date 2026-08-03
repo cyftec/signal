@@ -8,12 +8,12 @@ import { value } from "./value-getter";
  * @returns `true` if the value has `type: "source-signal"`, `false` otherwise
  *
  * @remarks
- * - Returns false for derived signals, non-signals, and plain values
+ * - Returns false for derived signals, dead-signals, and plain values
  * - Returns false for `null` and `undefined`
  *
  * @see {@link SourceSignal} - For source signal type
  * @see {@link valueIsDerivedSignal} - For checking derived signals
- * @see {@link valueIsSignal} - For checking any signal type
+ * @see {@link valueIsLiveSignal} - For checking any signal type
  */
 export const valueIsSourceSignal = (input: MaybeSignal<any>): boolean =>
   !!(input?.type === "source-signal");
@@ -25,12 +25,12 @@ export const valueIsSourceSignal = (input: MaybeSignal<any>): boolean =>
  * @returns `true` if the value has `type: "derived-signal"`, `false` otherwise
  *
  * @remarks
- * - Returns false for source signals, non-signals, and plain values
+ * - Returns false for source signals, dead-signals, and plain values
  * - Returns false for `null` and `undefined`
  *
  * @see {@link DerivedSignal} - For derived signal type
  * @see {@link valueIsSourceSignal} - For checking source signals
- * @see {@link valueIsSignal} - For checking any signal type
+ * @see {@link valueIsLiveSignal} - For checking any signal type
  */
 export const valueIsDerivedSignal = (input: MaybeSignal<any>): boolean =>
   !!(input?.type === "derived-signal");
@@ -43,98 +43,98 @@ export const valueIsDerivedSignal = (input: MaybeSignal<any>): boolean =>
  *
  * @remarks
  * - Returns true for both source and derived signals
- * - Returns false for non-signals and plain values
+ * - Returns false for dead-signals and plain values
  * - Returns false for `null` and `undefined`
  *
  * @see {@link SourceSignal} - For source signal type
  * @see {@link DerivedSignal} - For derived signal type
- * @see {@link Signal} - For the signal union type
+ * @see {@link LiveSignal} - For the signal union type
  */
-export const valueIsSignal = (input: MaybeSignal<any>): boolean =>
+export const valueIsLiveSignal = (input: MaybeSignal<any>): boolean =>
   ["source-signal", "derived-signal"].includes(input?.type);
 
 /**
- * Checks whether a value is a non-signal object, optionally matching specific types.
+ * Checks whether a value is a dead-signal object, optionally matching specific types.
  *
  * @param input - Any value to check
  * @param shouldMatchAnyOfTypes - Optional array of primitive type names to match
  * (for example, `["string", "number"]`)
- * @returns `true` if the value has `type: "non-signal"` and (if types provided)
+ * @returns `true` if the value has `type: "dead-signal"` and (if types provided)
  * the value matches one of the types
  *
  * @example
  * ```typescript
- * const nonSig = getNonSignalObject(42);
- * valueIsNonSignalObject(nonSig); // true
- * valueIsNonSignalObject(nonSig, ["number"]); // true
- * valueIsNonSignalObject(nonSig, ["string"]); // false
+ * const nonSig = deadSIgnal(42);
+ * valueIsDeadSignal(nonSig); // true
+ * valueIsDeadSignal(nonSig, ["number"]); // true
+ * valueIsDeadSignal(nonSig, ["string"]); // false
  * ```
  *
  * @remarks
  * - Empty types array is treated as no type restriction
  * - Returns false for `null` and `undefined`
  *
- * @see {@link NonSignal} - For non-signal type
- * @see {@link getNonSignalObject} - For creating non-signal objects
+ * @see {@link DeadSignal} - For dead-signal type
+ * @see {@link deadSIgnal} - For creating dead-signal objects
  */
-export const valueIsNonSignalObject = (
+export const valueIsDeadSignal = (
   input: any,
   shouldMatchAnyOfTypes?: string[],
 ): boolean =>
-  input?.type === "non-signal" &&
+  input?.type === "dead-signal" &&
   (!shouldMatchAnyOfTypes ||
     !shouldMatchAnyOfTypes.length ||
     shouldMatchAnyOfTypes.some((type) => typeof input?.value === type));
 
 /**
- * Checks whether a value is a signal or non-signal object.
+ * Checks whether a value is a signal or dead-signal object.
  *
  * @param input - Any value to check
- * @returns `true` if the value is a signal or non-signal object, `false` otherwise
+ * @returns `true` if the value is a signal or dead-signal object, `false` otherwise
  *
  * @remarks
- * - Returns true for source signals, derived signals, and non-signal objects
+ * - Returns true for source signals, derived signals, and dead-signal objects
  * - Returns false for plain values
  * - Returns false for `null` and `undefined`
  *
- * @see {@link Signal} - For signal types
- * @see {@link NonSignal} - For non-signal type
- * @see {@link SignalifiedObject} - For the signalified object union type
+ * @see {@link LiveSignal} - For signal types
+ * @see {@link DeadSignal} - For dead-signal type
+ * @see {@link Signal} - For the signal union type
  */
-export const valueIsSignalifiedObject = (input: any): boolean =>
-  valueIsSignal(input) || valueIsNonSignalObject(input);
+export const valueIsSignal = (input: any): boolean =>
+  valueIsLiveSignal(input) || valueIsDeadSignal(input);
 
 /**
- * Checks whether a value is a non-signal of type string.
+ * Checks whether a value is a dead-signal of type string.
  *
  * @param input - Any value to check
- * @returns `true` if the value is a non-signal with a string value, `false` otherwise
+ * @returns `true` if the value is a dead-signal with a string value, `false` otherwise
  *
  * @remarks
- * - Returns false for plain strings (not wrapped in non-signal)
+ * - Returns false for plain strings (not wrapped in dead-signal)
  *
- * @see {@link NonSignal} - For non-signal type
- * @see {@link valueIsNonSignalObject} - For the general non-signal checker
+ * @see {@link DeadSignal} - For dead-signal type
+ * @see {@link valueIsDeadSignal} - For the general dead-signal checker
  */
-export const valueIsNonSignalString = (input: any): boolean =>
-  valueIsNonSignalObject(input, ["string"]);
+export const valueIsDeadSignalString = (input: any): boolean =>
+  valueIsDeadSignal(input, ["string"]);
 
 /**
- * Checks whether a value is a non-signal of type string array.
+ * Checks whether a value is a dead-signal of type string array.
  *
  * @param input - Any value to check
- * @returns `true` if the value is a non-signal with a string array value, `false` otherwise
+ * @returns `true` if the value is a dead-signal with a string array value, `false` otherwise
  *
  * @remarks
  * - Checks that all array elements are strings
  * - Returns false for empty arrays
  * - Returns false for arrays with non-string elements
  *
- * @see {@link NonSignal} - For non-signal type
- * @see {@link valueIsNonSignalObject} - For the general non-signal checker
+ * @see {@link DeadSignal} - For dead-signal type
+ * @see {@link valueIsDeadSignal} - For the general dead-signal checker
  */
-export const valueIsNonSignalStringArray = (input: any): boolean =>
-  input?.type === "non-signal" &&
+export const valueIsDeadSignalStringArray = (input: any): boolean =>
+  input?.type === "dead-signal" &&
   Array.isArray(input?.value) &&
   (input?.value as any[]).every((item) => typeof item === "string");
 
@@ -145,13 +145,13 @@ export const valueIsNonSignalStringArray = (input: any): boolean =>
  * @returns `true` if the unwrapped value is a string or array, `false` otherwise
  *
  * @remarks
- * - Unwraps signals and non-signals to get the plain value
+ * - Unwraps signals and dead-signals to get the plain value
  * - Returns true if the plain value is a string or array
  * - Returns false for other types
  * - Returns false for `null` and `undefined`
  *
  * @see {@link MaybeSignal} - For the input type
- * @see {@link value} - For unwrapping signalified objects
+ * @see {@link value} - For unwrapping signals
  */
 export const valueIsMaybeSignalValueOfStringOrArray = (input: any): boolean =>
   typeof value(input) === "string" || Array.isArray(value(input));

@@ -3,9 +3,8 @@ import {
   type DerivedSignal,
   type DerivedValueGetterWithSignals,
   type Signal,
-  type SignalifiedObject,
 } from "../_core";
-import { valueIsSignalifiedObject } from "../utils";
+import { valueIsSignal } from "../utils";
 
 /**
  * The expressions allowed inside the template placeholders.
@@ -73,8 +72,8 @@ export const tmpl = (
 
       if (typeof expression === "function") {
         expValue = expression() ?? "";
-      } else if (valueIsSignalifiedObject(expression)) {
-        expValue = (expression as SignalifiedObject<any>).value ?? "";
+      } else if (valueIsSignal(expression)) {
+        expValue = (expression as Signal<any>).value ?? "";
       } else {
         expValue = (expression as any) ?? "";
       }

@@ -19,7 +19,7 @@ import type {
  * if it's truthy, otherwise returns the alternative value.
  *
  * @template T - The type of the base value
- * @param baseSignalifiedObject - The base signalified value to check
+ * @param baseSignal - The base signal to check
  * @returns An object with an `or` method for providing alternative values
  *
  * @remarks
@@ -28,13 +28,13 @@ import type {
  * - Returns a derived signal that updates when either value changes
  */
 export const getOrMethodsObject = <T>(
-  baseSignalifiedObject: MaybeSignal<T>,
+  baseSignal: MaybeSignal<T>,
 ): LogicalOrMethods<Primitive> => {
   return {
     or: <R>(alternativeValue: MaybeSignal<R>) =>
       derive(() => {
         const altValue = value(alternativeValue);
-        return value(baseSignalifiedObject) || altValue;
+        return value(baseSignal) || altValue;
       }),
   } as LogicalOrMethods<Primitive>;
 };
@@ -239,7 +239,7 @@ const getLengthMethods = <R extends LogicalCheckReturnType>(
 };
 
 /**
- * Creates logical methods for signalified values.
+ * Creates logical methods for signals.
  *
  * This function creates a comprehensive logical methods object that supports:
  * - OR operations for providing alternative values
@@ -248,8 +248,8 @@ const getLengthMethods = <R extends LogicalCheckReturnType>(
  * - Length-based checks for strings and arrays
  * - Numeric comparisons for numbers
  *
- * @template T - The type of the signalified value
- * @param baseSignalifiedObject - The signalified value to add logical methods to
+ * @template T - The type of the signal
+ * @param baseSignal - The signal to add logical methods to
  * @returns A logical methods object
  *
  * @remarks
@@ -269,11 +269,11 @@ const getLengthMethods = <R extends LogicalCheckReturnType>(
  * ```
  */
 export const getLogicalMethods = <T>(
-  baseSignalifiedObject: MaybeSignal<T>,
+  baseSignal: MaybeSignal<T>,
 ): LogicalMethods<T> => {
-  const valueGetter = () => value(baseSignalifiedObject) as Primitive;
+  const valueGetter = () => value(baseSignal) as Primitive;
   const lenghtGetter = () => {
-    const val = value(baseSignalifiedObject);
+    const val = value(baseSignal);
     if (typeof val === "string" || Array.isArray(val)) return val.length;
     return NaN;
   };
@@ -282,7 +282,7 @@ export const getLogicalMethods = <T>(
     or: <A>(alternativeValue: MaybeSignal<A>) =>
       derive(() => {
         const altValue = value(alternativeValue);
-        return value(baseSignalifiedObject) || altValue;
+        return value(baseSignal) || altValue;
       }),
     is: {
       ...getLogicalCheckerMethods(valueGetter, false),

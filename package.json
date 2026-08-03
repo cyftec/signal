@@ -21,6 +21,7 @@
     "bun-types": "^1.3.14"
   },
   "scripts": {
+    "test": "bun test",
     "build:meta": "bun run ./api-meta-builder/generate-meta.ts",
     "build:validate": "bun run ./api-meta-builder/validate-meta.ts",
     "docs": "bun run build:meta && bun run build:validate && cd website && brahma p",

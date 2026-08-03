@@ -1,6 +1,6 @@
-import { getDesignalifiedMethodParams, value } from "../../utils";
+import { getPlainMethodParams, value } from "../../utils";
 import {
-  type BaseSignalifiedObject,
+  type BaseSignal,
   derive,
   MaybeSignal,
   MaybeSignalValues,
@@ -17,7 +17,7 @@ import {
  * These methods mirror JavaScript Number non-mutating methods but return
  * derived signals instead of plain values.
  *
- * @param baseNumberSignalifiedObject - The base number signal to access values from
+ * @param baseNumberSignal - The base number signal to access values from
  * @returns Intrinsic non-mutating methods for number signals
  *
  * @remarks
@@ -26,40 +26,31 @@ import {
  * - Works with both source and derived signals
  */
 export const getNumberSignalIntrinsicNonMutatingMethodsObject = (
-  baseNumberSignalifiedObject: BaseSignalifiedObject<number>,
+  baseNumberSignal: BaseSignal<number>,
 ): NumberSignalIntrinsicNonMutatingMethodsObject => {
   return {
     toExponential: (
       ...args: MaybeSignalValues<Parameters<number["toExponential"]>>
     ) =>
       derive(() =>
-        baseNumberSignalifiedObject.value.toExponential(
-          ...getDesignalifiedMethodParams(...args),
-        ),
+        baseNumberSignal.value.toExponential(...getPlainMethodParams(...args)),
       ),
     toFixed: (...args: MaybeSignalValues<Parameters<number["toFixed"]>>) =>
       derive(() =>
-        baseNumberSignalifiedObject.value.toFixed(
-          ...getDesignalifiedMethodParams(...args),
-        ),
+        baseNumberSignal.value.toFixed(...getPlainMethodParams(...args)),
       ),
     toPrecision: (
       ...args: MaybeSignalValues<Parameters<number["toPrecision"]>>
     ) =>
       derive(() =>
-        baseNumberSignalifiedObject.value.toPrecision(
-          ...getDesignalifiedMethodParams(...args),
-        ),
+        baseNumberSignal.value.toPrecision(...getPlainMethodParams(...args)),
       ),
     toLocaleString: (
       locales?: MaybeSignal<string | string[] | undefined>,
       options?: MaybeSignal<Intl.NumberFormatOptions>,
     ) =>
       derive(() =>
-        baseNumberSignalifiedObject.value.toLocaleString(
-          value(locales),
-          value(options),
-        ),
+        baseNumberSignal.value.toLocaleString(value(locales), value(options)),
       ),
   };
 };
@@ -70,25 +61,25 @@ export const getNumberSignalIntrinsicNonMutatingMethodsObject = (
  * These are library-specific methods that provide additional functionality
  * beyond JavaScript's intrinsic number methods.
  *
- * @param baseNumberSignalifiedObject - The base number signal to access values from
+ * @param baseNumberSignal - The base number signal to access values from
  * @returns Custom non-mutating methods for number signals
  *
  * @remarks
  * - `toConfined` confines the number within a range [start, end]
  */
 export const getNumberSignalCustomNonMutatingMethodsObject = (
-  baseNumberSignalifiedObject: BaseSignalifiedObject<number>,
+  baseNumberSignal: BaseSignal<number>,
 ): NumberSignalCustomNonMutatingMethodsObject => {
   return {
     toConfined: (start: MaybeSignal<number>, end: MaybeSignal<number>) =>
       derive(() => {
         const startValue = value(start);
         const endValue = value(end);
-        return baseNumberSignalifiedObject.value < startValue
+        return baseNumberSignal.value < startValue
           ? startValue
-          : baseNumberSignalifiedObject.value > endValue
+          : baseNumberSignal.value > endValue
             ? endValue
-            : baseNumberSignalifiedObject.value;
+            : baseNumberSignal.value;
       }),
   };
 };
@@ -98,7 +89,7 @@ export const getNumberSignalCustomNonMutatingMethodsObject = (
  *
  * Combines intrinsic, custom, and logical non-mutating methods into a single object.
  *
- * @param baseNumberSignalifiedObject - The base number signal to access values from
+ * @param baseNumberSignal - The base number signal to access values from
  * @returns Combined non-mutating methods for number signals
  *
  * @remarks
@@ -107,10 +98,8 @@ export const getNumberSignalCustomNonMutatingMethodsObject = (
  * - Methods are reactive and update when the source number changes
  */
 export const getNumberSignalMethodsObject = (
-  baseNumberSignalifiedObject: BaseSignalifiedObject<number>,
+  baseNumberSignal: BaseSignal<number>,
 ): NumberSignalNonMutatingMethodsObject => ({
-  ...getNumberSignalIntrinsicNonMutatingMethodsObject(
-    baseNumberSignalifiedObject,
-  ),
-  ...getNumberSignalCustomNonMutatingMethodsObject(baseNumberSignalifiedObject),
+  ...getNumberSignalIntrinsicNonMutatingMethodsObject(baseNumberSignal),
+  ...getNumberSignalCustomNonMutatingMethodsObject(baseNumberSignal),
 });

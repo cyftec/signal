@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { derive, getNonSignalObject, nullable, signal } from "../src";
+import { derive, deadSIgnal, nullable, signal } from "../src";
 
 describe("generic methods - source signals", () => {
   describe("truthy() and falsy()", () => {
@@ -377,7 +377,9 @@ describe("generic methods - derived signals", () => {
     const count = signal(30);
     const doubled = derive(() => count.value * 2);
     const withLogical = nullable(doubled);
-    const result = withLogical.when.greaterThan(50).then("greater", "not greater");
+    const result = withLogical.when
+      .greaterThan(50)
+      .then("greater", "not greater");
 
     expect(result.value).toBe("greater");
 
@@ -401,59 +403,61 @@ describe("generic methods - derived signals", () => {
   // Array derived signals have logical methods directly
 });
 
-describe("generic methods - non-signal objects", () => {
+describe("generic methods - dead-signal objects", () => {
   // Non-signal objects need to be wrapped with nullable() to get logical methods
 
-  it("should have is.truthy() on non-signal via nullable", () => {
-    const nonSig = getNonSignalObject(42);
+  it("should have is.truthy() on dead-signal via nullable", () => {
+    const nonSig = deadSIgnal(42);
     const withLogical = nullable(nonSig);
     const truthy = withLogical.is.truthy();
 
     expect(truthy.value).toBe(true);
   });
 
-  it("should have is.falsy() on non-signal via nullable", () => {
-    const nonSig = getNonSignalObject(0);
+  it("should have is.falsy() on dead-signal via nullable", () => {
+    const nonSig = deadSIgnal(0);
     const withLogical = nullable(nonSig);
     const falsy = withLogical.is.falsy();
 
     expect(falsy.value).toBe(true);
   });
 
-  it("should have or() on non-signal via nullable", () => {
-    const nonSig = getNonSignalObject<number | null>(null);
+  it("should have or() on dead-signal via nullable", () => {
+    const nonSig = deadSIgnal<number | null>(null);
     const withLogical = nullable(nonSig);
     const orValue = withLogical.or(100);
 
     expect(orValue.value).toBe(100);
   });
 
-  it("should have when.truthy().then() on non-signal via nullable", () => {
-    const nonSig = getNonSignalObject(42);
+  it("should have when.truthy().then() on dead-signal via nullable", () => {
+    const nonSig = deadSIgnal(42);
     const withLogical = nullable(nonSig);
     const result = withLogical.when.truthy().then("yes", "no");
 
     expect(result.value).toBe("yes");
   });
 
-  it("should have when.equalTo() on non-signal via nullable", () => {
-    const nonSig = getNonSignalObject(42);
+  it("should have when.equalTo() on dead-signal via nullable", () => {
+    const nonSig = deadSIgnal(42);
     const withLogical = nullable(nonSig);
     const result = withLogical.when.equalTo(42).then("match", "no match");
 
     expect(result.value).toBe("match");
   });
 
-  it("should have when.greaterThan() on non-signal via nullable", () => {
-    const nonSig = getNonSignalObject(50);
+  it("should have when.greaterThan() on dead-signal via nullable", () => {
+    const nonSig = deadSIgnal(50);
     const withLogical = nullable(nonSig);
-    const result = withLogical.when.greaterThan(42).then("greater", "not greater");
+    const result = withLogical.when
+      .greaterThan(42)
+      .then("greater", "not greater");
 
     expect(result.value).toBe("greater");
   });
 
-  it("should have is.length on non-signal string via nullable", () => {
-    const nonSig = getNonSignalObject("hello");
+  it("should have is.length on dead-signal string via nullable", () => {
+    const nonSig = deadSIgnal("hello");
     const withLogical = nullable(nonSig);
     const result = withLogical.is.length.equalTo(5);
 

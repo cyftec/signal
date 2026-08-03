@@ -7,7 +7,7 @@ import type { NumberOperation } from "./types";
  * Creates the number-specific operation chain for a value.
  *
  * @template T - The numeric value type
- * @param input - A signalified number or value-producing function
+ * @param input - A signal number or value-producing function
  * @returns A number operation object with math and comparison methods
  *
  * @example

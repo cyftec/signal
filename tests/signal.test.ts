@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { derive, dispose, effect, Signal, signal } from "../src";
+import { derive, dispose, effect, signal, SourceSignal } from "../src";
 
 describe("signal - primitive values", () => {
   it("should create a signal with initial value", () => {
@@ -750,11 +750,13 @@ describe("dispose utility", () => {
   });
 
   it("should dispose multiple derived signals", () => {
+    const str = signal("hello");
+    const upper = derive(() => str.value.toUpperCase());
     const count = signal(0);
     const doubled = derive(() => count.value * 2);
     const tripled = derive(() => count.value * 3);
 
-    dispose(doubled, tripled);
+    dispose(doubled, tripled, upper);
     count.value = 5;
     expect(doubled.value).toBe(0);
     expect(tripled.value).toBe(0);
@@ -1159,36 +1161,36 @@ describe("signal - nullable types", () => {
     const text = signal<string | undefined>(undefined, "");
     expect(text.value).toBeUndefined();
     // Check if methods are available even when value is undefined
-    expect(typeof (text as Signal<string>).length).toBe("function");
-    expect(typeof (text as Signal<string>).lowercase).toBe("function");
-    expect(typeof (text as Signal<string>).UPPERCASE).toBe("function");
+    expect(typeof (text as SourceSignal<string>).length).toBe("function");
+    expect(typeof (text as SourceSignal<string>).lowercase).toBe("function");
+    expect(typeof (text as SourceSignal<string>).UPPERCASE).toBe("function");
   });
 
   it("should handle string | null with null initial value", () => {
     const text = signal<string | null>(null, "");
     expect(text.value).toBeNull();
     // Check if methods are available even when value is null
-    expect(typeof (text as Signal<string>).length).toBe("function");
-    expect(typeof (text as Signal<string>).lowercase).toBe("function");
-    expect(typeof (text as Signal<string>).UPPERCASE).toBe("function");
+    expect(typeof (text as SourceSignal<string>).length).toBe("function");
+    expect(typeof (text as SourceSignal<string>).lowercase).toBe("function");
+    expect(typeof (text as SourceSignal<string>).UPPERCASE).toBe("function");
   });
 
   it("should handle number | undefined with undefined initial value", () => {
     const num = signal<number | undefined>(undefined, 0);
     expect(num.value).toBeUndefined();
     // Check if methods are available even when value is undefined
-    expect(typeof (num as Signal<number>).toFixed).toBe("function");
-    expect(typeof (num as Signal<number>).toPrecision).toBe("function");
-    expect(typeof (num as Signal<number>).toExponential).toBe("function");
+    expect(typeof (num as SourceSignal<number>).toFixed).toBe("function");
+    expect(typeof (num as SourceSignal<number>).toPrecision).toBe("function");
+    expect(typeof (num as SourceSignal<number>).toExponential).toBe("function");
   });
 
   it("should handle number | null with null initial value", () => {
     const num = signal<number | null>(null, 0);
     expect(num.value).toBeNull();
     // Check if methods are available even when value is null
-    expect(typeof (num as Signal<number>).toFixed).toBe("function");
-    expect(typeof (num as Signal<number>).toPrecision).toBe("function");
-    expect(typeof (num as Signal<number>).toExponential).toBe("function");
+    expect(typeof (num as SourceSignal<number>).toFixed).toBe("function");
+    expect(typeof (num as SourceSignal<number>).toPrecision).toBe("function");
+    expect(typeof (num as SourceSignal<number>).toExponential).toBe("function");
   });
 
   it("should handle boolean | undefined with undefined initial value", () => {
@@ -1241,7 +1243,7 @@ describe("signal - nullable types", () => {
     const text = signal<string | undefined>(undefined, "");
     expect(text.value).toBeUndefined();
     text.value = "hello";
-    const length = (text as Signal<string>).length();
+    const length = (text as SourceSignal<string>).length();
     expect(text.value).toBe("hello");
     expect(length.value).toBe(5);
   });
@@ -1250,7 +1252,7 @@ describe("signal - nullable types", () => {
     const num = signal<number | undefined>(undefined, 0);
     expect(num.value).toBeUndefined();
     num.value = 3.14159;
-    const fixed = (num as Signal<number>).toFixed(2);
+    const fixed = (num as SourceSignal<number>).toFixed(2);
     expect(num.value).toBe(3.14159);
     expect(fixed.value).toBe("3.14");
   });

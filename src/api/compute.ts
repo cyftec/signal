@@ -7,15 +7,15 @@ import {
 import { value } from "../utils";
 
 /**
- * Creates a derived signal from a function with signalified arguments.
+ * Creates a derived signal from a function with signal arguments.
  *
  * This is a convenience wrapper around `derive` that automatically unwraps
  * signal arguments before passing them to the function. The derived signal
- * recomputes whenever any of the signalified arguments changes.
+ * recomputes whenever any of the signal arguments changes.
  *
  * @template F - The function type
  * @param computerFn - A function that receives plain values and returns a value
- * @param restArgs - Signalified arguments matching the function parameters
+ * @param restArgs - Signal arguments matching the function parameters
  * @returns A derived signal of the function's return type
  *
  * @example
@@ -46,7 +46,7 @@ import { value } from "../utils";
  * - Arguments are unwrapped using the `value()` helper
  *
  * @see {@link derive} - For the underlying derived signal primitive
- * @see {@link value} - For unwrapping signalified values
+ * @see {@link value} - For unwrapping signals
  */
 export const compute = <F extends (...args: any[]) => any>(
   computerFn: F,

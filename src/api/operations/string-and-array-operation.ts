@@ -7,7 +7,7 @@ import type { StringAndArrayOperation } from "./types";
  * Creates the string/array-specific operation chain for a value.
  *
  * @template T - The string or array value type
- * @param input - A signalified string/array or value-producing function
+ * @param input - A signal string/array or value-producing function
  * @returns A string-and-array operation object with length-based methods
  *
  * @example

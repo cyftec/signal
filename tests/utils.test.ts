@@ -3,13 +3,13 @@ import {
   value,
   valueIsSourceSignal,
   valueIsDerivedSignal,
+  valueIsLiveSignal,
+  valueIsDeadSignal,
   valueIsSignal,
-  valueIsNonSignalObject,
-  valueIsSignalifiedObject,
-  valueIsNonSignalString,
-  valueIsNonSignalStringArray,
+  valueIsDeadSignalString,
+  valueIsDeadSignalStringArray,
   valueIsMaybeSignalValueOfStringOrArray,
-  getNonSignalObject,
+  deadSIgnal,
   signal,
   derive,
 } from "../src";
@@ -28,8 +28,8 @@ describe("value utility", () => {
     expect(value(doubled)).toBe(84);
   });
 
-  it("should return plain value from non-signal", () => {
-    const nonSig = getNonSignalObject(42);
+  it("should return plain value from dead-signal", () => {
+    const nonSig = deadSIgnal(42);
     expect(value(nonSig)).toBe(42);
   });
 
@@ -58,8 +58,8 @@ describe("valueIsSourceSignal", () => {
     expect(valueIsSourceSignal(doubled)).toBe(false);
   });
 
-  it("should return false for non-signal", () => {
-    const nonSig = getNonSignalObject(42);
+  it("should return false for dead-signal", () => {
+    const nonSig = deadSIgnal(42);
     expect(valueIsSourceSignal(nonSig)).toBe(false);
   });
 
@@ -88,8 +88,8 @@ describe("valueIsDerivedSignal", () => {
     expect(valueIsDerivedSignal(count)).toBe(false);
   });
 
-  it("should return false for non-signal", () => {
-    const nonSig = getNonSignalObject(42);
+  it("should return false for dead-signal", () => {
+    const nonSig = deadSIgnal(42);
     expect(valueIsDerivedSignal(nonSig)).toBe(false);
   });
 
@@ -106,6 +106,82 @@ describe("valueIsDerivedSignal", () => {
   });
 });
 
+describe("valueIsLiveSignal", () => {
+  it("should return true for source signal", () => {
+    const count = signal(42);
+    expect(valueIsLiveSignal(count)).toBe(true);
+  });
+
+  it("should return true for derived signal", () => {
+    const count = signal(42);
+    const doubled = derive(() => count.value * 2);
+    expect(valueIsLiveSignal(doubled)).toBe(true);
+  });
+
+  it("should return false for dead-signal", () => {
+    const nonSig = deadSIgnal(42);
+    expect(valueIsLiveSignal(nonSig)).toBe(false);
+  });
+
+  it("should return false for plain value", () => {
+    expect(valueIsLiveSignal(42)).toBe(false);
+  });
+
+  it("should return false for null", () => {
+    expect(valueIsLiveSignal(null)).toBe(false);
+  });
+
+  it("should return false for undefined", () => {
+    expect(valueIsLiveSignal(undefined)).toBe(false);
+  });
+});
+
+describe("valueIsDeadSignal", () => {
+  it("should return true for dead-signal", () => {
+    const nonSig = deadSIgnal(42);
+    expect(valueIsDeadSignal(nonSig)).toBe(true);
+  });
+
+  it("should return false for source signal", () => {
+    const count = signal(42);
+    expect(valueIsDeadSignal(count)).toBe(false);
+  });
+
+  it("should return false for derived signal", () => {
+    const count = signal(42);
+    const doubled = derive(() => count.value * 2);
+    expect(valueIsDeadSignal(doubled)).toBe(false);
+  });
+
+  it("should return false for plain value", () => {
+    expect(valueIsDeadSignal(42)).toBe(false);
+  });
+
+  it("should return false for null", () => {
+    expect(valueIsDeadSignal(null)).toBe(false);
+  });
+
+  it("should return true for dead-signal with matching type", () => {
+    const nonSig = deadSIgnal(42);
+    expect(valueIsDeadSignal(nonSig, ["number"])).toBe(true);
+  });
+
+  it("should return false for dead-signal with non-matching type", () => {
+    const nonSig = deadSIgnal(42);
+    expect(valueIsDeadSignal(nonSig, ["string"])).toBe(false);
+  });
+
+  it("should return true for dead-signal with one of multiple matching types", () => {
+    const nonSig = deadSIgnal(42);
+    expect(valueIsDeadSignal(nonSig, ["string", "number"])).toBe(true);
+  });
+
+  it("should handle empty types array", () => {
+    const nonSig = deadSIgnal(42);
+    expect(valueIsDeadSignal(nonSig, [])).toBe(true);
+  });
+});
+
 describe("valueIsSignal", () => {
   it("should return true for source signal", () => {
     const count = signal(42);
@@ -118,9 +194,9 @@ describe("valueIsSignal", () => {
     expect(valueIsSignal(doubled)).toBe(true);
   });
 
-  it("should return false for non-signal", () => {
-    const nonSig = getNonSignalObject(42);
-    expect(valueIsSignal(nonSig)).toBe(false);
+  it("should return true for dead-signal", () => {
+    const nonSig = deadSIgnal(42);
+    expect(valueIsSignal(nonSig)).toBe(true);
   });
 
   it("should return false for plain value", () => {
@@ -136,126 +212,50 @@ describe("valueIsSignal", () => {
   });
 });
 
-describe("valueIsNonSignalObject", () => {
-  it("should return true for non-signal", () => {
-    const nonSig = getNonSignalObject(42);
-    expect(valueIsNonSignalObject(nonSig)).toBe(true);
-  });
-
-  it("should return false for source signal", () => {
-    const count = signal(42);
-    expect(valueIsNonSignalObject(count)).toBe(false);
-  });
-
-  it("should return false for derived signal", () => {
-    const count = signal(42);
-    const doubled = derive(() => count.value * 2);
-    expect(valueIsNonSignalObject(doubled)).toBe(false);
-  });
-
-  it("should return false for plain value", () => {
-    expect(valueIsNonSignalObject(42)).toBe(false);
-  });
-
-  it("should return false for null", () => {
-    expect(valueIsNonSignalObject(null)).toBe(false);
-  });
-
-  it("should return true for non-signal with matching type", () => {
-    const nonSig = getNonSignalObject(42);
-    expect(valueIsNonSignalObject(nonSig, ["number"])).toBe(true);
-  });
-
-  it("should return false for non-signal with non-matching type", () => {
-    const nonSig = getNonSignalObject(42);
-    expect(valueIsNonSignalObject(nonSig, ["string"])).toBe(false);
-  });
-
-  it("should return true for non-signal with one of multiple matching types", () => {
-    const nonSig = getNonSignalObject(42);
-    expect(valueIsNonSignalObject(nonSig, ["string", "number"])).toBe(true);
-  });
-
-  it("should handle empty types array", () => {
-    const nonSig = getNonSignalObject(42);
-    expect(valueIsNonSignalObject(nonSig, [])).toBe(true);
-  });
-});
-
-describe("valueIsSignalifiedObject", () => {
-  it("should return true for source signal", () => {
-    const count = signal(42);
-    expect(valueIsSignalifiedObject(count)).toBe(true);
-  });
-
-  it("should return true for derived signal", () => {
-    const count = signal(42);
-    const doubled = derive(() => count.value * 2);
-    expect(valueIsSignalifiedObject(doubled)).toBe(true);
-  });
-
-  it("should return true for non-signal", () => {
-    const nonSig = getNonSignalObject(42);
-    expect(valueIsSignalifiedObject(nonSig)).toBe(true);
-  });
-
-  it("should return false for plain value", () => {
-    expect(valueIsSignalifiedObject(42)).toBe(false);
-  });
-
-  it("should return false for null", () => {
-    expect(valueIsSignalifiedObject(null)).toBe(false);
-  });
-
-  it("should return false for undefined", () => {
-    expect(valueIsSignalifiedObject(undefined)).toBe(false);
-  });
-});
-
-describe("valueIsNonSignalString", () => {
-  it("should return true for non-signal string", () => {
-    const nonSigStr = getNonSignalObject("hello");
-    expect(valueIsNonSignalString(nonSigStr)).toBe(true);
+describe("valueIsDeadSignalString", () => {
+  it("should return true for dead-signal string", () => {
+    const nonSigStr = deadSIgnal("hello");
+    expect(valueIsDeadSignalString(nonSigStr)).toBe(true);
   });
 
   it("should return false for plain string", () => {
-    expect(valueIsNonSignalString("hello")).toBe(false);
+    expect(valueIsDeadSignalString("hello")).toBe(false);
   });
 
-  it("should return false for non-signal number", () => {
-    const nonSigNum = getNonSignalObject(42);
-    expect(valueIsNonSignalString(nonSigNum)).toBe(false);
+  it("should return false for dead-signal number", () => {
+    const nonSigNum = deadSIgnal(42);
+    expect(valueIsDeadSignalString(nonSigNum)).toBe(false);
   });
 
   it("should return false for source signal string", () => {
     const text = signal("hello");
-    expect(valueIsNonSignalString(text)).toBe(false);
+    expect(valueIsDeadSignalString(text)).toBe(false);
   });
 });
 
-describe("valueIsNonSignalStringArray", () => {
-  it("should return true for non-signal string array", () => {
-    const nonSigStrArr = getNonSignalObject(["a", "b", "c"]);
-    expect(valueIsNonSignalStringArray(nonSigStrArr)).toBe(true);
+describe("valueIsDeadSignalStringArray", () => {
+  it("should return true for dead-signal string array", () => {
+    const nonSigStrArr = deadSIgnal(["a", "b", "c"]);
+    expect(valueIsDeadSignalStringArray(nonSigStrArr)).toBe(true);
   });
 
-  it("should return false for non-signal mixed array", () => {
-    const nonSigMixed = getNonSignalObject(["a", 1, "b"]);
-    expect(valueIsNonSignalStringArray(nonSigMixed)).toBe(false);
+  it("should return false for dead-signal mixed array", () => {
+    const nonSigMixed = deadSIgnal(["a", 1, "b"]);
+    expect(valueIsDeadSignalStringArray(nonSigMixed)).toBe(false);
   });
 
   it("should return true for empty array (vacuously true)", () => {
-    const nonSigEmpty = getNonSignalObject([]);
-    expect(valueIsNonSignalStringArray(nonSigEmpty)).toBe(true);
+    const nonSigEmpty = deadSIgnal([]);
+    expect(valueIsDeadSignalStringArray(nonSigEmpty)).toBe(true);
   });
 
   it("should return false for plain string array", () => {
-    expect(valueIsNonSignalStringArray(["a", "b"])).toBe(false);
+    expect(valueIsDeadSignalStringArray(["a", "b"])).toBe(false);
   });
 
-  it("should return false for non-signal number array", () => {
-    const nonSigNumArr = getNonSignalObject([1, 2, 3]);
-    expect(valueIsNonSignalStringArray(nonSigNumArr)).toBe(false);
+  it("should return false for dead-signal number array", () => {
+    const nonSigNumArr = deadSIgnal([1, 2, 3]);
+    expect(valueIsDeadSignalStringArray(nonSigNumArr)).toBe(false);
   });
 });
 
@@ -278,13 +278,13 @@ describe("valueIsMaybeSignalValueOfStringOrArray", () => {
     expect(valueIsMaybeSignalValueOfStringOrArray(arr)).toBe(true);
   });
 
-  it("should return true for non-signal string", () => {
-    const nonSig = getNonSignalObject("hello");
+  it("should return true for dead-signal string", () => {
+    const nonSig = deadSIgnal("hello");
     expect(valueIsMaybeSignalValueOfStringOrArray(nonSig)).toBe(true);
   });
 
-  it("should return true for non-signal array", () => {
-    const nonSig = getNonSignalObject([1, 2, 3]);
+  it("should return true for dead-signal array", () => {
+    const nonSig = deadSIgnal([1, 2, 3]);
     expect(valueIsMaybeSignalValueOfStringOrArray(nonSig)).toBe(true);
   });
 
@@ -309,40 +309,40 @@ describe("valueIsMaybeSignalValueOfStringOrArray", () => {
   });
 });
 
-describe("getNonSignalObject", () => {
-  it("should create non-signal object", () => {
-    const nonSig = getNonSignalObject(42);
-    expect(nonSig.type).toBe("non-signal");
+describe("deadSIgnal", () => {
+  it("should create dead-signal object", () => {
+    const nonSig = deadSIgnal(42);
+    expect(nonSig.type).toBe("dead-signal");
     expect(nonSig.value).toBe(42);
   });
 
   it("should handle string", () => {
-    const nonSig = getNonSignalObject("hello");
-    expect(nonSig.type).toBe("non-signal");
+    const nonSig = deadSIgnal("hello");
+    expect(nonSig.type).toBe("dead-signal");
     expect(nonSig.value).toBe("hello");
   });
 
   it("should handle object", () => {
-    const nonSig = getNonSignalObject({ name: "test" });
-    expect(nonSig.type).toBe("non-signal");
+    const nonSig = deadSIgnal({ name: "test" });
+    expect(nonSig.type).toBe("dead-signal");
     expect(nonSig.value).toEqual({ name: "test" });
   });
 
   it("should handle array", () => {
-    const nonSig = getNonSignalObject([1, 2, 3]);
-    expect(nonSig.type).toBe("non-signal");
+    const nonSig = deadSIgnal([1, 2, 3]);
+    expect(nonSig.type).toBe("dead-signal");
     expect(nonSig.value).toEqual([1, 2, 3]);
   });
 
   it("should handle null", () => {
-    const nonSig = getNonSignalObject(null);
-    expect(nonSig.type).toBe("non-signal");
+    const nonSig = deadSIgnal(null);
+    expect(nonSig.type).toBe("dead-signal");
     expect(nonSig.value).toBe(null);
   });
 
   it("should handle undefined", () => {
-    const nonSig = getNonSignalObject(undefined);
-    expect(nonSig.type).toBe("non-signal");
+    const nonSig = deadSIgnal(undefined);
+    expect(nonSig.type).toBe("dead-signal");
     expect(nonSig.value).toBe(undefined);
   });
 });

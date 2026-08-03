@@ -13,7 +13,7 @@ import {
  * the logical methods interface.
  *
  * @template T - The type of value to add logical methods to
- * @param input - A signalified primitive value (string, number, boolean, null, or undefined)
+ * @param input - A signal primitive value (string, number, boolean, null, or undefined)
  * @returns An object with logical methods for the input value
  *
  * @example
@@ -25,7 +25,7 @@ import {
  * ```
  *
  * @remarks
- * - Specially helpful if the input value is not even a signal or signalified object and may even be nullable
+ * - Specially helpful if the input value is not even a signal and may even be nullable
  * - Only works with primitive types (string, number, boolean, null, undefined)
  * - Returns an empty object for non-primitive types
  * - Enables fluent logical operation chaining
