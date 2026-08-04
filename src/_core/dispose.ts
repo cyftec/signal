@@ -1,4 +1,4 @@
-import { Effect } from "./effect";
+import type { Effect } from "./effect";
 import type { DerivedSignal } from "./signals";
 
 /**
@@ -39,8 +39,8 @@ import type { DerivedSignal } from "./signals";
  * @see {@link DerivedSignal.dispose} - For disposing individual derived signals
  * @see {@link Effect.dispose} - For disposing individual effects
  */
-export const dispose = (
-  ...derivedSignalsOrEffects: (DerivedSignal<any> | Effect)[]
+export const dispose = <T extends any[]>(
+  ...derivedSignalsOrEffects: { [K in keyof T]: DerivedSignal<T[K]> | Effect }
 ): void => {
-  derivedSignalsOrEffects.forEach((dsigOrEff) => dsigOrEff.dispose());
+  derivedSignalsOrEffects.forEach((derSigOrEff) => derSigOrEff.dispose());
 };

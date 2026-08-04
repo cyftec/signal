@@ -9,7 +9,7 @@ import {
   LogicalMethods,
   MutatingAndNonMutatingMethodsObject,
 } from "../data-specific-methods";
-import { getCurrentEffect, Effect } from "../effect";
+import { Effect, EffectHook } from "../effect";
 import { BaseSourceSignal } from "./types";
 
 /**
@@ -95,13 +95,7 @@ export const signal = <T>(
    * signal update after being disposed, rather than immediately.
    */
   const runEffects = () => {
-    _effects.forEach((effect) => {
-      if (effect.canDisposeNow) {
-        _effects.delete(effect);
-        return;
-      }
-      effect();
-    });
+    _effects.forEach((effect) => effect.run());
   };
 
   /**
@@ -120,18 +114,12 @@ export const signal = <T>(
   const baseSourceSignal: BaseSourceSignal<T> = {
     type: "source-signal",
     get value() {
-      // Automatic dependency tracking: if an effect is currently executing,
-      // register this effect as a dependency of this signal
-      const currentRegisteredEffect = getCurrentEffect();
+      const currentRegisteredEffect = EffectHook.getCurrentEffect();
       if (currentRegisteredEffect) _effects.add(currentRegisteredEffect);
-      // Return a fresh copy of the immutable value
       return newVal(_value);
     },
     set value(newValue: T) {
-      // Skip if value hasn't changed (prevents unnecessary effect runs)
-      // TODO: if using 'areValuesEqual' from immutjs would be expensive for large data, consider a more efficient equality check or always trigger effects
       if (newValue === _value) return;
-      // Store new value immutably and trigger effects
       setValueAndRunEffects(immut(newValue));
     },
   };
