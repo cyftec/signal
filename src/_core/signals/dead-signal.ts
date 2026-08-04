@@ -31,7 +31,7 @@ import { BaseDeadSignal } from "./types";
  *
  * @see {@link LiveSignal} - For signal objects
  * @see {@link MaybeSignal} - For union types that include signals
- * @see {@link deadSIgnal} - For creating DeadSignal objects
+ * @see {@link deadSignal} - For creating DeadSignal objects
  */
 export type DeadSignal<T> = BaseDeadSignal<T> &
   NonMutatingMethodsObject<T> &
@@ -49,7 +49,7 @@ export type DeadSignal<T> = BaseDeadSignal<T> &
  *
  * @example
  * ```typescript
- * const nonSig = deadSIgnal(42);
+ * const nonSig = deadSignal(42);
  * console.log(nonSig.type); // "dead-signal"
  * console.log(nonSig.value); // 42
  * ```
@@ -62,7 +62,7 @@ export type DeadSignal<T> = BaseDeadSignal<T> &
  * @see {@link DeadSignal} - The DeadSignal type
  * @see {@link valueIsDeadSignal} - For checking if a value is a DeadSignal
  */
-export const deadSIgnal = <T>(input: T): DeadSignal<T> => {
+export const deadSignal = <T>(input: T): DeadSignal<T> => {
   const baseDeadSignal: BaseDeadSignal<T> = {
     type: "dead-signal",
     value: input,

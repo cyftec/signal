@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { derive, deadSIgnal, nullable, signal } from "../src";
+import { derive, deadSignal, nullable, signal } from "../src";
 
 describe("generic methods - source signals", () => {
   describe("truthy() and falsy()", () => {
@@ -407,7 +407,7 @@ describe("generic methods - dead-signal objects", () => {
   // Non-signal objects need to be wrapped with nullable() to get logical methods
 
   it("should have is.truthy() on dead-signal via nullable", () => {
-    const nonSig = deadSIgnal(42);
+    const nonSig = deadSignal(42);
     const withLogical = nullable(nonSig);
     const truthy = withLogical.is.truthy();
 
@@ -415,7 +415,7 @@ describe("generic methods - dead-signal objects", () => {
   });
 
   it("should have is.falsy() on dead-signal via nullable", () => {
-    const nonSig = deadSIgnal(0);
+    const nonSig = deadSignal(0);
     const withLogical = nullable(nonSig);
     const falsy = withLogical.is.falsy();
 
@@ -423,7 +423,7 @@ describe("generic methods - dead-signal objects", () => {
   });
 
   it("should have or() on dead-signal via nullable", () => {
-    const nonSig = deadSIgnal<number | null>(null);
+    const nonSig = deadSignal<number | null>(null);
     const withLogical = nullable(nonSig);
     const orValue = withLogical.or(100);
 
@@ -431,7 +431,7 @@ describe("generic methods - dead-signal objects", () => {
   });
 
   it("should have when.truthy().then() on dead-signal via nullable", () => {
-    const nonSig = deadSIgnal(42);
+    const nonSig = deadSignal(42);
     const withLogical = nullable(nonSig);
     const result = withLogical.when.truthy().then("yes", "no");
 
@@ -439,7 +439,7 @@ describe("generic methods - dead-signal objects", () => {
   });
 
   it("should have when.equalTo() on dead-signal via nullable", () => {
-    const nonSig = deadSIgnal(42);
+    const nonSig = deadSignal(42);
     const withLogical = nullable(nonSig);
     const result = withLogical.when.equalTo(42).then("match", "no match");
 
@@ -447,7 +447,7 @@ describe("generic methods - dead-signal objects", () => {
   });
 
   it("should have when.greaterThan() on dead-signal via nullable", () => {
-    const nonSig = deadSIgnal(50);
+    const nonSig = deadSignal(50);
     const withLogical = nullable(nonSig);
     const result = withLogical.when
       .greaterThan(42)
@@ -457,7 +457,7 @@ describe("generic methods - dead-signal objects", () => {
   });
 
   it("should have is.length on dead-signal string via nullable", () => {
-    const nonSig = deadSIgnal("hello");
+    const nonSig = deadSignal("hello");
     const withLogical = nullable(nonSig);
     const result = withLogical.is.length.equalTo(5);
 

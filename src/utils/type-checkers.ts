@@ -64,7 +64,7 @@ export const valueIsLiveSignal = (input: MaybeSignal<any>): boolean =>
  *
  * @example
  * ```typescript
- * const nonSig = deadSIgnal(42);
+ * const nonSig = deadSignal(42);
  * valueIsDeadSignal(nonSig); // true
  * valueIsDeadSignal(nonSig, ["number"]); // true
  * valueIsDeadSignal(nonSig, ["string"]); // false
@@ -75,7 +75,7 @@ export const valueIsLiveSignal = (input: MaybeSignal<any>): boolean =>
  * - Returns false for `null` and `undefined`
  *
  * @see {@link DeadSignal} - For dead-signal type
- * @see {@link deadSIgnal} - For creating dead-signal objects
+ * @see {@link deadSignal} - For creating dead-signal objects
  */
 export const valueIsDeadSignal = (
   input: any,

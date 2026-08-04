@@ -14,6 +14,7 @@ export const baseSignal = <T>(initialValue: T) => {
     }
   };
 
+  // type BaseSignal<T>
   const base = {
     get prevValue(): T | undefined {
       return _prevValue;

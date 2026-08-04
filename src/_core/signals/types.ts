@@ -60,7 +60,7 @@ export type BaseDerivedSignal<T> = {
  *
  * @see {@link LiveSignal} - For signal objects
  * @see {@link MaybeSignal} - For union types that include signals
- * @see {@link deadSIgnal} - For creating DeadSignal objects
+ * @see {@link deadSignal} - For creating DeadSignal objects
  */
 export type BaseDeadSignal<T> = {
   /** Runtime type discriminator for dead-signal objects */

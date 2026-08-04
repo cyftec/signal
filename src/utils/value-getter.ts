@@ -14,7 +14,7 @@ import { valueIsSignal } from "./type-checkers";
  * @example
  * ```typescript
  * const count = signal(42);
- * const nonSig = deadSIgnal("hello");
+ * const nonSig = deadSignal("hello");
  *
  * value(count); // 42
  * value(nonSig); // "hello"
