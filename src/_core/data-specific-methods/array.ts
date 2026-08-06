@@ -1,19 +1,14 @@
 import { newVal } from "@cyftec/immut";
 import { getPlainMethodParams, value } from "../../utils";
-import {
-  derive,
-  MaybeSignal,
-  MaybeSignalValues,
-  type Signal,
-} from "../signals";
+import { BaseSignal, derive, MaybeSignal, MaybeSignalValues } from "../signals";
 import {
   ArrayCustomMutatingMethods,
   ArrayCustomNonMutatingMethods,
   ArrayIntrinsicMutatingMethods,
   ArrayIntrinsicNonMutatingMethods,
+  ArrayMutatingAndNonMutatingMethods,
   ArrayMutatingMethods,
   ArrayNonMutatingMethods,
-  ArrayMutatingAndNonMutatingMethods,
 } from "./types";
 
 /**
@@ -32,10 +27,10 @@ import {
  * - Methods expose a mutable-style API while maintaining immutability
  */
 export const getArrayIntrinsicMutatingMethods = <T extends any[]>(
-  valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
+  baseArraySignal: BaseSignal<T>,
 ): ArrayIntrinsicMutatingMethods<T> => {
   const signalUpdator = (mutatorMethod: (newVal: T) => void): void =>
-    valueSetter((oldValue: T) => {
+    baseArraySignal.mutate((oldValue: T) => {
       const newValue = Array.from(oldValue) as T;
       mutatorMethod(newValue);
       return newValue;
@@ -106,11 +101,11 @@ export const getArrayIntrinsicMutatingMethods = <T extends any[]>(
  * - `remove()` deletes items matching the predicate
  */
 export const getArrayCustomMutatingMethods = <T extends any[]>(
-  valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
+  baseArraySignal: BaseSignal<T>,
 ): ArrayCustomMutatingMethods<T> => ({
   /** Keeps items where the predicate returns true. */
   keep: (...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>) =>
-    valueSetter((oldValue: T) => {
+    baseArraySignal.mutate((oldValue: T) => {
       return oldValue.filter(...getPlainMethodParams(...args)) as T;
     }),
   /** Removes items where the predicate returns true. */
@@ -122,7 +117,7 @@ export const getArrayCustomMutatingMethods = <T extends any[]>(
       ...predicateArgs: Parameters<typeof predicate>
     ) => !predicate(...predicateArgs);
     args[0] = negativeLogicPredicate;
-    valueSetter((oldValue: T) => {
+    baseArraySignal.mutate((oldValue: T) => {
       return oldValue.filter(...getPlainMethodParams(...args)) as T;
     });
   },
@@ -138,10 +133,10 @@ export const getArrayCustomMutatingMethods = <T extends any[]>(
  * @returns Combined mutating methods for array signals
  */
 export const getArrayMutatingMethods = <T extends any[]>(
-  valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
+  baseArraySignal: BaseSignal<T>,
 ): ArrayMutatingMethods<T> => ({
-  ...getArrayIntrinsicMutatingMethods(valueSetter),
-  ...getArrayCustomMutatingMethods(valueSetter),
+  ...getArrayIntrinsicMutatingMethods(baseArraySignal),
+  ...getArrayCustomMutatingMethods(baseArraySignal),
 });
 
 /**
@@ -151,7 +146,7 @@ export const getArrayMutatingMethods = <T extends any[]>(
  * derived signals instead of plain values.
  *
  * @template T - The array type
- * @param baseSignalArrayObject - The base array signal to access values from
+ * @param baseArraySignal - The base array signal to access values from
  * @returns Intrinsic non-mutating methods for array signals
  *
  * @remarks
@@ -160,13 +155,13 @@ export const getArrayMutatingMethods = <T extends any[]>(
  * - Works with both source and derived signals
  */
 export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
-  baseSignalArrayObject: Signal<T>,
+  baseArraySignal: BaseSignal<T>,
 ): ArrayIntrinsicNonMutatingMethods<T> => {
   return {
     at: (...args: MaybeSignalValues<Parameters<Array<T[number]>["at"]>>) =>
       derive(
         () =>
-          baseSignalArrayObject.value.at(...getPlainMethodParams(...args)) as
+          baseArraySignal.value.at(...getPlainMethodParams(...args)) as
             | T[number]
             | undefined,
       ),
@@ -175,7 +170,7 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
     ) =>
       derive(
         () =>
-          baseSignalArrayObject.value.concat(
+          baseArraySignal.value.concat(
             ...getPlainMethodParams(...args),
           ) as T[number][],
       ),
@@ -183,21 +178,21 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["every"]>>
     ) =>
       derive(() =>
-        baseSignalArrayObject.value.every(...getPlainMethodParams(...args)),
+        baseArraySignal.value.every(...getPlainMethodParams(...args)),
       ),
     filter: (
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
     ) =>
       derive(
         () =>
-          baseSignalArrayObject.value.filter(
+          baseArraySignal.value.filter(
             ...getPlainMethodParams(...args),
           ) as T[number][],
       ),
     find: (...args: MaybeSignalValues<Parameters<Array<T[number]>["find"]>>) =>
       derive(
         () =>
-          baseSignalArrayObject.value.find(...getPlainMethodParams(...args)) as
+          baseArraySignal.value.find(...getPlainMethodParams(...args)) as
             | T[number]
             | undefined,
       ),
@@ -205,28 +200,26 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["findIndex"]>>
     ) =>
       derive(() =>
-        baseSignalArrayObject.value.findIndex(...getPlainMethodParams(...args)),
+        baseArraySignal.value.findIndex(...getPlainMethodParams(...args)),
       ),
     findLast: (
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["findLast"]>>
     ) =>
       derive(
         () =>
-          baseSignalArrayObject.value.findLast(
-            ...getPlainMethodParams(...args),
-          ) as T[number] | undefined,
+          baseArraySignal.value.findLast(...getPlainMethodParams(...args)) as
+            | T[number]
+            | undefined,
       ),
     findLastIndex: (
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["findLastIndex"]>>
     ) =>
       derive(() =>
-        baseSignalArrayObject.value.findLastIndex(
-          ...getPlainMethodParams(...args),
-        ),
+        baseArraySignal.value.findLastIndex(...getPlainMethodParams(...args)),
       ),
-    length: () => derive(() => baseSignalArrayObject.value.length),
+    length: () => derive(() => baseArraySignal.value.length),
     map: <U>(mapFn: (item: T[number], index: number, array: T) => U) =>
-      derive(() => baseSignalArrayObject.value.map(mapFn as any) as U[]),
+      derive(() => baseArraySignal.value.map(mapFn as any) as U[]),
     reduce: <U>(
       reducerFn: (
         previousValue: U,
@@ -238,7 +231,7 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
     ) =>
       derive(
         () =>
-          baseSignalArrayObject.value.reduce(
+          baseArraySignal.value.reduce(
             reducerFn as any,
             value(initialValue),
           ) as U,
@@ -254,21 +247,21 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
     ) =>
       derive(
         () =>
-          baseSignalArrayObject.value.reduceRight(
+          baseArraySignal.value.reduceRight(
             reducerFn as any,
             value(initialValue),
           ) as U,
       ),
     some: (...args: MaybeSignalValues<Parameters<Array<T[number]>["some"]>>) =>
       derive(() =>
-        baseSignalArrayObject.value.some(...getPlainMethodParams(...args)),
+        baseArraySignal.value.some(...getPlainMethodParams(...args)),
       ),
     toReversed: (
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["toReversed"]>>
     ) =>
       derive(
         () =>
-          baseSignalArrayObject.value.toReversed(
+          baseArraySignal.value.toReversed(
             ...getPlainMethodParams(...args),
           ) as T[number][],
       ),
@@ -277,7 +270,7 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
     ) =>
       derive(
         () =>
-          baseSignalArrayObject.value.toSorted(
+          baseArraySignal.value.toSorted(
             ...getPlainMethodParams(...args),
           ) as T[number][],
       ),
@@ -286,7 +279,7 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
     ) =>
       derive(
         () =>
-          baseSignalArrayObject.value.toSpliced(
+          baseArraySignal.value.toSpliced(
             ...getPlainMethodParams(...args),
           ) as T[number][],
       ),
@@ -300,7 +293,7 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
  * beyond JavaScript's intrinsic array methods.
  *
  * @template T - The array type
- * @param baseSignalArrayObject - The base array signal to access values from
+ * @param baseArraySignal - The base array signal to access values from
  * @returns Custom non-mutating methods for array signals
  *
  * @remarks
@@ -308,12 +301,12 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
  * - `partition` splits an array into two derived signals based on a predicate
  */
 export const getArrayCustomNonMutatingMethods = <T extends any[]>(
-  baseSignalArrayObject: Signal<T>,
+  baseArraySignal: BaseSignal<T>,
 ): ArrayCustomNonMutatingMethods<T> => {
   return {
     lastItem: () => {
       return derive(() => {
-        const updatedArr = newVal(baseSignalArrayObject.value);
+        const updatedArr = newVal(baseArraySignal.value);
         const returnVal = updatedArr.pop() as T[number] | undefined;
         return returnVal;
       });
@@ -323,13 +316,11 @@ export const getArrayCustomNonMutatingMethods = <T extends any[]>(
     ) => {
       const conditionPassArray = derive(
         () =>
-          baseSignalArrayObject.value.filter(
-            ...getPlainMethodParams(...args),
-          ) as T,
+          baseArraySignal.value.filter(...getPlainMethodParams(...args)) as T,
       );
       const conditionFailArray = derive(
         () =>
-          baseSignalArrayObject.value.filter(
+          baseArraySignal.value.filter(
             (item, index, array) => !args[0](item, index, array),
           ) as T,
       );
@@ -344,7 +335,7 @@ export const getArrayCustomNonMutatingMethods = <T extends any[]>(
  * Combines intrinsic, custom, and logical non-mutating methods into a single object.
  *
  * @template T - The array type
- * @param baseSignalArrayObject - The base array signal to access values from
+ * @param baseArraySignal - The base array signal to access values from
  * @returns Combined non-mutating methods for array signals
  *
  * @remarks
@@ -353,10 +344,10 @@ export const getArrayCustomNonMutatingMethods = <T extends any[]>(
  * - Methods are reactive and update when the source array changes
  */
 export const getArrayNonMutatingMethods = <T extends any[]>(
-  baseSignalArrayObject: Signal<T>,
+  baseArraySignal: BaseSignal<T>,
 ): ArrayNonMutatingMethods<T> => ({
-  ...getArrayIntrinsicNonMutatingMethods(baseSignalArrayObject),
-  ...getArrayCustomNonMutatingMethods(baseSignalArrayObject),
+  ...getArrayIntrinsicNonMutatingMethods(baseArraySignal),
+  ...getArrayCustomNonMutatingMethods(baseArraySignal),
 });
 
 /**
@@ -366,7 +357,7 @@ export const getArrayNonMutatingMethods = <T extends any[]>(
  *
  * @template T - The array type
  * @param valueSetter - Updates the signal value and triggers effects
- * @param baseSignalArrayObject - The base array signal to access values from
+ * @param baseArraySignal - The base array signal to access values from
  * @returns Combined methods for array source signals
  *
  * @remarks
@@ -374,9 +365,8 @@ export const getArrayNonMutatingMethods = <T extends any[]>(
  * - Mutating methods create new arrays internally but feel mutable
  */
 export const getArrayMutatingAndNonMutatingMethods = <T extends any[]>(
-  valueSetter: (method: (oldValue: T) => T) => void,
-  baseArraySifiedignalObject: Signal<T>,
+  baseArraySignal: BaseSignal<T>,
 ): ArrayMutatingAndNonMutatingMethods<T> => ({
-  ...getArrayMutatingMethods(valueSetter),
-  ...getArrayNonMutatingMethods(baseArraySifiedignalObject),
+  ...getArrayMutatingMethods(baseArraySignal),
+  ...getArrayNonMutatingMethods(baseArraySignal),
 });

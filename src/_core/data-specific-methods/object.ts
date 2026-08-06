@@ -28,10 +28,10 @@ import {
  * @see {@link getObjectMutatingAndNonMutatingMethods} - For combined methods
  */
 export const getObjectMutatingMethods = <T extends Record<string, any>>(
-  valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
+  baseObjectSignal: BaseSignal<T>,
 ): ObjectMutatingMethods<T> => ({
   set: (partiallyNewObjectValue: Partial<T>) =>
-    valueSetter((oldValue: T) => ({
+    baseObjectSignal.mutate((oldValue: T) => ({
       ...oldValue,
       ...partiallyNewObjectValue,
     })),
@@ -110,9 +110,8 @@ export const getObjectNonMutatingMethods = <T extends Record<string, any>>(
 export const getObjectMutatingAndNonMutatingMethods = <
   T extends Record<string, any>,
 >(
-  valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
   baseObjectSignal: BaseSignal<T>,
 ): ObjectMutatingAndNonMutatingMethods<T> => ({
-  ...getObjectMutatingMethods(valueSetter),
+  ...getObjectMutatingMethods(baseObjectSignal),
   ...getObjectNonMutatingMethods(baseObjectSignal),
 });
