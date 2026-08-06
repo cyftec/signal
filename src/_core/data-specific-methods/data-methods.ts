@@ -36,7 +36,9 @@ export const getNonMutatingDataMethods = <T>(
   }
 
   if (typeof nonNullInitialValue === "string") {
-    return getStringSignalMethods(baseSignal as any) as NonMutatingMethods<T>;
+    return getStringSignalMethods(
+      baseSignal as any,
+    ) as unknown as NonMutatingMethods<T>;
   }
 
   if (typeof nonNullInitialValue === "number") {

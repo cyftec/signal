@@ -64,14 +64,18 @@ export const deadSignal = <T>(
   nonNullableInitialValue?: NonNullable<T extends Record<string, any> ? {} : T>,
 ): DeadSignal<T> => {
   const baseSignal = getBaseSignal<T>(input);
+  const valueDescriptor = Object.getOwnPropertyDescriptor(baseSignal, "value")!;
+
+  Object.defineProperty(baseSignal, "value", {
+    configurable: valueDescriptor.configurable,
+    enumerable: valueDescriptor.enumerable,
+    get: valueDescriptor.get!,
+    set() {},
+  });
 
   const deadSignal = Object.assign(baseSignal, {
     type: "dead-signal",
     mutate: undefined,
-    get value(): T {
-      return baseSignal.value;
-    },
-    set value(_) {},
     dispose() {},
   }) as BaseDeadSignal<T>;
 

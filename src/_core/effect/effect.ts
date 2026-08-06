@@ -120,8 +120,11 @@ export const effect = (signalsCatcherFn: () => void): Effect => {
   };
 
   EffectHook.setCurrentEffect(signalsCatcherEffect);
-  signalsCatcherEffect.run();
-  EffectHook.setCurrentEffect(null);
+  try {
+    signalsCatcherEffect.run();
+  } finally {
+    EffectHook.setCurrentEffect(null);
+  }
 
   return signalsCatcherEffect;
 };

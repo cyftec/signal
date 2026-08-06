@@ -38,8 +38,9 @@ export const getArrayMutatingMethods = <T extends any[]>(
     concat: (
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["concat"]>>
     ) =>
-      signalUpdator((newValue) =>
-        newValue.concat(...getPlainMethodParams(...args)),
+      baseArraySignal.mutateWith(
+        (oldValue) =>
+          oldValue.concat(...getPlainMethodParams(...args)) as T,
       ),
     copyWithin: (
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["copyWithin"]>>
@@ -280,7 +281,8 @@ export const getArrayCustomNonMutatingMethods = <T extends any[]>(
       const conditionFailArray = derive(
         () =>
           baseArraySignal.value.filter(
-            (item, index, array) => !args[0](item, index, array),
+            (item, index, array) =>
+              !args[0].call(value(args[1]), item, index, array),
           ) as T,
       );
       return [conditionPassArray, conditionFailArray];

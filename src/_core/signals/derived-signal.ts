@@ -102,18 +102,27 @@ export const derive = <T>(
   nonNullableInitialValue?: NonNullable<T extends Record<string, any> ? {} : T>,
 ): DerivedSignal<T> => {
   const baseSignal = getBaseSignal<T>(undefined as T);
+  const valueDescriptor = Object.getOwnPropertyDescriptor(baseSignal, "value")!;
+
+  const updateBaseValue = (newValue: T): void => {
+    valueDescriptor.set!.call(baseSignal, newValue);
+  };
+
   const deriverEffect = effect(() => {
-    baseSignal.value = signalsCatcher(baseSignal.nonReactiveValue);
+    updateBaseValue(signalsCatcher(baseSignal.nonReactiveValue));
   });
   deriverEffect.registerDependentSignal(baseSignal);
+
+  Object.defineProperty(baseSignal, "value", {
+    configurable: valueDescriptor.configurable,
+    enumerable: valueDescriptor.enumerable,
+    get: valueDescriptor.get!,
+    set() {},
+  });
 
   const derivedSignal = Object.assign(baseSignal, {
     type: "derived-signal",
     mutate: undefined,
-    get value(): T {
-      return baseSignal.value;
-    },
-    set value(_) {},
     dispose() {
       deriverEffect.dispose();
     },

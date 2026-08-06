@@ -315,6 +315,35 @@ export type ObjectNonMutatingMethods<T extends Record<string, any>> = {
 export type ObjectMutatingAndNonMutatingMethods<T extends Record<string, any>> =
   { mutate: ObjectMutatingMethods<T> } & ObjectNonMutatingMethods<T>;
 
+export type StringReplaceSearchValue =
+  | string
+  | {
+      [Symbol.replace](
+        string: string,
+        replaceValue: string | ((substring: string, ...args: any[]) => string),
+      ): string;
+    };
+
+export type StringReplaceValue =
+  | string
+  | ((substring: string, ...args: any[]) => string);
+
+export type StringReplaceParameters = [
+  searchValue: StringReplaceSearchValue,
+  replaceValue: StringReplaceValue,
+];
+
+export type StringSplitSeparator =
+  | string
+  | {
+      [Symbol.split](string: string, limit?: number): string[];
+    };
+
+export type StringSplitParameters = [
+  separator?: StringSplitSeparator,
+  limit?: number,
+];
+
 export type StringMutatingMethods = {
   concat: (...args: MaybeSignalValues<Parameters<String["concat"]>>) => void;
   deepTrim: () => void;
@@ -323,10 +352,8 @@ export type StringMutatingMethods = {
     ...args: MaybeSignalValues<Parameters<String["padStart"]>>
   ) => void;
   repeat: (...args: MaybeSignalValues<Parameters<String["repeat"]>>) => void;
-  replace: (...args: MaybeSignalValues<Parameters<String["replace"]>>) => void;
-  replaceAll: (
-    ...args: MaybeSignalValues<Parameters<String["replaceAll"]>>
-  ) => void;
+  replace: (...args: MaybeSignalValues<StringReplaceParameters>) => void;
+  replaceAll: (...args: MaybeSignalValues<StringReplaceParameters>) => void;
   slice: (...args: MaybeSignalValues<Parameters<String["slice"]>>) => void;
   substring: (
     ...args: MaybeSignalValues<Parameters<String["substring"]>>
@@ -424,17 +451,17 @@ export type StringIntrinsicNonMutatingMethods = {
     ...args: MaybeSignalValues<Parameters<String["normalize"]>>
   ) => DerivedSignal<ReturnType<String["normalize"]>>;
   replace: (
-    ...args: MaybeSignalValues<Parameters<String["replace"]>>
-  ) => DerivedSignal<ReturnType<String["replace"]>>;
+    ...args: MaybeSignalValues<StringReplaceParameters>
+  ) => DerivedSignal<string>;
   replaceAll: (
-    ...args: MaybeSignalValues<Parameters<String["replaceAll"]>>
-  ) => DerivedSignal<ReturnType<String["replaceAll"]>>;
+    ...args: MaybeSignalValues<StringReplaceParameters>
+  ) => DerivedSignal<string>;
   search: (
     ...args: MaybeSignalValues<Parameters<String["search"]>>
   ) => DerivedSignal<ReturnType<String["search"]>>;
   split: (
-    ...args: MaybeSignalValues<Parameters<String["split"]>>
-  ) => DerivedSignal<ReturnType<String["split"]>>;
+    ...args: MaybeSignalValues<StringSplitParameters>
+  ) => DerivedSignal<string[]>;
   toLocaleLowerCase: (
     ...args: MaybeSignalValues<Parameters<String["toLocaleLowerCase"]>>
   ) => DerivedSignal<ReturnType<String["toLocaleLowerCase"]>>;

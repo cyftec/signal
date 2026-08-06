@@ -1,16 +1,13 @@
 import { getPlainMethodParams, value } from "../../utils";
-import {
-  type BaseSignal,
-  derive,
-  MaybeSignal,
-  MaybeSignalValues,
-} from "../signals";
+import { type BaseSignal, derive, MaybeSignalValues } from "../signals";
 import {
   StringCustomNonMutatingMethods,
   StringIntrinsicNonMutatingMethods,
   StringMutatingAndNonMutatingMethods,
   StringMutatingMethods,
   StringNonMutatingMethods,
+  StringReplaceParameters,
+  StringSplitParameters,
 } from "./types";
 
 const _deepTrim = (value: string) => value.trim().replace(/\s+/g, " ");
@@ -51,18 +48,20 @@ export const getStringSignalMutatingMethods = (
       );
     },
     replace: function (
-      ...args: MaybeSignalValues<Parameters<String["replace"]>>
+      ...args: MaybeSignalValues<StringReplaceParameters>
     ): void {
-      baseStringSignal.mutateWith((oldValue) =>
-        oldValue.replace(...getPlainMethodParams(...args)),
-      );
+      baseStringSignal.mutateWith((oldValue) => {
+        const [searchValue, replaceValue] = getPlainMethodParams(...args);
+        return oldValue.replace(searchValue as any, replaceValue as any);
+      });
     },
     replaceAll: function (
-      ...args: MaybeSignalValues<Parameters<String["replaceAll"]>>
+      ...args: MaybeSignalValues<StringReplaceParameters>
     ): void {
-      baseStringSignal.mutateWith((oldValue) =>
-        oldValue.replaceAll(...getPlainMethodParams(...args)),
-      );
+      baseStringSignal.mutateWith((oldValue) => {
+        const [searchValue, replaceValue] = getPlainMethodParams(...args);
+        return oldValue.replaceAll(searchValue as any, replaceValue as any);
+      });
     },
     slice: function (
       ...args: MaybeSignalValues<Parameters<String["slice"]>>
@@ -240,24 +239,31 @@ export const getStringIntrinsicNonMutatingMethods = (
           value(...getPlainMethodParams(...args)),
         ),
       ),
-    replace: (...args: MaybeSignalValues<Parameters<String["replace"]>>) =>
-      derive(() =>
-        baseStringSignal.value.replace(...getPlainMethodParams(...args)),
-      ),
-    replaceAll: (
-      ...args: MaybeSignalValues<Parameters<String["replaceAll"]>>
-    ) =>
-      derive(() =>
-        baseStringSignal.value.replaceAll(...getPlainMethodParams(...args)),
-      ),
+    replace: (...args: MaybeSignalValues<StringReplaceParameters>) =>
+      derive(() => {
+        const [searchValue, replaceValue] = getPlainMethodParams(...args);
+        return baseStringSignal.value.replace(
+          searchValue as any,
+          replaceValue as any,
+        );
+      }),
+    replaceAll: (...args: MaybeSignalValues<StringReplaceParameters>) =>
+      derive(() => {
+        const [searchValue, replaceValue] = getPlainMethodParams(...args);
+        return baseStringSignal.value.replaceAll(
+          searchValue as any,
+          replaceValue as any,
+        );
+      }),
     search: (...args: MaybeSignalValues<Parameters<String["search"]>>) =>
       derive(() =>
         baseStringSignal.value.search(...getPlainMethodParams(...args)),
       ),
-    split: (...args: MaybeSignalValues<Parameters<String["split"]>>) =>
-      derive(() =>
-        baseStringSignal.value.split(...getPlainMethodParams(...args)),
-      ),
+    split: (...args: MaybeSignalValues<StringSplitParameters>) =>
+      derive(() => {
+        const [separator, limit] = getPlainMethodParams(...args);
+        return baseStringSignal.value.split(separator as any, limit);
+      }),
     toLocaleLowerCase: (
       ...args: MaybeSignalValues<Parameters<String["toLocaleLowerCase"]>>
     ) =>

@@ -23,7 +23,7 @@ import type {
  * @remarks
  * - The `then` method returns truthyOption if the condition is true, otherwise falsyOption
  * - Returns a derived signal that updates when the condition or options change
- * - Used by the `when` logical methods for conditional value selection
+ * - Used by the `if` logical methods for conditional value selection
  */
 const getTernaryThen = (truthyEvaluator: () => boolean): TernaryThen => {
   return {
@@ -216,7 +216,7 @@ const getLengthMethods = <R extends ComparisonReturnType>(
  * This function creates a comprehensive logical methods object that supports:
  * - OR operations for providing alternative values
  * - Truthy/falsy checks via `is`
- * - Conditional value selection via `when`
+ * - Conditional value selection via `if`
  * - Length-based checks for strings and arrays
  * - Numeric comparisons for numbers
  *
@@ -227,7 +227,7 @@ const getLengthMethods = <R extends ComparisonReturnType>(
  * @remarks
  * - `or` provides alternative values for nullable/undefined cases
  * - `is` returns derived signals for boolean checks
- * - `when` returns TernaryThen objects for conditional value selection
+ * - `if` returns TernaryThen objects for conditional value selection
  * - Length methods are only available for strings and arrays
  * - Numeric comparison methods are only available for numbers
  *
@@ -245,7 +245,7 @@ export const getGenericMethods = <T>(
   baseSignal: MaybeSignal<T>,
 ): GenericMethods<T> => {
   const valueGetter = () => value(baseSignal) as Primitive;
-  const lenghtGetter = () => {
+  const lengthGetter = () => {
     const val = value(baseSignal);
     if (typeof val === "string" || Array.isArray(val)) return val.length;
     return NaN;
@@ -259,11 +259,11 @@ export const getGenericMethods = <T>(
       }),
     is: {
       ...getComparisonMethods(valueGetter, false),
-      ...getLengthMethods(lenghtGetter, false),
+      ...getLengthMethods(lengthGetter, false),
     },
     if: {
       ...getComparisonMethods(valueGetter, true),
-      ...getLengthMethods(lenghtGetter, false),
+      ...getLengthMethods(lengthGetter, true),
     },
   } as unknown as GenericMethods<T>;
 };
