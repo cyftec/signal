@@ -1,8 +1,8 @@
 import { type BaseSignal, type DerivedSignal, derive } from "../signals";
 import {
-  ObjectSignalNonMutatingMethodsObject,
-  ObjectSourceSignalMethodsObject,
-  ObjectSourceSignalMutatingMethodsObject,
+  ObjectNonMutatingMethods,
+  ObjectMutatingAndNonMutatingMethods,
+  ObjectMutatingMethods,
 } from "./types";
 
 /**
@@ -15,7 +15,7 @@ import {
  * @example
  * ```typescript
  * const user = signal({ name: "John", age: 30 });
- * const methods = getObjectSignalMutatingMethodsObject((mutator) => {
+ * const methods = getObjectMutatingMethods((mutator) => {
  *   user.value = mutator(user.value);
  * });
  * methods.set({ age: 31 }); // Shallow merge: { name: "John", age: 31 }
@@ -25,13 +25,11 @@ import {
  * - `set()` performs a shallow merge with the current value
  * - Works with both source and derived signals
  *
- * @see {@link getObjectSourceSignalMethodsObject} - For combined methods
+ * @see {@link getObjectMutatingAndNonMutatingMethods} - For combined methods
  */
-export const getObjectSignalMutatingMethodsObject = <
-  T extends Record<string, any>,
->(
+export const getObjectMutatingMethods = <T extends Record<string, any>>(
   valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
-): ObjectSourceSignalMutatingMethodsObject<T> => ({
+): ObjectMutatingMethods<T> => ({
   set: (partiallyNewObjectValue: Partial<T>) =>
     valueSetter((oldValue: T) => ({
       ...oldValue,
@@ -49,7 +47,7 @@ export const getObjectSignalMutatingMethodsObject = <
  * @example
  * ```typescript
  * const user = signal({ name: "John", age: 30 });
- * const userSignalWithMethods = getObjectSignalNonMutatingMethodsObject(user);
+ * const userSignalWithMethods = getObjectNonMutatingMethods(user);
  * const keysSignal = userSignalWithMethods.keys(); // DerivedSignal<string[]>
  * const nameSignal = userSignalWithMethods.get("name"); // DerivedSignal<string>
  * const allProps = userSignalWithMethods.props(); // Record of derived signals for all properties
@@ -62,11 +60,9 @@ export const getObjectSignalMutatingMethodsObject = <
  * - `get()` returns a derived signal for a specific property
  * - `props()` returns an object with derived signals for all properties
  */
-export const getObjectSignalNonMutatingMethodsObject = <
-  T extends Record<string, any>,
->(
+export const getObjectNonMutatingMethods = <T extends Record<string, any>>(
   baseObjectSignal: BaseSignal<T>,
-): ObjectSignalNonMutatingMethodsObject<T> => {
+): ObjectNonMutatingMethods<T> => {
   return {
     keys: () => derive(() => Object.keys(baseObjectSignal.value)),
     get: <K extends keyof T>(key: K) =>
@@ -95,7 +91,7 @@ export const getObjectSignalNonMutatingMethodsObject = <
  * @example
  * ```typescript
  * const user = signal({ name: "John", age: 30 });
- * const userSignalMethods = getObjectSourceSignalMethodsObject(
+ * const userSignalMethods = getObjectMutatingAndNonMutatingMethods(
  *   (mutator) => { user.value = mutator(user.value); },
  *   user
  * );
@@ -108,15 +104,15 @@ export const getObjectSignalNonMutatingMethodsObject = <
  * - Works with both source and derived signals
  * - Combines mutating and non-mutating methods
  *
- * @see {@link getObjectSignalMutatingMethodsObject} - For mutating methods only
- * @see {@link getObjectSignalNonMutatingMethodsObject} - For non-mutating methods only
+ * @see {@link getObjectMutatingMethods} - For mutating methods only
+ * @see {@link getObjectNonMutatingMethods} - For non-mutating methods only
  */
-export const getObjectSourceSignalMethodsObject = <
+export const getObjectMutatingAndNonMutatingMethods = <
   T extends Record<string, any>,
 >(
   valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
   baseObjectSignal: BaseSignal<T>,
-): ObjectSourceSignalMethodsObject<T> => ({
-  ...getObjectSignalMutatingMethodsObject(valueSetter),
-  ...getObjectSignalNonMutatingMethodsObject(baseObjectSignal),
+): ObjectMutatingAndNonMutatingMethods<T> => ({
+  ...getObjectMutatingMethods(valueSetter),
+  ...getObjectNonMutatingMethods(baseObjectSignal),
 });

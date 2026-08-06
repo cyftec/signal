@@ -31,7 +31,7 @@ export type HasPrimitive<T> =
   Extract<T, Primitive> extends never ? never : true;
 
 /**
- * Logical Methods Structure
+ * Comparison Methods Structure
  *
  * or.
  * length.
@@ -49,74 +49,70 @@ export type HasPrimitive<T> =
  * hasAtLeastOne.primitive.when?stringOrArray.length.greaterOrSmaller
  */
 
-export type LogicalTernaryMethod = <U, V>(
-  truthyOption: MaybeSignal<U>,
-  falsyOption: MaybeSignal<V>,
-) => DerivedSignal<U | V>;
+// Nullable properties for any type
+export type LogicalOr<P extends Primitive> = {
+  or: <U>(
+    alternativeValue: MaybeSignal<U>,
+  ) => DerivedSignal<NonNullable<P> | U>;
+};
 
-export type LogicalThen = { then: LogicalTernaryMethod };
+export type TernaryThen = {
+  then: <U, V>(
+    truthyOption: MaybeSignal<U>,
+    falsyOption: MaybeSignal<V>,
+  ) => DerivedSignal<U | V>;
+};
 
-export type LogicalCheckReturnType = DerivedSignal<boolean> | LogicalThen;
+export type ComparisonReturnType = DerivedSignal<boolean> | TernaryThen;
 
-export type LogicalPrimitiveMethods<
-  T extends Primitive,
-  R extends LogicalCheckReturnType,
+export type ExistenceComparison<
+  P extends Primitive,
+  R extends ComparisonReturnType,
 > = {
   truthy: () => R;
   falsy: () => R;
-  equalTo: (compareValue: MaybeSignal<T>) => R;
-  notEqualTo: (compareValue: MaybeSignal<T>) => R;
+  equalTo: (compareValue: MaybeSignal<P>) => R;
+  notEqualTo: (compareValue: MaybeSignal<P>) => R;
 };
 
-export type LogicalNumberOnlyMethods<R extends LogicalCheckReturnType> = {
+export type MeasureComparison<R extends ComparisonReturnType> = {
   greaterThan: (compareValue: MaybeSignal<number>) => R;
   greaterThanOrEqualTo: (compareValue: MaybeSignal<number>) => R;
   smallerThan: (compareValue: MaybeSignal<number>) => R;
   smallerThanOrEqualTo: (compareValue: MaybeSignal<number>) => R;
 };
 
-// Nullable properties for any type
-export type LogicalOrMethods<T extends Primitive> = {
-  or: <U>(
-    alternativeValue: MaybeSignal<U>,
-  ) => DerivedSignal<NonNullable<T> | U>;
+export type Comparison<
+  P extends Primitive,
+  R extends ComparisonReturnType,
+> = ExistenceComparison<P, R> & (P extends number ? MeasureComparison<R> : {});
+
+export type LengthComparison<R extends ComparisonReturnType> = {
+  length: Comparison<number, R>;
 };
 
-export type LogicalChecker<
-  T extends Primitive,
-  R extends LogicalCheckReturnType,
-> = LogicalPrimitiveMethods<T, R> &
-  (T extends number ? LogicalNumberOnlyMethods<R> : {});
-
-export type LogicalLengthMethods<R extends LogicalCheckReturnType> = {
-  length: LogicalChecker<number, R>;
-};
-
-export type LogicalIsWhenMethods<T extends Primitive | any[]> = {
-  is: ([T] extends [Primitive]
-    ? LogicalChecker<T, DerivedSignal<boolean>>
-    : {}) &
+export type IsAndWhen<T extends Primitive | any[]> = {
+  is: ([T] extends [Primitive] ? Comparison<T, DerivedSignal<boolean>> : {}) &
     ([string] extends [T]
-      ? LogicalLengthMethods<DerivedSignal<boolean>>
+      ? LengthComparison<DerivedSignal<boolean>>
       : [any[]] extends [T]
-        ? LogicalLengthMethods<DerivedSignal<boolean>>
+        ? LengthComparison<DerivedSignal<boolean>>
         : {});
-  when: ([T] extends [Primitive] ? LogicalChecker<T, LogicalThen> : {}) &
+  when: ([T] extends [Primitive] ? Comparison<T, TernaryThen> : {}) &
     ([string] extends [T]
-      ? LogicalLengthMethods<LogicalThen>
+      ? LengthComparison<TernaryThen>
       : [any[]] extends [T]
-        ? LogicalLengthMethods<LogicalThen>
+        ? LengthComparison<TernaryThen>
         : {});
 };
 
-export type LogicalMethods<T> = [true] extends [
+export type GenericMethods<T> = [true] extends [
   IsExactly<T, Record<string, any>>,
 ]
   ? {}
   : [true] extends [HasPrimitive<T>]
-    ? LogicalOrMethods<Extract<T, Primitive>> &
-        LogicalIsWhenMethods<Extract<T, Primitive>>
-    : LogicalIsWhenMethods<any[]>;
+    ? LogicalOr<Extract<T, Primitive>> & IsAndWhen<Extract<T, Primitive>>
+    : IsAndWhen<any[]>;
 
 /**
  * Intrinsic mutating methods for array signals.
@@ -131,7 +127,7 @@ export type LogicalMethods<T> = [true] extends [
  * - Effects are triggered synchronously
  * - Methods expose a mutable-style API while maintaining immutability
  */
-export type ArraySignalIntrinsicMutatingMethodsObject<T extends any[]> = {
+export type ArrayIntrinsicMutatingMethods<T extends any[]> = {
   copyWithin: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["copyWithin"]>>
   ) => void;
@@ -173,7 +169,7 @@ export type ArraySignalIntrinsicMutatingMethodsObject<T extends any[]> = {
  * - `keep()` is the inverse of `filter()` - keeps items matching the predicate
  * - `remove()` deletes items matching the predicate
  */
-export type ArraySignalCustomMutatingMethodsObject<T extends any[]> = {
+export type ArrayCustomMutatingMethods<T extends any[]> = {
   /** Keeps items where the predicate returns true */
   keep: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
@@ -191,9 +187,8 @@ export type ArraySignalCustomMutatingMethodsObject<T extends any[]> = {
  *
  * @template T - The array type
  */
-export type ArraySignalMutatingMethodsObject<T extends any[]> =
-  ArraySignalIntrinsicMutatingMethodsObject<T> &
-    ArraySignalCustomMutatingMethodsObject<T>;
+export type ArrayMutatingMethods<T extends any[]> =
+  ArrayIntrinsicMutatingMethods<T> & ArrayCustomMutatingMethods<T>;
 
 /**
  * Intrinsic non-mutating methods for array signals.
@@ -208,7 +203,7 @@ export type ArraySignalMutatingMethodsObject<T extends any[]> =
  * - Methods are reactive and update when the source array changes
  * - Works with both source and derived signals
  */
-export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
+export type ArrayIntrinsicNonMutatingMethods<T extends any[]> = {
   at: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["at"]>>
   ) => DerivedSignal<ReturnType<Array<T[number]>["at"]>>;
@@ -281,7 +276,7 @@ export type ArraySignalIntrinsicNonMutatingMethodsObject<T extends any[]> = {
  * - `lastItem` returns a derived signal for the last array element
  * - `partition` splits an array into two derived signals based on a predicate
  */
-export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
+export type ArrayCustomNonMutatingMethods<T extends any[]> = {
   /** Last item of the array. */
   lastItem: () => DerivedSignal<T[number] | undefined>;
   /** Custom method that splits the array into `[passing, failing]` based on a predicate. */
@@ -297,9 +292,8 @@ export type ArraySignalCustomNonMutatingMethodsObject<T extends any[]> = {
  *
  * @template T - The array type
  */
-export type ArraySignalNonMutatingMethodsObject<T extends any[]> =
-  ArraySignalIntrinsicNonMutatingMethodsObject<T> &
-    ArraySignalCustomNonMutatingMethodsObject<T>;
+export type ArrayNonMutatingMethods<T extends any[]> =
+  ArrayIntrinsicNonMutatingMethods<T> & ArrayCustomNonMutatingMethods<T>;
 
 /**
  * Combined methods for array source signals.
@@ -313,8 +307,8 @@ export type ArraySignalNonMutatingMethodsObject<T extends any[]> =
  * - Non-mutating methods return derived signals
  * - Methods create new arrays internally but feel mutable
  */
-export type ArraySourceSignalMethodsObject<T extends any[]> =
-  ArraySignalMutatingMethodsObject<T> & ArraySignalNonMutatingMethodsObject<T>;
+export type ArrayMutatingAndNonMutatingMethods<T extends any[]> =
+  ArrayMutatingMethods<T> & ArrayNonMutatingMethods<T>;
 
 /**
  * Mutating methods for object signals.
@@ -325,9 +319,7 @@ export type ArraySourceSignalMethodsObject<T extends any[]> =
  * - `set()` performs a shallow merge with the current value
  * - Triggers effects synchronously
  */
-export type ObjectSourceSignalMutatingMethodsObject<
-  T extends Record<string, any>,
-> = {
+export type ObjectMutatingMethods<T extends Record<string, any>> = {
   /** Performs a shallow merge with the current value */
   set: (partiallyNewObjectValue: Partial<T>) => void;
 };
@@ -336,9 +328,7 @@ export type ObjectSourceSignalMutatingMethodsObject<
  * Non-mutating methods for object signals.
  *
  */
-export type ObjectSignalNonMutatingMethodsObject<
-  T extends Record<string, any>,
-> = {
+export type ObjectNonMutatingMethods<T extends Record<string, any>> = {
   /** Returns the object's keys as a derived signal. */
   keys: () => DerivedSignal<string[]>;
   /** Returns a derived signal for a specific property. */
@@ -347,9 +337,8 @@ export type ObjectSignalNonMutatingMethodsObject<
   props: () => { [key in keyof T]: DerivedSignal<T[key]> };
 };
 
-export type ObjectSourceSignalMethodsObject<T extends Record<string, any>> =
-  ObjectSourceSignalMutatingMethodsObject<T> &
-    ObjectSignalNonMutatingMethodsObject<T>;
+export type ObjectMutatingAndNonMutatingMethods<T extends Record<string, any>> =
+  ObjectMutatingMethods<T> & ObjectNonMutatingMethods<T>;
 
 /**
  * Intrinsic non-mutating methods for string signals.
@@ -362,7 +351,7 @@ export type ObjectSourceSignalMethodsObject<T extends Record<string, any>> =
  * - Methods are reactive and update when the source string changes
  * - Works with both source and derived signals
  */
-export type StringSignalIntrinsicNonMutatingMethodsObject = {
+export type StringIntrinsicNonMutatingMethods = {
   at: (
     ...args: MaybeSignalValues<Parameters<String["at"]>>
   ) => DerivedSignal<ReturnType<String["at"]>>;
@@ -461,7 +450,7 @@ export type StringSignalIntrinsicNonMutatingMethodsObject = {
  * - `TitleCase` returns a derived signal with each word capitalized
  * - `UPPERCASE` returns a derived signal for the uppercase version
  */
-export type StringSignalCustomNonMutatingMethodsObject = {
+export type StringCustomNonMutatingMethods = {
   /** Lowercase version of the string. */
   lowercase: () => DerivedSignal<string>;
   /** First letter capitalized, rest lowercase. */
@@ -477,9 +466,8 @@ export type StringSignalCustomNonMutatingMethodsObject = {
  *
  * Combines intrinsic, custom, and logical non-mutating methods into a single type.
  */
-export type StringSignalNonMutatingMethodsObject =
-  StringSignalIntrinsicNonMutatingMethodsObject &
-    StringSignalCustomNonMutatingMethodsObject;
+export type StringNonMutatingMethods = StringIntrinsicNonMutatingMethods &
+  StringCustomNonMutatingMethods;
 
 /**
  * Intrinsic non-mutating methods for number signals.
@@ -492,7 +480,7 @@ export type StringSignalNonMutatingMethodsObject =
  * - Methods are reactive and update when the source number changes
  * - Works with both source and derived signals
  */
-export type NumberSignalIntrinsicNonMutatingMethodsObject = {
+export type NumberIntrinsicNonMutatingMethods = {
   toExponential: (
     ...args: MaybeSignalValues<Parameters<number["toExponential"]>>
   ) => DerivedSignal<ReturnType<number["toExponential"]>>;
@@ -517,7 +505,7 @@ export type NumberSignalIntrinsicNonMutatingMethodsObject = {
  * @remarks
  * - `toConfined` confines the number within a range
  */
-export type NumberSignalCustomNonMutatingMethodsObject = {
+export type NumberCustomNonMutatingMethods = {
   /** Confines the number within a range [start, end]. */
   toConfined: (
     start: MaybeSignal<number>,
@@ -530,9 +518,8 @@ export type NumberSignalCustomNonMutatingMethodsObject = {
  *
  * Combines intrinsic, custom, and logical non-mutating methods into a single type.
  */
-export type NumberSignalNonMutatingMethodsObject =
-  NumberSignalIntrinsicNonMutatingMethodsObject &
-    NumberSignalCustomNonMutatingMethodsObject;
+export type NumberNonMutatingMethods = NumberIntrinsicNonMutatingMethods &
+  NumberCustomNonMutatingMethods;
 
 /**
  * Mutating methods for boolean signals.
@@ -541,31 +528,30 @@ export type NumberSignalNonMutatingMethodsObject =
  * - `toggle()` flips the boolean value
  * - Triggers effects synchronously
  */
-export type BooleanSignalMutatingMethodsObject = {
+export type BooleanMutatingMethods = {
   toggle: () => void;
 };
 
-export type BooleanSourceSignalMethodsObject =
-  BooleanSignalMutatingMethodsObject;
+export type BooleanMutatingAndNonMutatingMethods = BooleanMutatingMethods;
 
-export type NonMutatingMethodsObject<T> = [true] extends [IsArray<T>]
-  ? ArraySignalNonMutatingMethodsObject<Extract<T, any[]>>
+export type NonMutatingMethods<T> = [true] extends [IsArray<T>]
+  ? ArrayNonMutatingMethods<Extract<T, any[]>>
   : [true] extends [IsObjectLiteral<T>]
-    ? ObjectSignalNonMutatingMethodsObject<Extract<T, Record<string, any>>>
+    ? ObjectNonMutatingMethods<Extract<T, Record<string, any>>>
     : [true] extends [IsExactly<T, string>]
-      ? StringSignalNonMutatingMethodsObject
+      ? StringNonMutatingMethods
       : [true] extends [IsExactly<T, number>]
-        ? NumberSignalNonMutatingMethodsObject
+        ? NumberNonMutatingMethods
         : {};
 
-export type MutatingAndNonMutatingMethodsObject<T> = [true] extends [IsArray<T>]
-  ? ArraySourceSignalMethodsObject<Extract<T, any[]>>
+export type MutatingAndNonMutatingMethods<T> = [true] extends [IsArray<T>]
+  ? ArrayMutatingAndNonMutatingMethods<Extract<T, any[]>>
   : [true] extends [IsObjectLiteral<T>]
-    ? ObjectSourceSignalMethodsObject<Extract<T, Record<string, any>>>
+    ? ObjectMutatingAndNonMutatingMethods<Extract<T, Record<string, any>>>
     : [true] extends [IsExactly<T, string>]
-      ? StringSignalNonMutatingMethodsObject
+      ? StringNonMutatingMethods
       : [true] extends [IsExactly<T, number>]
-        ? NumberSignalNonMutatingMethodsObject
+        ? NumberNonMutatingMethods
         : [true] extends [IsExactly<T, boolean>]
-          ? BooleanSourceSignalMethodsObject
+          ? BooleanMutatingAndNonMutatingMethods
           : {};

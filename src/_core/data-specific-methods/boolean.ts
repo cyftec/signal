@@ -1,7 +1,7 @@
 import { type BaseSignal } from "../signals";
 import {
-  BooleanSignalMutatingMethodsObject,
-  BooleanSourceSignalMethodsObject,
+  BooleanMutatingMethods,
+  BooleanMutatingAndNonMutatingMethods,
 } from "./types";
 
 /**
@@ -16,15 +16,15 @@ import {
  *
  * @example
  * ```typescript
- * const methods = getBooleanSignalMutatingMethodsObject((mutator) => {
+ * const methods = getBooleanMutatingMethods((mutator) => {
  *   signal.value = mutator(signal.value);
  * });
  * methods.toggle(); // Flips the boolean value
  * ```
  */
-export const getBooleanSignalMutatingMethodsObject = (
+export const getBooleanMutatingMethods = (
   valueSetter: (mutatorMethod: (oldValue: boolean) => boolean) => void,
-): BooleanSignalMutatingMethodsObject => ({
+): BooleanMutatingMethods => ({
   toggle: () => valueSetter((oldValue) => !oldValue),
 });
 
@@ -44,16 +44,16 @@ export const getBooleanSignalMutatingMethodsObject = (
  * @example
  * ```typescript
  * const boolSignal = signal(true);
- * const methods = getBooleanSignalMethodsObject(
+ * const methods = getBooleanSignalMethods(
  *   (mutator) => { boolSignal.value = mutator(boolSignal.value); },
  *   boolSignal
  * );
  * methods.toggle(); // Flips from true to false
  * ```
  */
-export const getBooleanSignalMethodsObject = (
+export const getBooleanSignalMethods = (
   valueSetter: (mutatorMethod: (oldValue: boolean) => boolean) => void,
   baseSignal: BaseSignal<boolean>,
-): BooleanSourceSignalMethodsObject => ({
-  ...getBooleanSignalMutatingMethodsObject(valueSetter),
+): BooleanMutatingAndNonMutatingMethods => ({
+  ...getBooleanMutatingMethods(valueSetter),
 });

@@ -1,12 +1,12 @@
 import { isPlainObject } from "@cyftec/immut";
 import {
-  getArraySignalNonMutatingMethodsObject,
-  getLogicalMethods,
-  getNumberSignalMethodsObject,
-  getObjectSignalNonMutatingMethodsObject,
-  getStringSignalMethodsObject,
-  LogicalMethods,
-  NonMutatingMethodsObject,
+  getArrayNonMutatingMethods,
+  getGenericMethods,
+  getNumberSignalMethods,
+  getObjectNonMutatingMethods,
+  getStringSignalMethods,
+  GenericMethods,
+  NonMutatingMethods,
 } from "../data-specific-methods";
 import { effect } from "../effect";
 import { signal } from "./source-signal";
@@ -36,8 +36,8 @@ import { BaseDerivedSignal } from "./types";
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
-  NonMutatingMethodsObject<T> &
-  LogicalMethods<T>;
+  NonMutatingMethods<T> &
+  GenericMethods<T>;
 
 /**
  * A function that computes a derived signal's value.
@@ -130,16 +130,14 @@ export const derive = <T>(
   if (Array.isArray(derivedSource.value)) {
     return Object.assign(
       baseDerivedSignal,
-      getArraySignalNonMutatingMethodsObject(
-        baseDerivedSignal as BaseDerivedSignal<any[]>,
-      ),
+      getArrayNonMutatingMethods(baseDerivedSignal as BaseDerivedSignal<any[]>),
     ) as any;
   }
 
   if (isPlainObject(derivedSource.value)) {
     return Object.assign(
       baseDerivedSignal,
-      getObjectSignalNonMutatingMethodsObject(
+      getObjectNonMutatingMethods(
         baseDerivedSignal as BaseDerivedSignal<Record<string, any>>,
       ),
     ) as any;
@@ -148,21 +146,17 @@ export const derive = <T>(
   if (typeof derivedSource.value === "string") {
     return Object.assign(
       baseDerivedSignal,
-      getStringSignalMethodsObject(
-        baseDerivedSignal as BaseDerivedSignal<string>,
-      ),
+      getStringSignalMethods(baseDerivedSignal as BaseDerivedSignal<string>),
     ) as any;
   }
 
   if (typeof derivedSource.value === "number") {
     return Object.assign(
       baseDerivedSignal,
-      getNumberSignalMethodsObject(
-        baseDerivedSignal as BaseDerivedSignal<number>,
-      ),
+      getNumberSignalMethods(baseDerivedSignal as BaseDerivedSignal<number>),
     ) as any;
   }
 
-  Object.assign(baseDerivedSignal, getLogicalMethods(baseDerivedSignal));
+  Object.assign(baseDerivedSignal, getGenericMethods(baseDerivedSignal));
   return Object.assign(baseDerivedSignal) as any;
 };

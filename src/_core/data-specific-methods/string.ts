@@ -6,9 +6,9 @@ import {
   MaybeSignalValues,
 } from "../signals";
 import {
-  StringSignalCustomNonMutatingMethodsObject,
-  StringSignalIntrinsicNonMutatingMethodsObject,
-  StringSignalNonMutatingMethodsObject,
+  StringCustomNonMutatingMethods,
+  StringIntrinsicNonMutatingMethods,
+  StringNonMutatingMethods,
 } from "./types";
 
 /**
@@ -26,9 +26,9 @@ import {
  * - Works with both source and derived signals
  * - Methods are lazy - derived signals are only created when accessed
  */
-export const getStringSignalIntrinsicNonMutatingMethodsObject = (
+export const getStringIntrinsicNonMutatingMethods = (
   baseStringSignal: BaseSignal<string>,
-): StringSignalIntrinsicNonMutatingMethodsObject => {
+): StringIntrinsicNonMutatingMethods => {
   return {
     at: (...args: MaybeSignalValues<Parameters<String["at"]>>) =>
       derive(() => baseStringSignal.value.at(...getPlainMethodParams(...args))),
@@ -172,9 +172,9 @@ export const getStringSignalIntrinsicNonMutatingMethodsObject = (
  * - `UPPERCASE` returns a derived signal for the uppercase version
  * - Methods are lazy - derived signals are only created when accessed
  */
-export const getStringSignalCustomNonMutatingMethodsObject = (
+export const getStringCustomNonMutatingMethods = (
   baseStringSignal: BaseSignal<string>,
-): StringSignalCustomNonMutatingMethodsObject => {
+): StringCustomNonMutatingMethods => {
   return {
     lowercase: () => {
       return derive(() => baseStringSignal.value.toLowerCase());
@@ -212,9 +212,9 @@ export const getStringSignalCustomNonMutatingMethodsObject = (
  * - Methods are reactive and update when the source string changes
  * - Methods are lazy - derived signals are only created when accessed
  */
-export const getStringSignalMethodsObject = (
+export const getStringSignalMethods = (
   baseStringSignal: BaseSignal<string>,
-): StringSignalNonMutatingMethodsObject => ({
-  ...getStringSignalIntrinsicNonMutatingMethodsObject(baseStringSignal),
-  ...getStringSignalCustomNonMutatingMethodsObject(baseStringSignal),
+): StringNonMutatingMethods => ({
+  ...getStringIntrinsicNonMutatingMethods(baseStringSignal),
+  ...getStringCustomNonMutatingMethods(baseStringSignal),
 });

@@ -6,9 +6,9 @@ import {
   MaybeSignalValues,
 } from "../signals";
 import {
-  NumberSignalCustomNonMutatingMethodsObject,
-  NumberSignalIntrinsicNonMutatingMethodsObject,
-  NumberSignalNonMutatingMethodsObject,
+  NumberCustomNonMutatingMethods,
+  NumberIntrinsicNonMutatingMethods,
+  NumberNonMutatingMethods,
 } from "./types";
 
 /**
@@ -25,9 +25,9 @@ import {
  * - Methods are reactive and update when the source number changes
  * - Works with both source and derived signals
  */
-export const getNumberSignalIntrinsicNonMutatingMethodsObject = (
+export const getNumberIntrinsicNonMutatingMethods = (
   baseNumberSignal: BaseSignal<number>,
-): NumberSignalIntrinsicNonMutatingMethodsObject => {
+): NumberIntrinsicNonMutatingMethods => {
   return {
     toExponential: (
       ...args: MaybeSignalValues<Parameters<number["toExponential"]>>
@@ -67,9 +67,9 @@ export const getNumberSignalIntrinsicNonMutatingMethodsObject = (
  * @remarks
  * - `toConfined` confines the number within a range [start, end]
  */
-export const getNumberSignalCustomNonMutatingMethodsObject = (
+export const getNumberCustomNonMutatingMethods = (
   baseNumberSignal: BaseSignal<number>,
-): NumberSignalCustomNonMutatingMethodsObject => {
+): NumberCustomNonMutatingMethods => {
   return {
     toConfined: (start: MaybeSignal<number>, end: MaybeSignal<number>) =>
       derive(() => {
@@ -97,9 +97,9 @@ export const getNumberSignalCustomNonMutatingMethodsObject = (
  * - Works with both source and derived signals
  * - Methods are reactive and update when the source number changes
  */
-export const getNumberSignalMethodsObject = (
+export const getNumberSignalMethods = (
   baseNumberSignal: BaseSignal<number>,
-): NumberSignalNonMutatingMethodsObject => ({
-  ...getNumberSignalIntrinsicNonMutatingMethodsObject(baseNumberSignal),
-  ...getNumberSignalCustomNonMutatingMethodsObject(baseNumberSignal),
+): NumberNonMutatingMethods => ({
+  ...getNumberIntrinsicNonMutatingMethods(baseNumberSignal),
+  ...getNumberCustomNonMutatingMethods(baseNumberSignal),
 });

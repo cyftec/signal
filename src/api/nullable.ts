@@ -1,7 +1,7 @@
 import { MaybeSignal } from "../_core";
 import {
-  getLogicalMethods,
-  LogicalMethods,
+  getGenericMethods,
+  GenericMethods,
   Primitive,
 } from "../_core/data-specific-methods";
 
@@ -31,9 +31,9 @@ import {
  * - Enables fluent logical operation chaining
  * - Useful for conditional logic in reactive contexts
  *
- * @see {@link LogicalMethods} - For the logical methods interface
+ * @see {@link GenericMethods} - For the logical methods interface
  * @see {@link MaybeSignal} - For the input type
  */
 export const nullable = <T>(
   input: MaybeSignal<Extract<T, Primitive> extends never ? never : T>,
-): LogicalMethods<T> => getLogicalMethods(input as MaybeSignal<T>);
+): GenericMethods<T> => getGenericMethods(input as MaybeSignal<T>);

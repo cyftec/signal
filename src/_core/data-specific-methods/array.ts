@@ -7,13 +7,13 @@ import {
   type BaseSignal,
 } from "../signals";
 import {
-  ArraySignalCustomMutatingMethodsObject,
-  ArraySignalCustomNonMutatingMethodsObject,
-  ArraySignalIntrinsicMutatingMethodsObject,
-  ArraySignalIntrinsicNonMutatingMethodsObject,
-  ArraySignalMutatingMethodsObject,
-  ArraySignalNonMutatingMethodsObject,
-  ArraySourceSignalMethodsObject,
+  ArrayCustomMutatingMethods,
+  ArrayCustomNonMutatingMethods,
+  ArrayIntrinsicMutatingMethods,
+  ArrayIntrinsicNonMutatingMethods,
+  ArrayMutatingMethods,
+  ArrayNonMutatingMethods,
+  ArrayMutatingAndNonMutatingMethods,
 } from "./types";
 
 /**
@@ -31,9 +31,9 @@ import {
  * - Effects are triggered synchronously
  * - Methods expose a mutable-style API while maintaining immutability
  */
-export const getArraySignalIntrinsicMutatingMethodsObject = <T extends any[]>(
+export const getArrayIntrinsicMutatingMethods = <T extends any[]>(
   valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
-): ArraySignalIntrinsicMutatingMethodsObject<T> => {
+): ArrayIntrinsicMutatingMethods<T> => {
   const signalUpdator = (mutatorMethod: (newVal: T) => void): void =>
     valueSetter((oldValue: T) => {
       const newValue = Array.from(oldValue) as T;
@@ -105,9 +105,9 @@ export const getArraySignalIntrinsicMutatingMethodsObject = <T extends any[]>(
  * - `keep()` is the inverse of `filter()` - keeps items matching the predicate
  * - `remove()` deletes items matching the predicate
  */
-export const getArraySignalCustomMutatingMethodsObject = <T extends any[]>(
+export const getArrayCustomMutatingMethods = <T extends any[]>(
   valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
-): ArraySignalCustomMutatingMethodsObject<T> => ({
+): ArrayCustomMutatingMethods<T> => ({
   /** Keeps items where the predicate returns true. */
   keep: (...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>) =>
     valueSetter((oldValue: T) => {
@@ -137,11 +137,11 @@ export const getArraySignalCustomMutatingMethodsObject = <T extends any[]>(
  * @param valueSetter - Updates the signal value and triggers effects
  * @returns Combined mutating methods for array signals
  */
-export const getArraySignalMutatingMethodsObject = <T extends any[]>(
+export const getArrayMutatingMethods = <T extends any[]>(
   valueSetter: (mutatorMethod: (oldValue: T) => T) => void,
-): ArraySignalMutatingMethodsObject<T> => ({
-  ...getArraySignalIntrinsicMutatingMethodsObject(valueSetter),
-  ...getArraySignalCustomMutatingMethodsObject(valueSetter),
+): ArrayMutatingMethods<T> => ({
+  ...getArrayIntrinsicMutatingMethods(valueSetter),
+  ...getArrayCustomMutatingMethods(valueSetter),
 });
 
 /**
@@ -159,11 +159,9 @@ export const getArraySignalMutatingMethodsObject = <T extends any[]>(
  * - Methods are reactive and update when the source array changes
  * - Works with both source and derived signals
  */
-export const getArraySignalIntrinsicNonMutatingMethodsObject = <
-  T extends any[],
->(
+export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
   baseSignalArrayObject: BaseSignal<T>,
-): ArraySignalIntrinsicNonMutatingMethodsObject<T> => {
+): ArrayIntrinsicNonMutatingMethods<T> => {
   return {
     at: (...args: MaybeSignalValues<Parameters<Array<T[number]>["at"]>>) =>
       derive(
@@ -309,9 +307,9 @@ export const getArraySignalIntrinsicNonMutatingMethodsObject = <
  * - `lastItem` returns a derived signal for the last array element
  * - `partition` splits an array into two derived signals based on a predicate
  */
-export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
+export const getArrayCustomNonMutatingMethods = <T extends any[]>(
   baseSignalArrayObject: BaseSignal<T>,
-): ArraySignalCustomNonMutatingMethodsObject<T> => {
+): ArrayCustomNonMutatingMethods<T> => {
   return {
     lastItem: () => {
       return derive(() => {
@@ -354,11 +352,11 @@ export const getArraySignalCustomNonMutatingMethodsObject = <T extends any[]>(
  * - Works with both source and derived signals
  * - Methods are reactive and update when the source array changes
  */
-export const getArraySignalNonMutatingMethodsObject = <T extends any[]>(
+export const getArrayNonMutatingMethods = <T extends any[]>(
   baseSignalArrayObject: BaseSignal<T>,
-): ArraySignalNonMutatingMethodsObject<T> => ({
-  ...getArraySignalIntrinsicNonMutatingMethodsObject(baseSignalArrayObject),
-  ...getArraySignalCustomNonMutatingMethodsObject(baseSignalArrayObject),
+): ArrayNonMutatingMethods<T> => ({
+  ...getArrayIntrinsicNonMutatingMethods(baseSignalArrayObject),
+  ...getArrayCustomNonMutatingMethods(baseSignalArrayObject),
 });
 
 /**
@@ -375,10 +373,10 @@ export const getArraySignalNonMutatingMethodsObject = <T extends any[]>(
  * - Non-mutating methods return derived signals
  * - Mutating methods create new arrays internally but feel mutable
  */
-export const getArraySourceSignalMethodsObject = <T extends any[]>(
+export const getArrayMutatingAndNonMutatingMethods = <T extends any[]>(
   valueSetter: (method: (oldValue: T) => T) => void,
   baseArraySifiedignalObject: BaseSignal<T>,
-): ArraySourceSignalMethodsObject<T> => ({
-  ...getArraySignalMutatingMethodsObject(valueSetter),
-  ...getArraySignalNonMutatingMethodsObject(baseArraySifiedignalObject),
+): ArrayMutatingAndNonMutatingMethods<T> => ({
+  ...getArrayMutatingMethods(valueSetter),
+  ...getArrayNonMutatingMethods(baseArraySifiedignalObject),
 });

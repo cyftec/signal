@@ -1,43 +1,15 @@
 import { value } from "../../utils";
 import { derive, MaybeSignal, type DerivedSignal } from "../signals";
 import type {
-  LogicalChecker,
-  LogicalCheckReturnType,
-  LogicalLengthMethods,
-  LogicalMethods,
-  LogicalNumberOnlyMethods,
-  LogicalOrMethods,
-  LogicalPrimitiveMethods,
-  LogicalThen,
+  Comparison,
+  ExistenceComparison,
+  LengthComparison,
+  ComparisonReturnType,
+  GenericMethods,
+  TernaryThen,
+  MeasureComparison,
   Primitive,
 } from "./types";
-
-/**
- * Creates an OR method object for providing alternative values.
- *
- * This function creates a logical OR operation that returns the current value
- * if it's truthy, otherwise returns the alternative value.
- *
- * @template T - The type of the base value
- * @param baseSignal - The base signal to check
- * @returns An object with an `or` method for providing alternative values
- *
- * @remarks
- * - The `or` method returns the current value if truthy, otherwise the alternative
- * - Useful for providing default values for nullable signals
- * - Returns a derived signal that updates when either value changes
- */
-export const getOrMethodsObject = <T>(
-  baseSignal: MaybeSignal<T>,
-): LogicalOrMethods<Primitive> => {
-  return {
-    or: <R>(alternativeValue: MaybeSignal<R>) =>
-      derive(() => {
-        const altValue = value(alternativeValue);
-        return value(baseSignal) || altValue;
-      }),
-  } as LogicalOrMethods<Primitive>;
-};
 
 /**
  * Creates a logical map object for conditional value selection.
@@ -53,7 +25,7 @@ export const getOrMethodsObject = <T>(
  * - Returns a derived signal that updates when the condition or options change
  * - Used by the `when` logical methods for conditional value selection
  */
-const getLogicalMap = (truthyEvaluator: () => boolean): LogicalThen => {
+const getTernaryThen = (truthyEvaluator: () => boolean): TernaryThen => {
   return {
     then: <U, V>(
       truthyOption: MaybeSignal<U>,
@@ -75,9 +47,9 @@ const getLogicalMap = (truthyEvaluator: () => boolean): LogicalThen => {
  * and for comparing it with other values for equality.
  *
  * @template T - The type of value to check
- * @template R - The return type (DerivedSignal or LogicalThen)
+ * @template R - The return type (DerivedSignal or TernaryThen)
  * @param valueGetter - A function that returns the value to check
- * @param forTernaryMap - Whether to return LogicalThen for ternary operations
+ * @param forTernary - Whether to return TernaryThen for ternary operations
  * @returns A logical primitive methods object
  *
  * @remarks
@@ -85,48 +57,48 @@ const getLogicalMap = (truthyEvaluator: () => boolean): LogicalThen => {
  * - `falsy` returns true if the value is falsy
  * - `equalTo` returns true if the value equals the comparison value
  * - `notEqualTo` returns true if the value does not equal the comparison value
- * - When forTernaryMap is true, methods return LogicalThen for conditional selection
+ * - When forTernary is true, methods return TernaryThen for conditional selection
  */
 const getPrimitiveMethods = <
   T extends Primitive,
-  R extends LogicalCheckReturnType,
+  R extends ComparisonReturnType,
 >(
   valueGetter: () => T,
-  forTernaryMap: boolean,
-): LogicalPrimitiveMethods<T, R> => {
+  forTernary: boolean,
+): ExistenceComparison<T, R> => {
   const truthyEvaluator = () => !!valueGetter();
   const falsyEvaluator = () => !valueGetter();
 
-  const truthyChecker = (forTernaryOpMap: boolean) => () =>
-    forTernaryOpMap ? getLogicalMap(truthyEvaluator) : derive(truthyEvaluator);
+  const truthyChecker = (forTernaryThen: boolean) => () =>
+    forTernaryThen ? getTernaryThen(truthyEvaluator) : derive(truthyEvaluator);
 
-  const falsyChecker = (forTernaryOpMap: boolean) => () =>
-    forTernaryOpMap ? getLogicalMap(falsyEvaluator) : derive(falsyEvaluator);
+  const falsyChecker = (forTernaryThen: boolean) => () =>
+    forTernaryThen ? getTernaryThen(falsyEvaluator) : derive(falsyEvaluator);
 
   const equalToChecker =
-    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<T>) => {
+    (forTernaryThen: boolean) => (compareValue: MaybeSignal<T>) => {
       const equalityEvaluator = () =>
         valueGetter() === (value(compareValue) as T);
-      return forTernaryOpMap
-        ? getLogicalMap(equalityEvaluator)
+      return forTernaryThen
+        ? getTernaryThen(equalityEvaluator)
         : derive(equalityEvaluator);
     };
 
   const notEqualToChecker =
-    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<T>) => {
+    (forTernaryThen: boolean) => (compareValue: MaybeSignal<T>) => {
       const notEqualityEvaluator = () =>
         valueGetter() !== (value(compareValue) as T);
-      return forTernaryOpMap
-        ? getLogicalMap(notEqualityEvaluator)
+      return forTernaryThen
+        ? getTernaryThen(notEqualityEvaluator)
         : derive(notEqualityEvaluator);
     };
 
   return {
-    truthy: truthyChecker(forTernaryMap),
-    falsy: falsyChecker(forTernaryMap),
-    equalTo: equalToChecker(forTernaryMap),
-    notEqualTo: notEqualToChecker(forTernaryMap),
-  } as LogicalPrimitiveMethods<T, R>;
+    truthy: truthyChecker(forTernary),
+    falsy: falsyChecker(forTernary),
+    equalTo: equalToChecker(forTernary),
+    notEqualTo: notEqualToChecker(forTernary),
+  } as ExistenceComparison<T, R>;
 };
 
 /**
@@ -135,9 +107,9 @@ const getPrimitiveMethods = <
  * This function creates methods for comparing numeric values using
  * greater-than and less-than operators.
  *
- * @template R - The return type (DerivedSignal or LogicalThen)
+ * @template R - The return type (DerivedSignal or TernaryThen)
  * @param numberGetter - A function that returns the number to compare
- * @param forTernaryMap - Whether to return LogicalThen for ternary operations
+ * @param forTernary - Whether to return TernaryThen for ternary operations
  * @returns A logical number methods object
  *
  * @remarks
@@ -145,72 +117,72 @@ const getPrimitiveMethods = <
  * - `greaterThanOrEqualTo` returns true if the value is greater than or equal
  * - `smallerThan` returns true if the value is less than the comparison value
  * - `smallerThanOrEqualTo` returns true if the value is less than or equal
- * - When forTernaryMap is true, methods return LogicalThen for conditional selection
+ * - When forTernary is true, methods return TernaryThen for conditional selection
  */
-const getNumberOnlyMethods = <R extends LogicalCheckReturnType>(
+const getNumberOnlyMethods = <R extends ComparisonReturnType>(
   numberGetter: () => number,
-  forTernaryMap: boolean,
-): LogicalNumberOnlyMethods<R> => {
+  forTernary: boolean,
+): MeasureComparison<R> => {
   const greaterThanChecker =
-    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<number>) => {
+    (forTernaryThen: boolean) => (compareValue: MaybeSignal<number>) => {
       const greaterThanEvaluator = () =>
         numberGetter() > (value(compareValue) as number);
-      return forTernaryOpMap
-        ? getLogicalMap(greaterThanEvaluator)
+      return forTernaryThen
+        ? getTernaryThen(greaterThanEvaluator)
         : derive(greaterThanEvaluator);
     };
   const greaterThanOrEqualToChecker =
-    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<number>) => {
+    (forTernaryThen: boolean) => (compareValue: MaybeSignal<number>) => {
       const greaterThanOrEqualToEvaluator = () =>
         numberGetter() >= (value(compareValue) as number);
-      return forTernaryOpMap
-        ? getLogicalMap(greaterThanOrEqualToEvaluator)
+      return forTernaryThen
+        ? getTernaryThen(greaterThanOrEqualToEvaluator)
         : derive(greaterThanOrEqualToEvaluator);
     };
   const smallerThanChecker =
-    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<number>) => {
+    (forTernaryThen: boolean) => (compareValue: MaybeSignal<number>) => {
       const smallerThanEvaluator = () =>
         numberGetter() < (value(compareValue) as number);
-      return forTernaryOpMap
-        ? getLogicalMap(smallerThanEvaluator)
+      return forTernaryThen
+        ? getTernaryThen(smallerThanEvaluator)
         : derive(smallerThanEvaluator);
     };
   const smallerThanOrEqualToChecker =
-    (forTernaryOpMap: boolean) => (compareValue: MaybeSignal<number>) => {
+    (forTernaryThen: boolean) => (compareValue: MaybeSignal<number>) => {
       const smallerThanOrEqualToEvaluator = () =>
         numberGetter() <= (value(compareValue) as number);
-      return forTernaryOpMap
-        ? getLogicalMap(smallerThanOrEqualToEvaluator)
+      return forTernaryThen
+        ? getTernaryThen(smallerThanOrEqualToEvaluator)
         : derive(smallerThanOrEqualToEvaluator);
     };
 
   return {
-    greaterThan: greaterThanChecker(forTernaryMap),
-    greaterThanOrEqualTo: greaterThanOrEqualToChecker(forTernaryMap),
-    smallerThan: smallerThanChecker(forTernaryMap),
-    smallerThanOrEqualTo: smallerThanOrEqualToChecker(forTernaryMap),
-  } as LogicalNumberOnlyMethods<R>;
+    greaterThan: greaterThanChecker(forTernary),
+    greaterThanOrEqualTo: greaterThanOrEqualToChecker(forTernary),
+    smallerThan: smallerThanChecker(forTernary),
+    smallerThanOrEqualTo: smallerThanOrEqualToChecker(forTernary),
+  } as MeasureComparison<R>;
 };
 
 /**
  * Combines primitive and number logical methods into a single checker.
  *
  * @template T - The type of value to check
- * @template R - The return type (DerivedSignal or LogicalThen)
+ * @template R - The return type (DerivedSignal or TernaryThen)
  * @param valueGetter - A function that returns the value to check
- * @param forTernaryMap - Whether to return LogicalThen for ternary operations
+ * @param forTernary - Whether to return TernaryThen for ternary operations
  * @returns A combined logical checker object
  */
-const getLogicalCheckerMethods = <
+const getComparisonMethods = <
   T extends Primitive,
-  R extends LogicalCheckReturnType,
+  R extends ComparisonReturnType,
 >(
   valueGetter: () => T,
-  forTernaryMap: boolean,
-): LogicalChecker<T, R> => {
+  forTernary: boolean,
+): Comparison<T, R> => {
   return {
-    ...getPrimitiveMethods(valueGetter, forTernaryMap),
-    ...getNumberOnlyMethods(valueGetter as () => number, forTernaryMap),
+    ...getPrimitiveMethods(valueGetter, forTernary),
+    ...getNumberOnlyMethods(valueGetter as () => number, forTernary),
   };
 };
 
@@ -219,9 +191,9 @@ const getLogicalCheckerMethods = <
  *
  * This function creates methods for comparing the length of strings and arrays.
  *
- * @template R - The return type (DerivedSignal or LogicalThen)
+ * @template R - The return type (DerivedSignal or TernaryThen)
  * @param lengthGetter - A function that returns the length to compare
- * @param forTernaryMap - Whether to return LogicalThen for ternary operations
+ * @param forTernary - Whether to return TernaryThen for ternary operations
  * @returns A logical length methods object
  *
  * @remarks
@@ -229,12 +201,12 @@ const getLogicalCheckerMethods = <
  * - Returns NaN for values that don't have a length property
  * - Used by string and array signals for length-based logic
  */
-const getLengthMethods = <R extends LogicalCheckReturnType>(
+const getLengthMethods = <R extends ComparisonReturnType>(
   lengthGetter: () => number,
-  forTernaryMap: boolean,
-): LogicalLengthMethods<R> => {
+  forTernary: boolean,
+): LengthComparison<R> => {
   return {
-    length: getLogicalCheckerMethods(lengthGetter, forTernaryMap),
+    length: getComparisonMethods(lengthGetter, forTernary),
   };
 };
 
@@ -255,22 +227,22 @@ const getLengthMethods = <R extends LogicalCheckReturnType>(
  * @remarks
  * - `or` provides alternative values for nullable/undefined cases
  * - `is` returns derived signals for boolean checks
- * - `when` returns LogicalThen objects for conditional value selection
+ * - `when` returns TernaryThen objects for conditional value selection
  * - Length methods are only available for strings and arrays
  * - Numeric comparison methods are only available for numbers
  *
  * @example
  * ```typescript
  * const count = signal(5);
- * const logical = getLogicalMethods(count);
+ * const logical = getGenericMethods(count);
  * logical.is.truthy; // DerivedSignal<boolean>
  * logical.is.greaterThan(3).truthy; // DerivedSignal<boolean>
  * logical.when.greaterThan(10).then("big", "small"); // DerivedSignal<string>
  * ```
  */
-export const getLogicalMethods = <T>(
+export const getGenericMethods = <T>(
   baseSignal: MaybeSignal<T>,
-): LogicalMethods<T> => {
+): GenericMethods<T> => {
   const valueGetter = () => value(baseSignal) as Primitive;
   const lenghtGetter = () => {
     const val = value(baseSignal);
@@ -285,12 +257,12 @@ export const getLogicalMethods = <T>(
         return value(baseSignal) || altValue;
       }),
     is: {
-      ...getLogicalCheckerMethods(valueGetter, false),
+      ...getComparisonMethods(valueGetter, false),
       ...getLengthMethods(lenghtGetter, false),
     },
     when: {
-      ...getLogicalCheckerMethods(valueGetter, true),
+      ...getComparisonMethods(valueGetter, true),
       ...getLengthMethods(lenghtGetter, false),
     },
-  } as unknown as LogicalMethods<T>;
+  } as unknown as GenericMethods<T>;
 };
