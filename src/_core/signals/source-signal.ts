@@ -1,16 +1,15 @@
-import { immut, isPlainObject, newVal } from "@cyftec/immut";
+import { isPlainObject } from "@cyftec/immut";
 import {
+  GenericMethods,
   getArrayMutatingAndNonMutatingMethods,
   getBooleanSignalMethods,
   getGenericMethods,
   getNumberSignalMethods,
   getObjectMutatingAndNonMutatingMethods,
   getStringSignalMethods,
-  GenericMethods,
   MutatingAndNonMutatingMethods,
 } from "../data-specific-methods";
-import { Effect, EffectHook } from "../effect";
-import { BaseSourceSignal } from "./types";
+import { baseSourceSignal, BaseSourceSignal } from "./base-signal";
 
 /**
  * A mutable source signal created from plain JavaScript data.
@@ -80,49 +79,7 @@ export const signal = <T>(
   initialValue: T,
   nonNullableInitialValue?: NonNullable<T extends Record<string, any> ? {} : T>,
 ): SourceSignal<T> => {
-  let _value = immut(initialValue);
-  const _effects = new Set<Effect>();
-
-  /**
-   * Runs all registered effects when the signal's value changes.
-   *
-   * This function iterates through all effects and:
-   * 1. Skips effects marked for disposal (canDisposeNow = true)
-   * 2. Removes disposed effects from the set (lazy cleanup)
-   * 3. Executes remaining effects
-   *
-   * The lazy cleanup approach ensures that effects are removed on the next
-   * signal update after being disposed, rather than immediately.
-   */
-  const runEffects = () => {
-    _effects.forEach((effect) => effect.run());
-  };
-
-  /**
-   * Updates the signal's value and triggers all dependent effects.
-   *
-   * This function is used internally by the signal's setter and by
-   * type-specific mutation methods (for arrays and objects).
-   *
-   * @param newValue The new value to set
-   */
-  const setValueAndRunEffects = (newValue: T): void => {
-    _value = newValue;
-    runEffects();
-  };
-
-  const baseSourceSignal: BaseSourceSignal<T> = {
-    type: "source-signal",
-    get value() {
-      const currentRegisteredEffect = EffectHook.getCurrentEffect();
-      if (currentRegisteredEffect) _effects.add(currentRegisteredEffect);
-      return newVal(_value);
-    },
-    set value(newValue: T) {
-      if (newValue === _value) return;
-      setValueAndRunEffects(immut(newValue));
-    },
-  };
+  const baseSignal: BaseSourceSignal<T> = baseSourceSignal(initialValue);
 
   /**
    * Type-specific signal creation:
@@ -142,51 +99,45 @@ export const signal = <T>(
       : nonNullableInitialValue;
   const result: SourceSignal<T> = Array.isArray(nonNullableInitial)
     ? Object.assign(
-        baseSourceSignal,
+        baseSignal,
         getArrayMutatingAndNonMutatingMethods(
           (mutatorMethod) =>
-            setValueAndRunEffects(mutatorMethod(_value as unknown[]) as T),
-          baseSourceSignal as BaseSourceSignal<any[]>,
+            baseSignal.mutate(mutatorMethod as unknown as (oldValue: T) => T),
+          baseSignal as BaseSourceSignal<any[]>,
         ),
       )
     : isPlainObject(nonNullableInitial)
       ? Object.assign(
-          baseSourceSignal,
+          baseSignal,
           getObjectMutatingAndNonMutatingMethods(
             (mutatorMethod) =>
-              setValueAndRunEffects(
-                mutatorMethod(_value as Record<string, any>) as T,
-              ),
-            baseSourceSignal as BaseSourceSignal<Record<string, any>>,
+              baseSignal.mutate(mutatorMethod as unknown as (oldValue: T) => T),
+            baseSignal as BaseSourceSignal<Record<string, any>>,
           ),
         )
       : typeof nonNullableInitial === "string"
         ? Object.assign(
-            baseSourceSignal,
-            getStringSignalMethods(
-              baseSourceSignal as BaseSourceSignal<string>,
-            ),
+            baseSignal,
+            getStringSignalMethods(baseSignal as BaseSourceSignal<string>),
           )
         : typeof nonNullableInitial === "number"
           ? Object.assign(
-              baseSourceSignal,
-              getNumberSignalMethods(
-                baseSourceSignal as BaseSourceSignal<number>,
-              ),
+              baseSignal,
+              getNumberSignalMethods(baseSignal as BaseSourceSignal<number>),
             )
           : typeof nonNullableInitial === "boolean"
             ? Object.assign(
-                baseSourceSignal,
+                baseSignal,
                 getBooleanSignalMethods(
                   (mutatorMethod) =>
-                    setValueAndRunEffects(
-                      mutatorMethod(_value as boolean) as T,
+                    baseSignal.mutate(
+                      mutatorMethod as unknown as (oldValue: T) => T,
                     ),
-                  baseSourceSignal as BaseSourceSignal<boolean>,
+                  baseSignal as BaseSourceSignal<boolean>,
                 ),
               )
-            : Object.assign(baseSourceSignal);
-  Object.assign(result, getGenericMethods(baseSourceSignal));
+            : Object.assign(baseSignal);
+  Object.assign(result, getGenericMethods(baseSignal));
 
   return result as SourceSignal<T>;
 };

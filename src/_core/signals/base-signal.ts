@@ -1,7 +1,7 @@
 import { newVal } from "@cyftec/immut";
-import { EffectHook, Effect } from "../effect";
+import { Effect, EffectHook } from "../effect";
 
-export const baseSignal = <T>(initialValue: T) => {
+export const baseSourceSignal = <T>(initialValue: T) => {
   let _prevValue: T | undefined = undefined;
   let _value: T = newVal(initialValue);
   const _effects = new Set<Effect>();
@@ -14,10 +14,16 @@ export const baseSignal = <T>(initialValue: T) => {
     }
   };
 
-  // type BaseSignal<T>
+  // type BaseSourceSignal<T>
   const base = {
+    type: "source-signal",
+
     get prevValue(): T | undefined {
       return _prevValue;
+    },
+
+    get nonReactiveValue(): T {
+      return _value;
     },
 
     get value(): T {
@@ -26,12 +32,19 @@ export const baseSignal = <T>(initialValue: T) => {
     },
 
     set value(newValue: T) {
-      if (_value === newValue)
+      if (_value === newValue) {
         console.log(`Unnecessary value change - ${newValue}`);
+        return;
+      }
 
       _prevValue = _value;
       _value = newValue;
       _effects.forEach((effect) => effect.run());
+    },
+
+    mutate(mutatedValueEvaluator: (oldValue: T) => T) {
+      const updatedValue = mutatedValueEvaluator(_value);
+      this.value = updatedValue;
     },
 
     removeEffect(effect: Effect): void {
@@ -48,4 +61,4 @@ export const baseSignal = <T>(initialValue: T) => {
   return base;
 };
 
-export type BaseSignal<T> = ReturnType<typeof baseSignal<T>>;
+export type BaseSourceSignal<T> = ReturnType<typeof baseSourceSignal<T>>;
