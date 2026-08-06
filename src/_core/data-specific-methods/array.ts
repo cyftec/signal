@@ -30,7 +30,7 @@ export const getArrayIntrinsicMutatingMethods = <T extends any[]>(
   baseArraySignal: BaseSignal<T>,
 ): ArrayIntrinsicMutatingMethods<T> => {
   const signalUpdator = (mutatorMethod: (newVal: T) => void): void =>
-    baseArraySignal.mutate((oldValue: T) => {
+    baseArraySignal.mutateWith((oldValue: T) => {
       const newValue = Array.from(oldValue) as T;
       mutatorMethod(newValue);
       return newValue;
@@ -105,7 +105,7 @@ export const getArrayCustomMutatingMethods = <T extends any[]>(
 ): ArrayCustomMutatingMethods<T> => ({
   /** Keeps items where the predicate returns true. */
   keep: (...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>) =>
-    baseArraySignal.mutate((oldValue: T) => {
+    baseArraySignal.mutateWith((oldValue: T) => {
       return oldValue.filter(...getPlainMethodParams(...args)) as T;
     }),
   /** Removes items where the predicate returns true. */
@@ -117,7 +117,7 @@ export const getArrayCustomMutatingMethods = <T extends any[]>(
       ...predicateArgs: Parameters<typeof predicate>
     ) => !predicate(...predicateArgs);
     args[0] = negativeLogicPredicate;
-    baseArraySignal.mutate((oldValue: T) => {
+    baseArraySignal.mutateWith((oldValue: T) => {
       return oldValue.filter(...getPlainMethodParams(...args)) as T;
     });
   },
@@ -367,6 +367,6 @@ export const getArrayNonMutatingMethods = <T extends any[]>(
 export const getArrayMutatingAndNonMutatingMethods = <T extends any[]>(
   baseArraySignal: BaseSignal<T>,
 ): ArrayMutatingAndNonMutatingMethods<T> => ({
-  ...getArrayMutatingMethods(baseArraySignal),
+  mutate: { ...getArrayMutatingMethods(baseArraySignal) },
   ...getArrayNonMutatingMethods(baseArraySignal),
 });

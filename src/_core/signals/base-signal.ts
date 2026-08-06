@@ -39,7 +39,7 @@ export const getBaseSignal = <T>(initialValue: T) => {
       _effects.forEach((effect) => effect.run());
     },
 
-    mutate(mutatedValueEvaluator: (oldValue: T) => T) {
+    mutateWith(mutatedValueEvaluator: (oldValue: T) => T) {
       const updatedValue = mutatedValueEvaluator(_value);
       this.value = updatedValue;
     },

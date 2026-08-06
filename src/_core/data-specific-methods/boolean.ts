@@ -25,7 +25,7 @@ import {
 export const getBooleanMutatingMethods = (
   baseSignal: BaseSignal<boolean>,
 ): BooleanMutatingMethods => ({
-  toggle: () => baseSignal.mutate((oldValue) => !oldValue),
+  toggle: () => baseSignal.mutateWith((oldValue) => !oldValue),
 });
 
 /**
@@ -54,5 +54,5 @@ export const getBooleanMutatingMethods = (
 export const getBooleanSignalMethods = (
   baseSignal: BaseSignal<boolean>,
 ): BooleanMutatingAndNonMutatingMethods => ({
-  ...getBooleanMutatingMethods(baseSignal),
+  mutate: { ...getBooleanMutatingMethods(baseSignal) },
 });

@@ -308,8 +308,9 @@ export type ArrayNonMutatingMethods<T extends any[]> =
  * - Non-mutating methods return derived signals
  * - Methods create new arrays internally but feel mutable
  */
-export type ArrayMutatingAndNonMutatingMethods<T extends any[]> =
-  ArrayMutatingMethods<T> & ArrayNonMutatingMethods<T>;
+export type ArrayMutatingAndNonMutatingMethods<T extends any[]> = {
+  mutate: ArrayMutatingMethods<T>;
+} & ArrayNonMutatingMethods<T>;
 
 /**
  * Mutating methods for object signals.
@@ -339,7 +340,7 @@ export type ObjectNonMutatingMethods<T extends Record<string, any>> = {
 };
 
 export type ObjectMutatingAndNonMutatingMethods<T extends Record<string, any>> =
-  ObjectMutatingMethods<T> & ObjectNonMutatingMethods<T>;
+  { mutate: ObjectMutatingMethods<T> } & ObjectNonMutatingMethods<T>;
 
 /**
  * Intrinsic non-mutating methods for string signals.
@@ -533,7 +534,9 @@ export type BooleanMutatingMethods = {
   toggle: () => void;
 };
 
-export type BooleanMutatingAndNonMutatingMethods = BooleanMutatingMethods;
+export type BooleanMutatingAndNonMutatingMethods = {
+  mutate: BooleanMutatingMethods;
+};
 
 export type NonMutatingMethods<T> = [true] extends [IsArray<T>]
   ? ArrayNonMutatingMethods<Extract<T, any[]>>

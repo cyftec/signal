@@ -68,67 +68,67 @@ describe("signal - array values", () => {
   // Array mutation methods
   it("should have 'push' method", () => {
     const arr = signal([1, 2, 3]);
-    arr.push(4);
+    arr.mutate.push(4);
     expect(arr.value).toEqual([1, 2, 3, 4]);
   });
 
   it("should have 'pop' method", () => {
     const arr = signal([1, 2, 3]);
-    arr.pop();
+    arr.mutate.pop();
     expect(arr.value).toEqual([1, 2]);
   });
 
   it("should have 'shift' method", () => {
     const arr = signal([1, 2, 3]);
-    arr.shift();
+    arr.mutate.shift();
     expect(arr.value).toEqual([2, 3]);
   });
 
   it("should have 'unshift' method", () => {
     const arr = signal([1, 2, 3]);
-    arr.unshift(0);
+    arr.mutate.unshift(0);
     expect(arr.value).toEqual([0, 1, 2, 3]);
   });
 
   it("should have 'splice' method", () => {
     const arr = signal([1, 2, 3, 4]);
-    arr.splice(1, 2);
+    arr.mutate.splice(1, 2);
     expect(arr.value).toEqual([1, 4]);
   });
 
   it("should have 'reverse' method", () => {
     const arr = signal([1, 2, 3]);
-    arr.reverse();
+    arr.mutate.reverse();
     expect(arr.value).toEqual([3, 2, 1]);
   });
 
   it("should have 'sort' method", () => {
     const arr = signal([3, 1, 2]);
-    arr.sort();
+    arr.mutate.sort();
     expect(arr.value).toEqual([1, 2, 3]);
   });
 
   it("should have 'fill' method", () => {
     const arr = signal([1, 2, 3]);
-    arr.fill(0);
+    arr.mutate.fill(0);
     expect(arr.value).toEqual([0, 0, 0]);
   });
 
   it("should have 'copyWithin' method", () => {
     const arr = signal([1, 2, 3, 4]);
-    arr.copyWithin(0, 2);
+    arr.mutate.copyWithin(0, 2);
     expect(arr.value).toEqual([3, 4, 3, 4]);
   });
 
   it("should have 'keep' method to keep items matching a condition", () => {
     const arr = signal([1, 2, 3, 4, 5]);
-    arr.keep((item) => item % 2 === 0);
+    arr.mutate.keep((item) => item % 2 === 0);
     expect(arr.value).toEqual([2, 4]);
   });
 
   it("should have 'remove' method to remove items matching a condition", () => {
     const arr = signal([1, 2, 3, 4, 5]);
-    arr.remove((item) => item % 2 === 0);
+    arr.mutate.remove((item) => item % 2 === 0);
     expect(arr.value).toEqual([1, 3, 5]);
   });
 
@@ -141,7 +141,7 @@ describe("signal - array values", () => {
       arr.value;
     });
 
-    arr.push(4);
+    arr.mutate.push(4);
     expect(effectRunCount).toBe(2); // Initial + update
   });
 
@@ -155,7 +155,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3]);
     const item = arr.at(1);
     expect(item.value).toBe(2);
-    arr.push(4);
+    arr.mutate.push(4);
     expect(item.value).toBe(2); // Derived signal doesn't change
   });
 
@@ -163,7 +163,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3]);
     const concatenated = arr.concat([4, 5]);
     expect(concatenated.value).toEqual([1, 2, 3, 4, 5]);
-    arr.push(4);
+    arr.mutate.push(4);
     expect(concatenated.value).toEqual([1, 2, 3, 4, 4, 5]); // Derived signal updates
   });
 
@@ -171,7 +171,7 @@ describe("signal - array values", () => {
     const arr = signal([2, 4, 6]);
     const allEven = arr.every((item) => item % 2 === 0);
     expect(allEven.value).toBe(true);
-    arr.push(7);
+    arr.mutate.push(7);
     expect(allEven.value).toBe(false);
   });
 
@@ -179,7 +179,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3, 4, 5]);
     const evens = arr.filter((item) => item % 2 === 0);
     expect(evens.value).toEqual([2, 4]);
-    arr.push(6);
+    arr.mutate.push(6);
     expect(evens.value).toEqual([2, 4, 6]);
   });
 
@@ -187,7 +187,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3, 4, 5]);
     const found = arr.find((item) => item > 5);
     expect(found.value).toBeUndefined();
-    arr.push(6);
+    arr.mutate.push(6);
     expect(found.value).toBe(6);
   });
 
@@ -195,7 +195,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3, 4, 5]);
     const index = arr.findIndex((item) => item % 2 === 0 && item < 1);
     expect(index.value).toBe(-1);
-    arr.unshift(0);
+    arr.mutate.unshift(0);
     expect(index.value).toBe(0);
   });
 
@@ -203,7 +203,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3, 4, 5]);
     const found = arr.findLast((item) => item % 2 === 0);
     expect(found.value).toBe(4);
-    arr.push(6);
+    arr.mutate.push(6);
     expect(found.value).toBe(6);
   });
 
@@ -211,7 +211,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3, 4, 5]);
     const index = arr.findLastIndex((item) => item % 2 === 0);
     expect(index.value).toBe(3);
-    arr.push(6);
+    arr.mutate.push(6);
     expect(index.value).toBe(5);
   });
 
@@ -219,7 +219,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3]);
     const last = arr.lastItem();
     expect(last.value).toBe(3);
-    arr.push(4);
+    arr.mutate.push(4);
     expect(last.value).toBe(4);
   });
 
@@ -227,7 +227,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3]);
     const len = arr.length();
     expect(len.value).toBe(3);
-    arr.push(4);
+    arr.mutate.push(4);
     expect(len.value).toBe(4);
   });
 
@@ -235,7 +235,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3]);
     const doubled = arr.map((item) => item * 2);
     expect(doubled.value).toEqual([2, 4, 6]);
-    arr.push(4);
+    arr.mutate.push(4);
     expect(doubled.value).toEqual([2, 4, 6, 8]);
   });
 
@@ -244,10 +244,10 @@ describe("signal - array values", () => {
     const [evens, odds] = arr.partition((item) => item % 2 === 0);
     expect(evens.value).toEqual([2, 4]);
     expect(odds.value).toEqual([1, 3, 5]);
-    arr.push(6);
+    arr.mutate.push(6);
     expect(evens.value).toEqual([2, 4, 6]);
     expect(odds.value).toEqual([1, 3, 5]);
-    arr.push(7);
+    arr.mutate.push(7);
     expect(evens.value).toEqual([2, 4, 6]);
     expect(odds.value).toEqual([1, 3, 5, 7]);
   });
@@ -256,11 +256,11 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3, 4]);
     const sum = arr.reduce((acc, item) => (acc as number) + item, 0);
     expect(sum.value).toBe(10);
-    arr.push(5);
+    arr.mutate.push(5);
     expect(sum.value).toBe(15);
-    arr.pop();
+    arr.mutate.pop();
     expect(sum.value).toBe(10);
-    arr.shift();
+    arr.mutate.shift();
     expect(sum.value).toBe(9);
   });
 
@@ -274,7 +274,7 @@ describe("signal - array values", () => {
     const arr = signal([1, 2, 3]);
     const haveNumGreaterThan3 = arr.some((item) => item > 3);
     expect(haveNumGreaterThan3.value).toBe(false);
-    arr.push(4);
+    arr.mutate.push(4);
     expect(haveNumGreaterThan3.value).toBe(true);
   });
 
@@ -282,7 +282,7 @@ describe("signal - array values", () => {
     const array = signal([1, 2, 3]);
     const yarra = array.toReversed();
     expect(yarra.value).toEqual([3, 2, 1]);
-    array.push(4);
+    array.mutate.push(4);
     expect(yarra.value).toEqual([4, 3, 2, 1]);
   });
 
@@ -311,7 +311,8 @@ describe("signal - object values", () => {
     const obj = signal({ name: "test", count: 0 });
     const name = obj.get("name");
     expect(name.value).toBe("test");
-    obj.set({ name: "updated" });
+    console.log(JSON.stringify(obj));
+    obj.mutate.set({ name: "updated" });
     expect(name.value).toBe("updated");
   });
 
@@ -320,7 +321,7 @@ describe("signal - object values", () => {
     const allProps = obj.props();
     expect(allProps.name.value).toBe("test");
     expect(allProps.count.value).toBe(0);
-    obj.set({ name: "updated", count: 5 });
+    obj.mutate.set({ name: "updated", count: 5 });
     expect(allProps.name.value).toBe("updated");
     expect(allProps.count.value).toBe(5);
   });
@@ -333,13 +334,13 @@ describe("signal - object values", () => {
     });
     const keys = obj.keys();
     expect(keys.value).toEqual(["name", "count"]);
-    obj.set({ name: "test", count: 0, active: true });
+    obj.mutate.set({ name: "test", count: 0, active: true });
     expect(keys.value).toEqual(["name", "count", "active"]);
   });
 
   it("should have 'set' method for partial updates", () => {
     const obj = signal({ name: "test", count: 0 });
-    obj.set({ count: 5 });
+    obj.mutate.set({ count: 5 });
     expect(obj.value).toEqual({ name: "test", count: 5 });
   });
 
@@ -352,7 +353,7 @@ describe("signal - object values", () => {
       obj.value;
     });
 
-    obj.set({ count: 5 });
+    obj.mutate.set({ count: 5 });
     expect(effectRunCount).toBe(2); // Initial + update
   });
 
@@ -611,7 +612,7 @@ describe("derive - array signals", () => {
     expect(doubled.value).toEqual([2, 4, 6]);
     const quadrupled = doubled.map((item) => item * 2);
     expect(quadrupled.value).toEqual([4, 8, 12]);
-    arr.push(4);
+    arr.mutate.push(4);
     expect(doubled.value).toEqual([2, 4, 6, 8]);
     expect(quadrupled.value).toEqual([4, 8, 12, 16]);
   });
@@ -621,7 +622,7 @@ describe("derive - array signals", () => {
     const derived = arr.map((item) => item + 1);
     const odds = derived.filter((item) => item % 2 !== 0);
     expect(odds.value).toEqual([3, 5]);
-    arr.push(6);
+    arr.mutate.push(6);
     expect(odds.value).toEqual([3, 5, 7]);
   });
 
@@ -630,7 +631,7 @@ describe("derive - array signals", () => {
     const derived = derive(() => arr.value);
     const len = derived.length();
     expect(len.value).toBe(3);
-    arr.push(4);
+    arr.mutate.push(4);
     expect(len.value).toBe(4);
   });
 
@@ -639,7 +640,7 @@ describe("derive - array signals", () => {
     const derived = derive(() => arr.value);
     const found = derived.find((item) => item > 5);
     expect(found.value).toBeUndefined();
-    arr.push(6);
+    arr.mutate.push(6);
     expect(found.value).toBe(6);
   });
 });
@@ -650,7 +651,7 @@ describe("derive - object signals", () => {
     const derived = derive(() => obj.value);
     const name = derived.get("name");
     expect(name.value).toBe("test");
-    obj.set({ name: "updated" });
+    obj.mutate.set({ name: "updated" });
     expect(name.value).toBe("updated");
   });
 
@@ -660,7 +661,7 @@ describe("derive - object signals", () => {
     const allProps = derived.props();
     expect(allProps.name.value).toBe("test");
     expect(allProps.count.value).toBe(0);
-    obj.set({ name: "updated", count: 5 });
+    obj.mutate.set({ name: "updated", count: 5 });
     expect(allProps.name.value).toBe("updated");
     expect(allProps.count.value).toBe(5);
   });
@@ -674,7 +675,7 @@ describe("derive - object signals", () => {
     const derived = derive(() => obj.value);
     const keys = derived.keys();
     expect(keys.value).toEqual(["name", "count"]);
-    obj.set({ name: "test", count: 0, active: true });
+    obj.mutate.set({ name: "test", count: 0, active: true });
     expect(keys.value).toEqual(["name", "count", "active"]);
   });
 });
@@ -1143,9 +1144,9 @@ describe("signal - boolean values", () => {
   // Custom mutating methods
   it("should have 'toggle' method", () => {
     const bool = signal(true);
-    bool.toggle();
+    bool.mutate.toggle();
     expect(bool.value).toBe(false);
-    bool.toggle();
+    bool.mutate.toggle();
     expect(bool.value).toBe(true);
   });
 });

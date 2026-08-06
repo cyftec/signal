@@ -31,7 +31,7 @@ export const getObjectMutatingMethods = <T extends Record<string, any>>(
   baseObjectSignal: BaseSignal<T>,
 ): ObjectMutatingMethods<T> => ({
   set: (partiallyNewObjectValue: Partial<T>) =>
-    baseObjectSignal.mutate((oldValue: T) => ({
+    baseObjectSignal.mutateWith((oldValue: T) => ({
       ...oldValue,
       ...partiallyNewObjectValue,
     })),
@@ -112,6 +112,6 @@ export const getObjectMutatingAndNonMutatingMethods = <
 >(
   baseObjectSignal: BaseSignal<T>,
 ): ObjectMutatingAndNonMutatingMethods<T> => ({
-  ...getObjectMutatingMethods(baseObjectSignal),
+  mutate: { ...getObjectMutatingMethods(baseObjectSignal) },
   ...getObjectNonMutatingMethods(baseObjectSignal),
 });

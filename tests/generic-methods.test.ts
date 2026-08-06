@@ -283,7 +283,7 @@ describe("generic methods - source signals", () => {
 
       expect(result.value).toBe(true);
 
-      arr.push(3, 4, 5, 6);
+      arr.mutate.push(3, 4, 5, 6);
       expect(result.value).toBe(false);
     });
 
