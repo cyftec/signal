@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { deadSignal, derive, nullable, signal } from "../src";
+import type { DeadSignal, LiveSignal } from "../src";
 
 describe("generic methods", () => {
   describe("or()", () => {
@@ -8,6 +9,7 @@ describe("generic methods", () => {
       const num = signal(0);
       const numOrStringAlternative = num.or(stringAlternative);
 
+      expect(numOrStringAlternative.type).toBe("derived-signal");
       expect(numOrStringAlternative.value).toBe("fallback");
 
       stringAlternative.value = "updated fallback";
@@ -20,6 +22,7 @@ describe("generic methods", () => {
       const derivedText = derive(() => text.value);
       const emptyStringOrAlternative = derivedText.or("empty fallback");
 
+      expect(emptyStringOrAlternative.type).toBe("derived-signal");
       expect(emptyStringOrAlternative.value).toBe("empty fallback");
 
       text.value = "present";
@@ -33,6 +36,17 @@ describe("generic methods", () => {
       expect(deadSignal(undefined).or("undefined fallback").value).toBe(
         "undefined fallback",
       );
+    });
+
+    it("returns a dead snapshot for a dead input", () => {
+      const alternative = signal("fallback");
+      const result = deadSignal(0).or(alternative);
+
+      expect(result.type).toBe("dead-signal");
+      expect(result.value).toBe("fallback");
+
+      alternative.value = "updated fallback";
+      expect(result.value).toBe("fallback");
     });
   });
 
@@ -422,5 +436,92 @@ describe("nullable generic-method wrapper", () => {
 
     input.value = 1;
     expect(result.value).toBe("present");
+  });
+
+  it("selects live, dead, and hybrid return behavior from the input", () => {
+    type HybridInput = LiveSignal<number | null> | DeadSignal<number | null>;
+
+    const asHybrid = (input: HybridInput): HybridInput => input;
+    const alternative = signal("fallback");
+    const liveSource = signal<number | null>(null);
+    const liveDerived = derive(() => liveSource.value);
+    const dead = deadSignal<number | null>(null);
+    const plain: number | null = null;
+
+    const liveSourceResult = nullable(liveSource).or(alternative);
+    const liveDerivedResult = nullable(liveDerived).or(alternative);
+    const deadResult = nullable(dead).or(alternative);
+    const plainResult = nullable(plain).or(alternative);
+    const hybridLiveResult = nullable(asHybrid(liveSource)).or(alternative);
+    const hybridDeadResult = nullable(asHybrid(dead)).or(alternative);
+
+    expect(liveSourceResult.type).toBe("derived-signal");
+    expect(liveDerivedResult.type).toBe("derived-signal");
+    expect(deadResult.type).toBe("dead-signal");
+    expect(plainResult.type).toBe("dead-signal");
+    expect(hybridLiveResult.type).toBe("derived-signal");
+    expect(hybridDeadResult.type).toBe("dead-signal");
+
+    alternative.value = "updated fallback";
+    expect(liveSourceResult.value).toBe("updated fallback");
+    expect(liveDerivedResult.value).toBe("updated fallback");
+    expect(deadResult.value).toBe("fallback");
+    expect(plainResult.value).toBe("fallback");
+    expect(hybridLiveResult.value).toBe("updated fallback");
+    expect(hybridDeadResult.value).toBe("fallback");
+
+    liveSource.value = 1;
+    expect(liveSourceResult.value).toBe(1);
+    expect(liveDerivedResult.value).toBe(1);
+    expect(hybridLiveResult.value).toBe(1);
+    expect(deadResult.value).toBe("fallback");
+    expect(plainResult.value).toBe("fallback");
+    expect(hybridDeadResult.value).toBe("fallback");
+  });
+
+  it("applies live, dead, and hybrid selection to comparisons and ternaries", () => {
+    type HybridInput = LiveSignal<number | null> | DeadSignal<number | null>;
+
+    const asHybrid = (input: HybridInput): HybridInput => input;
+    const liveSource = signal<number | null>(null);
+    const liveDerived = derive(() => liveSource.value);
+    const dead = deadSignal<number | null>(null);
+    const compareValue = signal<number | null>(null);
+    const truthyOption = signal("missing");
+
+    const liveComparison = nullable(liveSource).is.equalTo(compareValue);
+    const derivedTernary = nullable(liveDerived)
+      .if.equalTo(compareValue)
+      .then(truthyOption, "present");
+    const deadComparison = nullable(dead).is.equalTo(compareValue);
+    const plainTernary = nullable<number | null>(null)
+      .if.equalTo(compareValue)
+      .then(truthyOption, "present");
+    const hybridLiveComparison = nullable(asHybrid(liveSource)).is.equalTo(
+      compareValue,
+    );
+    const hybridDeadTernary = nullable(asHybrid(dead))
+      .if.equalTo(compareValue)
+      .then(truthyOption, "present");
+
+    expect(liveComparison.type).toBe("derived-signal");
+    expect(derivedTernary.type).toBe("derived-signal");
+    expect(deadComparison.type).toBe("dead-signal");
+    expect(plainTernary.type).toBe("dead-signal");
+    expect(hybridLiveComparison.type).toBe("derived-signal");
+    expect(hybridDeadTernary.type).toBe("dead-signal");
+
+    truthyOption.value = "still missing";
+    expect(derivedTernary.value).toBe("still missing");
+    expect(plainTernary.value).toBe("missing");
+    expect(hybridDeadTernary.value).toBe("missing");
+
+    compareValue.value = 1;
+    expect(liveComparison.value).toBe(false);
+    expect(derivedTernary.value).toBe("present");
+    expect(hybridLiveComparison.value).toBe(false);
+    expect(deadComparison.value).toBe(true);
+    expect(plainTernary.value).toBe("missing");
+    expect(hybridDeadTernary.value).toBe("missing");
   });
 });

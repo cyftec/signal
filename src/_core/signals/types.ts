@@ -84,6 +84,8 @@ export type MaybeDeadSignal<T> = T | DeadSignal<T>;
  */
 export type Signal<T> = LiveSignal<T> | DeadSignal<T>;
 
+export type DerivedOrDeadSignal<T> = DerivedSignal<T> | DeadSignal<T>;
+
 /**
  * A union type representing a signal, dead-signal, or plain value.
  *

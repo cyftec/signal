@@ -31,8 +31,8 @@ import { BaseDeadSignal } from "./types";
  * @see {@link deadSignal} - For creating DeadSignal objects
  */
 export type DeadSignal<T> = BaseDeadSignal<T> &
-  NonMutatingMethods<T> &
-  GenericMethods<T>;
+  NonMutatingMethods<"non-live", T> &
+  GenericMethods<"non-live", T>;
 
 /**
  * Wraps a plain value in a DeadSignal object for runtime type discrimination.
@@ -79,10 +79,16 @@ export const deadSignal = <T>(
     dispose() {},
   }) as BaseDeadSignal<T>;
 
-  Object.assign(deadSignal, getGenericMethods(deadSignal as any));
   Object.assign(
     deadSignal,
-    getNonMutatingDataMethods(deadSignal as any, nonNullableInitialValue),
+    getGenericMethods<"non-live", T>(deadSignal as any),
+  );
+  Object.assign(
+    deadSignal,
+    getNonMutatingDataMethods<"non-live", T>(
+      deadSignal as any,
+      nonNullableInitialValue,
+    ),
   );
   return deadSignal as any;
 };

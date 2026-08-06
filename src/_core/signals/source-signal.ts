@@ -28,8 +28,8 @@ import { BaseSourceSignal } from "./types";
  * @see {@link DerivedSignal} - For read-only derived signals
  */
 export type SourceSignal<T> = BaseSourceSignal<T> &
-  MutatingAndNonMutatingMethods<T> &
-  GenericMethods<T>;
+  MutatingAndNonMutatingMethods<"live", T> &
+  GenericMethods<"live", T>;
 
 /**
  * Creates a mutable source signal from any JavaScript value.
@@ -77,10 +77,10 @@ export const signal = <T>(
 ): SourceSignal<T> => {
   const sourceSignal = getBaseSignal(initialValue) as BaseSourceSignal<T>;
   Object.assign(sourceSignal, { type: "source-signal" });
-  Object.assign(sourceSignal, getGenericMethods(sourceSignal));
+  Object.assign(sourceSignal, getGenericMethods<"live", T>(sourceSignal));
   Object.assign(
     sourceSignal,
-    getMutatingAndNonMutatingDataMethods(
+    getMutatingAndNonMutatingDataMethods<"live", T>(
       sourceSignal as any,
       nonNullableInitialValue,
     ),

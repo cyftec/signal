@@ -32,8 +32,8 @@ import { BaseDerivedSignal } from "./types";
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
-  NonMutatingMethods<T> &
-  GenericMethods<T>;
+  NonMutatingMethods<"live", T> &
+  GenericMethods<"live", T>;
 
 /**
  * A function that computes a derived signal's value.
@@ -128,10 +128,16 @@ export const derive = <T>(
     },
   }) as BaseDerivedSignal<T>;
 
-  Object.assign(derivedSignal, getGenericMethods(derivedSignal as any));
   Object.assign(
     derivedSignal,
-    getNonMutatingDataMethods(derivedSignal as any, nonNullableInitialValue),
+    getGenericMethods<"live", T>(derivedSignal as any),
+  );
+  Object.assign(
+    derivedSignal,
+    getNonMutatingDataMethods<"live", T>(
+      derivedSignal as any,
+      nonNullableInitialValue,
+    ),
   );
 
   return derivedSignal as DerivedSignal<T>;

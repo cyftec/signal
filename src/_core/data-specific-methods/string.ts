@@ -1,6 +1,13 @@
-import { getPlainMethodParams, value } from "../../utils";
-import { type BaseSignal, derive, MaybeSignalValues } from "../signals";
+import { getPlainMethodParams, value, valueIsLiveSignal } from "../../utils";
 import {
+  type BaseSignal,
+  deadSignal,
+  derive,
+  MaybeSignalValues,
+} from "../signals";
+import {
+  DeriverReturnType,
+  InputSignalType,
   StringCustomNonMutatingMethods,
   StringIntrinsicNonMutatingMethods,
   StringMutatingAndNonMutatingMethods,
@@ -11,6 +18,17 @@ import {
 } from "./types";
 
 const _deepTrim = (value: string) => value.trim().replace(/\s+/g, " ");
+
+const getStringMethodDeriver = <InputSignal extends InputSignalType>(
+  baseStringSignal: BaseSignal<string>,
+) => {
+  const inputIsLiveSignal = valueIsLiveSignal(baseStringSignal as any);
+
+  return <T>(deriver: () => T): DeriverReturnType<InputSignal, T> =>
+    (inputIsLiveSignal
+      ? derive(deriver)
+      : deadSignal(deriver())) as DeriverReturnType<InputSignal, T>;
+};
 
 export const getStringSignalMutatingMethods = (
   baseStringSignal: BaseSignal<string>,
@@ -139,108 +157,114 @@ export const getStringSignalMutatingMethods = (
  * @returns Intrinsic non-mutating methods for string signals
  *
  * @remarks
- * - All methods return derived signals
- * - Methods are reactive and update when the source string changes
- * - Works with both source and derived signals
+ * - Live bases return reactive derived signals
+ * - Dead bases return dead-signal snapshots
  * - Methods are lazy - derived signals are only created when accessed
  */
-export const getStringIntrinsicNonMutatingMethods = (
+export const getStringIntrinsicNonMutatingMethods = <
+  InputSignal extends InputSignalType,
+>(
   baseStringSignal: BaseSignal<string>,
-): StringIntrinsicNonMutatingMethods => {
+): StringIntrinsicNonMutatingMethods<InputSignal> => {
+  const deriveFromBase =
+    getStringMethodDeriver<InputSignal>(baseStringSignal);
+
   return {
     at: (...args: MaybeSignalValues<Parameters<String["at"]>>) =>
-      derive(() => baseStringSignal.value.at(...getPlainMethodParams(...args))),
+      deriveFromBase(() =>
+        baseStringSignal.value.at(...getPlainMethodParams(...args)),
+      ),
     charAt: (...args: MaybeSignalValues<Parameters<String["charAt"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.charAt(...getPlainMethodParams(...args)),
       ),
     charCodeAt: (
       ...args: MaybeSignalValues<Parameters<String["charCodeAt"]>>
     ) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.charCodeAt(...getPlainMethodParams(...args)),
       ),
     codePointAt: (
       ...args: MaybeSignalValues<Parameters<String["codePointAt"]>>
     ) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.codePointAt(...getPlainMethodParams(...args)),
       ),
     concat: (...args: MaybeSignalValues<Parameters<String["concat"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.concat(...getPlainMethodParams(...args)),
       ) as any,
     endsWith: (...args: MaybeSignalValues<Parameters<String["endsWith"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.endsWith(...getPlainMethodParams(...args)),
       ),
     includes: (...args: MaybeSignalValues<Parameters<String["includes"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.includes(...getPlainMethodParams(...args)),
       ),
     indexOf: (...args: MaybeSignalValues<Parameters<String["indexOf"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.indexOf(...getPlainMethodParams(...args)),
       ),
     lastIndexOf: (
       ...args: MaybeSignalValues<Parameters<String["lastIndexOf"]>>
     ) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.lastIndexOf(...getPlainMethodParams(...args)),
       ),
     padEnd: (...args: MaybeSignalValues<Parameters<String["padEnd"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.padEnd(...getPlainMethodParams(...args)),
       ),
     padStart: (...args: MaybeSignalValues<Parameters<String["padStart"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.padStart(...getPlainMethodParams(...args)),
       ),
     repeat: (...args: MaybeSignalValues<Parameters<String["repeat"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.repeat(...getPlainMethodParams(...args)),
       ) as any,
     slice: (...args: MaybeSignalValues<Parameters<String["slice"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.slice(...getPlainMethodParams(...args)),
       ),
     startsWith: (
       ...args: MaybeSignalValues<Parameters<String["startsWith"]>>
     ) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.startsWith(...getPlainMethodParams(...args)),
       ),
     substring: (...args: MaybeSignalValues<Parameters<String["substring"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.substring(...getPlainMethodParams(...args)),
       ),
     trim: (...args: MaybeSignalValues<Parameters<String["trim"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.trim(...getPlainMethodParams(...args)),
       ),
     trimEnd: (...args: MaybeSignalValues<Parameters<String["trimEnd"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.trimEnd(...getPlainMethodParams(...args)),
       ),
     trimStart: (...args: MaybeSignalValues<Parameters<String["trimStart"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.trimStart(...getPlainMethodParams(...args)),
       ),
-    length: () => derive(() => baseStringSignal.value.length),
+    length: () => deriveFromBase(() => baseStringSignal.value.length),
     localeCompare: (
       ...args: MaybeSignalValues<Parameters<String["localeCompare"]>>
     ) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.localeCompare(...getPlainMethodParams(...args)),
       ),
     normalize: (...args: MaybeSignalValues<Parameters<String["normalize"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.normalize(
           value(...getPlainMethodParams(...args)),
         ),
       ),
     replace: (...args: MaybeSignalValues<StringReplaceParameters>) =>
-      derive(() => {
+      deriveFromBase(() => {
         const [searchValue, replaceValue] = getPlainMethodParams(...args);
         return baseStringSignal.value.replace(
           searchValue as any,
@@ -248,7 +272,7 @@ export const getStringIntrinsicNonMutatingMethods = (
         );
       }),
     replaceAll: (...args: MaybeSignalValues<StringReplaceParameters>) =>
-      derive(() => {
+      deriveFromBase(() => {
         const [searchValue, replaceValue] = getPlainMethodParams(...args);
         return baseStringSignal.value.replaceAll(
           searchValue as any,
@@ -256,18 +280,18 @@ export const getStringIntrinsicNonMutatingMethods = (
         );
       }),
     search: (...args: MaybeSignalValues<Parameters<String["search"]>>) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.search(...getPlainMethodParams(...args)),
       ),
     split: (...args: MaybeSignalValues<StringSplitParameters>) =>
-      derive(() => {
+      deriveFromBase(() => {
         const [separator, limit] = getPlainMethodParams(...args);
         return baseStringSignal.value.split(separator as any, limit);
       }),
     toLocaleLowerCase: (
       ...args: MaybeSignalValues<Parameters<String["toLocaleLowerCase"]>>
     ) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.toLocaleLowerCase(
           ...getPlainMethodParams(...args),
         ),
@@ -275,7 +299,7 @@ export const getStringIntrinsicNonMutatingMethods = (
     toLocaleUpperCase: (
       ...args: MaybeSignalValues<Parameters<String["toLocaleUpperCase"]>>
     ) =>
-      derive(() =>
+      deriveFromBase(() =>
         baseStringSignal.value.toLocaleUpperCase(
           ...getPlainMethodParams(...args),
         ),
@@ -283,14 +307,14 @@ export const getStringIntrinsicNonMutatingMethods = (
     toLowerCase: (
       ...args: MaybeSignalValues<Parameters<String["toLowerCase"]>>
     ) => {
-      return derive(() =>
+      return deriveFromBase(() =>
         baseStringSignal.value.toLowerCase(...getPlainMethodParams(...args)),
       );
     },
     toUpperCase: (
       ...args: MaybeSignalValues<Parameters<String["toUpperCase"]>>
     ) => {
-      return derive(() =>
+      return deriveFromBase(() =>
         baseStringSignal.value.toUpperCase(...getPlainMethodParams(...args)),
       );
     },
@@ -313,12 +337,17 @@ export const getStringIntrinsicNonMutatingMethods = (
  * - `UPPERCASE` returns a derived signal for the uppercase version
  * - Methods are lazy - derived signals are only created when accessed
  */
-export const getStringCustomNonMutatingMethods = (
+export const getStringCustomNonMutatingMethods = <
+  InputSignal extends InputSignalType,
+>(
   baseStringSignal: BaseSignal<string>,
-): StringCustomNonMutatingMethods => {
+): StringCustomNonMutatingMethods<InputSignal> => {
+  const deriveFromBase =
+    getStringMethodDeriver<InputSignal>(baseStringSignal);
+
   return {
     deepTrim: () => {
-      return derive(() => _deepTrim(baseStringSignal.value));
+      return deriveFromBase(() => _deepTrim(baseStringSignal.value));
     },
   };
 };
@@ -332,20 +361,21 @@ export const getStringCustomNonMutatingMethods = (
  * @returns Combined non-mutating methods for string signals
  *
  * @remarks
- * - All methods return derived signals
- * - Works with both source and derived signals
- * - Methods are reactive and update when the source string changes
+ * - Live bases return reactive derived signals
+ * - Dead bases return dead-signal snapshots
  * - Methods are lazy - derived signals are only created when accessed
  */
-export const getStringSignalNonMutatingMethods = (
+export const getStringSignalNonMutatingMethods = <
+  InputSignal extends InputSignalType,
+>(
   baseStringSignal: BaseSignal<string>,
-): StringNonMutatingMethods => ({
-  ...getStringIntrinsicNonMutatingMethods(baseStringSignal),
-  ...getStringCustomNonMutatingMethods(baseStringSignal),
+): StringNonMutatingMethods<InputSignal> => ({
+  ...getStringIntrinsicNonMutatingMethods<InputSignal>(baseStringSignal),
+  ...getStringCustomNonMutatingMethods<InputSignal>(baseStringSignal),
 });
-export const getStringSignalMethods = (
+export const getStringSignalMethods = <InputSignal extends InputSignalType>(
   baseStringSignal: BaseSignal<string>,
-): StringMutatingAndNonMutatingMethods => ({
+): StringMutatingAndNonMutatingMethods<InputSignal> => ({
   mutate: { ...getStringSignalMutatingMethods(baseStringSignal) },
-  ...getStringSignalNonMutatingMethods(baseStringSignal),
+  ...getStringSignalNonMutatingMethods<InputSignal>(baseStringSignal),
 });

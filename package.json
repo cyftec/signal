@@ -18,10 +18,14 @@
     "access": "public"
   },
   "devDependencies": {
-    "bun-types": "^1.3.14"
+    "bun-types": "^1.3.14",
+    "typescript": "^5.0.0"
   },
   "scripts": {
-    "test": "bun test",
+    "test": "bun run test:runtime && bun run test:types",
+    "test:runtime": "bun test",
+    "test:types": "tsc -p tsconfig.typecheck.json",
+    "test:coverage": "bun test --coverage",
     "build:meta": "bun run ./api-meta-builder/generate-meta.ts",
     "build:validate": "bun run ./api-meta-builder/validate-meta.ts",
     "docs": "bun run build:meta && bun run build:validate && cd website && brahma p",

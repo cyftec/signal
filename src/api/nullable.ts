@@ -1,9 +1,16 @@
-import { MaybeSignal } from "../_core";
 import {
+  type BaseLiveSignal,
+  type MaybeSignal,
+  type PlainValue,
+} from "../_core";
+import {
+  type GenericMethods,
   getGenericMethods,
-  GenericMethods,
-  Primitive,
+  type Primitive,
 } from "../_core/data-specific-methods";
+
+type NullableInputSignal<I> =
+  I extends BaseLiveSignal<any> ? "live" : "non-live";
 
 /**
  * Adds logical methods to nullable primitive values.
@@ -12,7 +19,7 @@ import {
  * ternary operations) on nullable primitive values by wrapping them with
  * the logical methods interface.
  *
- * @template T - The type of value to add logical methods to
+ * @template I - The concrete signal or plain-value input type
  * @param input - A signal primitive value (string, number, boolean, null, or undefined)
  * @returns An object with logical methods for the input value
  *
@@ -34,6 +41,10 @@ import {
  * @see {@link GenericMethods} - For the logical methods interface
  * @see {@link MaybeSignal} - For the input type
  */
-export const nullable = <T>(
-  input: MaybeSignal<Extract<T, Primitive> extends never ? never : T>,
-): GenericMethods<T> => getGenericMethods(input as MaybeSignal<T>);
+export const nullable = <I extends MaybeSignal<unknown>>(
+  input: I &
+    (Extract<PlainValue<I>, Primitive> extends never ? never : unknown),
+): GenericMethods<NullableInputSignal<I>, PlainValue<I>> =>
+  getGenericMethods<NullableInputSignal<I>, PlainValue<I>>(
+    input as MaybeSignal<PlainValue<I>>,
+  );

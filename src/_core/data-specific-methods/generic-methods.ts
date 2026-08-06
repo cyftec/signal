@@ -1,10 +1,17 @@
-import { value } from "../../utils";
-import { derive, MaybeSignal, type DerivedSignal } from "../signals";
+import { value, valueIsLiveSignal } from "../../utils";
+import {
+  deadSignal,
+  derive,
+  MaybeSignal,
+} from "../signals";
 import type {
   Comparison,
   ComparisonReturnType,
+  DeriverReturnType,
   ExistenceComparison,
+  GenericMethodReturnType,
   GenericMethods,
+  InputSignalType,
   LengthComparison,
   MeasureComparison,
   Primitive,
@@ -22,20 +29,28 @@ import type {
  *
  * @remarks
  * - The `then` method returns truthyOption if the condition is true, otherwise falsyOption
- * - Returns a derived signal that updates when the condition or options change
+ * - Live bases return a reactive derived signal
+ * - Dead bases return a dead-signal snapshot
  * - Used by the `if` logical methods for conditional value selection
  */
-const getTernaryThen = (truthyEvaluator: () => boolean): TernaryThen => {
+const getTernaryThen = <InputSignal extends InputSignalType>(
+  inputIsLiveSignal: boolean,
+  truthyEvaluator: () => boolean,
+): TernaryThen<InputSignal> => {
   return {
     then: <U, V>(
       truthyOption: MaybeSignal<U>,
       falsyOption: MaybeSignal<V>,
-    ): DerivedSignal<U | V> => {
-      return derive(() => {
+    ): DeriverReturnType<InputSignal, U | V> => {
+      const deriver = () => {
         const truthyValue = value(truthyOption) as U;
         const falsyValue = value(falsyOption) as V;
         return truthyEvaluator() ? truthyValue : falsyValue;
-      });
+      };
+
+      return (
+        inputIsLiveSignal ? derive(deriver) : deadSignal(deriver())
+      ) as DeriverReturnType<InputSignal, U | V>;
     },
   };
 };
@@ -59,29 +74,42 @@ const getTernaryThen = (truthyEvaluator: () => boolean): TernaryThen => {
  * - `notEqualTo` returns true if the value does not equal the comparison value
  * - When forTernary is true, methods return TernaryThen for conditional selection
  */
-const getPrimitiveMethods = <
+const getExistenceComparisonMethods = <
+  InputSignal extends InputSignalType,
+  GenericMethodReturn extends GenericMethodReturnType,
   T extends Primitive,
-  R extends ComparisonReturnType,
+  R extends ComparisonReturnType<InputSignal, GenericMethodReturn>,
 >(
+  inputIsLiveSignal: boolean,
   valueGetter: () => T,
   forTernary: boolean,
-): ExistenceComparison<T, R> => {
+): ExistenceComparison<InputSignal, GenericMethodReturn, T, R> => {
   const truthyEvaluator = () => !!valueGetter();
   const falsyEvaluator = () => !valueGetter();
 
   const truthyChecker = (forTernaryThen: boolean) => () =>
-    forTernaryThen ? getTernaryThen(truthyEvaluator) : derive(truthyEvaluator);
+    forTernaryThen
+      ? getTernaryThen(inputIsLiveSignal, truthyEvaluator)
+      : inputIsLiveSignal
+        ? derive(truthyEvaluator)
+        : deadSignal(truthyEvaluator());
 
   const falsyChecker = (forTernaryThen: boolean) => () =>
-    forTernaryThen ? getTernaryThen(falsyEvaluator) : derive(falsyEvaluator);
+    forTernaryThen
+      ? getTernaryThen(inputIsLiveSignal, falsyEvaluator)
+      : inputIsLiveSignal
+        ? derive(falsyEvaluator)
+        : deadSignal(falsyEvaluator());
 
   const equalToChecker =
     (forTernaryThen: boolean) => (compareValue: MaybeSignal<T>) => {
       const equalityEvaluator = () =>
         valueGetter() === (value(compareValue) as T);
       return forTernaryThen
-        ? getTernaryThen(equalityEvaluator)
-        : derive(equalityEvaluator);
+        ? getTernaryThen(inputIsLiveSignal, equalityEvaluator)
+        : inputIsLiveSignal
+          ? derive(equalityEvaluator)
+          : deadSignal(equalityEvaluator());
     };
 
   const notEqualToChecker =
@@ -89,8 +117,10 @@ const getPrimitiveMethods = <
       const notEqualityEvaluator = () =>
         valueGetter() !== (value(compareValue) as T);
       return forTernaryThen
-        ? getTernaryThen(notEqualityEvaluator)
-        : derive(notEqualityEvaluator);
+        ? getTernaryThen(inputIsLiveSignal, notEqualityEvaluator)
+        : inputIsLiveSignal
+          ? derive(notEqualityEvaluator)
+          : deadSignal(notEqualityEvaluator());
     };
 
   return {
@@ -98,7 +128,7 @@ const getPrimitiveMethods = <
     falsy: falsyChecker(forTernary),
     equalTo: equalToChecker(forTernary),
     notEqualTo: notEqualToChecker(forTernary),
-  } as ExistenceComparison<T, R>;
+  } as ExistenceComparison<InputSignal, GenericMethodReturn, T, R>;
 };
 
 /**
@@ -119,41 +149,54 @@ const getPrimitiveMethods = <
  * - `smallerThanOrEqualTo` returns true if the value is less than or equal
  * - When forTernary is true, methods return TernaryThen for conditional selection
  */
-const getNumberOnlyMethods = <R extends ComparisonReturnType>(
+const getMeasureComparisonMethods = <
+  InputSignal extends InputSignalType,
+  GenericMethodReturn extends GenericMethodReturnType,
+  R extends ComparisonReturnType<InputSignal, GenericMethodReturn>,
+>(
+  inputIsLiveSignal: boolean,
   numberGetter: () => number,
   forTernary: boolean,
-): MeasureComparison<R> => {
+): MeasureComparison<InputSignal, GenericMethodReturn, R> => {
   const greaterThanChecker =
     (forTernaryThen: boolean) => (compareValue: MaybeSignal<number>) => {
       const greaterThanEvaluator = () =>
         numberGetter() > (value(compareValue) as number);
       return forTernaryThen
-        ? getTernaryThen(greaterThanEvaluator)
-        : derive(greaterThanEvaluator);
+        ? getTernaryThen(inputIsLiveSignal, greaterThanEvaluator)
+        : inputIsLiveSignal
+          ? derive(greaterThanEvaluator)
+          : deadSignal(greaterThanEvaluator());
     };
   const greaterThanOrEqualToChecker =
     (forTernaryThen: boolean) => (compareValue: MaybeSignal<number>) => {
       const greaterThanOrEqualToEvaluator = () =>
         numberGetter() >= (value(compareValue) as number);
       return forTernaryThen
-        ? getTernaryThen(greaterThanOrEqualToEvaluator)
-        : derive(greaterThanOrEqualToEvaluator);
+        ? getTernaryThen(inputIsLiveSignal, greaterThanOrEqualToEvaluator)
+        : inputIsLiveSignal
+          ? derive(greaterThanOrEqualToEvaluator)
+          : deadSignal(greaterThanOrEqualToEvaluator());
     };
   const smallerThanChecker =
     (forTernaryThen: boolean) => (compareValue: MaybeSignal<number>) => {
       const smallerThanEvaluator = () =>
         numberGetter() < (value(compareValue) as number);
       return forTernaryThen
-        ? getTernaryThen(smallerThanEvaluator)
-        : derive(smallerThanEvaluator);
+        ? getTernaryThen(inputIsLiveSignal, smallerThanEvaluator)
+        : inputIsLiveSignal
+          ? derive(smallerThanEvaluator)
+          : deadSignal(smallerThanEvaluator());
     };
   const smallerThanOrEqualToChecker =
     (forTernaryThen: boolean) => (compareValue: MaybeSignal<number>) => {
       const smallerThanOrEqualToEvaluator = () =>
         numberGetter() <= (value(compareValue) as number);
       return forTernaryThen
-        ? getTernaryThen(smallerThanOrEqualToEvaluator)
-        : derive(smallerThanOrEqualToEvaluator);
+        ? getTernaryThen(inputIsLiveSignal, smallerThanOrEqualToEvaluator)
+        : inputIsLiveSignal
+          ? derive(smallerThanOrEqualToEvaluator)
+          : deadSignal(smallerThanOrEqualToEvaluator());
     };
 
   return {
@@ -161,7 +204,7 @@ const getNumberOnlyMethods = <R extends ComparisonReturnType>(
     greaterThanOrEqualTo: greaterThanOrEqualToChecker(forTernary),
     smallerThan: smallerThanChecker(forTernary),
     smallerThanOrEqualTo: smallerThanOrEqualToChecker(forTernary),
-  } as MeasureComparison<R>;
+  } as MeasureComparison<InputSignal, GenericMethodReturn, R>;
 };
 
 /**
@@ -174,16 +217,26 @@ const getNumberOnlyMethods = <R extends ComparisonReturnType>(
  * @returns A combined logical checker object
  */
 const getComparisonMethods = <
+  InputSignal extends InputSignalType,
+  GenericMethodReturn extends GenericMethodReturnType,
   T extends Primitive,
-  R extends ComparisonReturnType,
 >(
+  inputIsLiveSignal: boolean,
   valueGetter: () => T,
   forTernary: boolean,
-): Comparison<T, R> => {
+): Comparison<InputSignal, GenericMethodReturn, T> => {
   return {
-    ...getPrimitiveMethods(valueGetter, forTernary),
-    ...getNumberOnlyMethods(valueGetter as () => number, forTernary),
-  };
+    ...getExistenceComparisonMethods(
+      inputIsLiveSignal,
+      valueGetter,
+      forTernary,
+    ),
+    ...getMeasureComparisonMethods(
+      inputIsLiveSignal,
+      valueGetter as () => number,
+      forTernary,
+    ),
+  } as unknown as Comparison<InputSignal, GenericMethodReturn, T>;
 };
 
 /**
@@ -201,12 +254,16 @@ const getComparisonMethods = <
  * - Returns NaN for values that don't have a length property
  * - Used by string and array signals for length-based logic
  */
-const getLengthMethods = <R extends ComparisonReturnType>(
+const getLengthMethods = <
+  InputSignal extends InputSignalType,
+  GenericMethodReturn extends GenericMethodReturnType,
+>(
+  inputIsLiveSignal: boolean,
   lengthGetter: () => number,
   forTernary: boolean,
-): LengthComparison<R> => {
+): LengthComparison<InputSignal, GenericMethodReturn> => {
   return {
-    length: getComparisonMethods(lengthGetter, forTernary),
+    length: getComparisonMethods(inputIsLiveSignal, lengthGetter, forTernary),
   };
 };
 
@@ -226,7 +283,7 @@ const getLengthMethods = <R extends ComparisonReturnType>(
  *
  * @remarks
  * - `or` provides alternative values for nullable/undefined cases
- * - `is` returns derived signals for boolean checks
+ * - `is` returns signals matching the base kind for boolean checks
  * - `if` returns TernaryThen objects for conditional value selection
  * - Length methods are only available for strings and arrays
  * - Numeric comparison methods are only available for numbers
@@ -240,10 +297,11 @@ const getLengthMethods = <R extends ComparisonReturnType>(
  * logical.if.greaterThan(10).then("big", "small"); // DerivedSignal<string>
  * ```
  */
-export const getGenericMethods = <T>(
+export const getGenericMethods = <InputSignal extends InputSignalType, T>(
   // generic methods are valid even for null or undefined
   baseSignal: MaybeSignal<T>,
-): GenericMethods<T> => {
+): GenericMethods<InputSignal, T> => {
+  const isLiveSignal = valueIsLiveSignal(baseSignal);
   const valueGetter = () => value(baseSignal) as Primitive;
   const lengthGetter = () => {
     const val = value(baseSignal);
@@ -252,18 +310,31 @@ export const getGenericMethods = <T>(
   };
 
   return {
-    or: <A>(alternativeValue: MaybeSignal<A>) =>
-      derive(() => {
+    or: <A>(
+      alternativeValue: MaybeSignal<A>,
+    ): DeriverReturnType<
+      InputSignal,
+      NonNullable<Extract<T, Primitive>> | A
+    > => {
+      const deriver = () => {
         const altValue = value(alternativeValue);
         return value(baseSignal) || altValue;
-      }),
+      };
+
+      return (
+        isLiveSignal ? derive(deriver) : deadSignal(deriver())
+      ) as DeriverReturnType<
+        InputSignal,
+        NonNullable<Extract<T, Primitive>> | A
+      >;
+    },
     is: {
-      ...getComparisonMethods(valueGetter, false),
-      ...getLengthMethods(lengthGetter, false),
+      ...getComparisonMethods(isLiveSignal, valueGetter, false),
+      ...getLengthMethods(isLiveSignal, lengthGetter, false),
     },
     if: {
-      ...getComparisonMethods(valueGetter, true),
-      ...getLengthMethods(lengthGetter, true),
+      ...getComparisonMethods(isLiveSignal, valueGetter, true),
+      ...getLengthMethods(isLiveSignal, lengthGetter, true),
     },
-  } as unknown as GenericMethods<T>;
+  } as unknown as GenericMethods<InputSignal, T>;
 };
