@@ -1,4 +1,4 @@
-import { m } from "@cyftec/maya";
+import { m } from "@cyftec/maya/core";
 import { derive, effect, signal } from "@cyftec/maya/signal";
 import { updateSearchParamWithoutReload } from "../../../controller";
 import { CodeEntitiesMeta, CodeEntity } from "../../../models";
@@ -116,7 +116,7 @@ export default HtmlPage({
       m.Main({
         class: "main",
         children: m.If({
-          subject: selectedEntity.prop("name"),
+          subject: selectedEntity.get("name"),
           isTruthy: () =>
             EntityDetails({ codeEntity: selectedEntity, onEntitySelect }),
           isFalsy: () =>

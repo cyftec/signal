@@ -1,4 +1,4 @@
-import { m } from "@cyftec/maya";
+import { m } from "@cyftec/maya/core";
 import { CodeBlock, HtmlPage } from "../../components";
 import { CODE_SAMPLES, extractCodeTokens } from "../../../controller";
 

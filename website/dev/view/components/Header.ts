@@ -1,4 +1,4 @@
-import { m, MHtmlElement } from "@cyftec/maya";
+import { m, MayaNode } from "@cyftec/maya/core";
 import { derive, signal } from "@cyftec/maya/signal";
 
 const locationPath = signal("/");
@@ -9,7 +9,7 @@ const selectedCss = (path: string = "/") => {
 
 export const Header = () =>
   m.Nav({
-    onmount: (el: MHtmlElement) =>
+    onmount: (el: MayaNode) =>
       (locationPath.value = window?.location?.pathname || "/"),
     class: "header",
     children: [

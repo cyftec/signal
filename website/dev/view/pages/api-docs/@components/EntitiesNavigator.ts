@@ -1,5 +1,5 @@
 import { newVal } from "@cyftec/immut";
-import { component, m, MHtmlElement } from "@cyftec/maya";
+import { component, m, MayaNode } from "@cyftec/maya/core";
 import { derive, effect, receive, signal } from "@cyftec/maya/signal";
 import { CodeEntitiesMeta } from "../../../../models";
 import { EntitiesList } from "./EntitiesList";
@@ -13,7 +13,7 @@ export type EntitiesNavigatorProps = {
 
 export const EntitiesNavigator = component<EntitiesNavigatorProps>(
   ({ meta, selectedEntityName, onEntitySelect }) => {
-    let searchBox: MHtmlElement<HTMLInputElement>;
+    let searchBox: MayaNode<HTMLInputElement>;
     const isMobile = signal(false);
     const searchInput = signal("");
     const newExpandedState = derive<boolean>(() => {

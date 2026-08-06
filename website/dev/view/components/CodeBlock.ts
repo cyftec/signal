@@ -1,4 +1,4 @@
-import { component, m, MHtmlElement } from "@cyftec/maya";
+import { component, m, MayaNode } from "@cyftec/maya/core";
 import { signal } from "@cyftec/maya/signal";
 import { CodeToken } from "../../models";
 
@@ -9,7 +9,7 @@ type CodeblockProps = {
 
 export const CodeBlock = component<CodeblockProps>(({ noCopy, tokens }) => {
   const buttonLabel = signal("Copy");
-  let codeBlock: MHtmlElement | null = null;
+  let codeBlock: MayaNode | null = null;
 
   const copyCode = async () => {
     if (!codeBlock) return;
@@ -33,7 +33,7 @@ export const CodeBlock = component<CodeblockProps>(({ noCopy, tokens }) => {
       }),
       m.Pre({
         children: m.Code({
-          onmount: (el: MHtmlElement) => (codeBlock = el),
+          onmount: (el: MayaNode) => (codeBlock = el),
           "data-lang": "ts",
           children: m.For({
             subject: tokens,

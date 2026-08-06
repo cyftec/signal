@@ -1,4 +1,4 @@
-import { component, m } from "@cyftec/maya";
+import { component, m } from "@cyftec/maya/core";
 import { compute, derive, tmpl } from "@cyftec/maya/signal";
 import { extractCodeTokens } from "../../../../controller";
 import { CodeEntity } from "../../../../models";

@@ -1,4 +1,4 @@
-import type { Karma, ProjectFileNames } from "./karma-types.ts";
+import type { Karma, ProjectFileNames } from "./types.ts";
 
 const files = {
   buildable: {
@@ -10,7 +10,6 @@ const files = {
   static: {
     publishDir: "../docs",
     dsStoreDir: ".DS_Store",
-    karmaTypesFile: "karma-types.ts",
     gitIgnoreFile: ".gitignore",
   },
   disposable: {
@@ -48,20 +47,23 @@ export const karma: Karma = {
   maya: {
     name: "sample-app",
     appType: "web",
-    dependencies: { "@cyftec/maya": "0.0.14" },
+    dependencies: { "@cyftec/maya": "0.0.17" },
+    devDependencies: {
+      "@types/bun": "^1.3.14",
+      typescript: "^5.0.0",
+    },
   },
   vscode: {
     settings: {
       "deno.enable": false,
       "files.exclude": {
-        [files.static.karmaTypesFile]: true,
         [files.static.gitIgnoreFile]: true,
         [files.static.publishDir]: false,
         [files.disposable.stagingDir]: false,
         [files.disposable.bunLockFile]: true,
         [files.disposable.bunLockBFile]: true,
         [files.disposable.dotVscodeDir]: true,
-        [files.disposable.nodeModulesDir]: false,
+        [files.disposable.nodeModulesDir]: true,
         [files.disposable.packageJsonFile]: true,
       },
     },
@@ -69,7 +71,6 @@ export const karma: Karma = {
   git: {
     ignore: [
       files.static.dsStoreDir,
-      files.static.karmaTypesFile,
       files.disposable.bunLockFile,
       files.disposable.bunLockBFile,
       files.disposable.dotVscodeDir,

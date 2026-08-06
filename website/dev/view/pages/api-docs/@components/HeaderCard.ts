@@ -1,4 +1,4 @@
-import { component, m, Children } from "@cyftec/maya";
+import { component, m, Children } from "@cyftec/maya/core";
 
 type HeaderCardProps = {
   eyebrow: string;

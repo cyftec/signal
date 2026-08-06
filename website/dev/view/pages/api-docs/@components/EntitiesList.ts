@@ -1,4 +1,4 @@
-import { component, m } from "@cyftec/maya";
+import { component, m } from "@cyftec/maya/core";
 import { CodeEntitiesMeta, CodeEntity } from "../../../../models";
 import { derive, tmpl } from "@cyftec/maya/signal";
 import { Collapsible } from "../../../components";

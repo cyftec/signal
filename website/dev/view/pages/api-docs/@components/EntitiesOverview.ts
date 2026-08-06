@@ -1,4 +1,4 @@
-import { component, m } from "@cyftec/maya";
+import { component, m } from "@cyftec/maya/core";
 import { HeaderCard } from "./HeaderCard";
 
 type EntitiesOverviewProps = {
