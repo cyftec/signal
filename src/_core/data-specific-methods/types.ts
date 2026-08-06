@@ -43,14 +43,14 @@ export type HasPrimitive<T> =
  * hasAtLeastOne.primitive.is?number.greaterOrSmaller
  * hasAtLeastOne.primitive.is?stringOrArray.length.exitence
  * hasAtLeastOne.primitive.is?stringOrArray.length.greaterOrSmaller
- * hasAtLeastOne.primitive.when.exitence
- * hasAtLeastOne.primitive.when?number.greaterOrSmaller
- * hasAtLeastOne.primitive.when?stringOrArray.length.exitence
- * hasAtLeastOne.primitive.when?stringOrArray.length.greaterOrSmaller
+ * hasAtLeastOne.primitive.if.exitence
+ * hasAtLeastOne.primitive.if?number.greaterOrSmaller
+ * hasAtLeastOne.primitive.if?stringOrArray.length.exitence
+ * hasAtLeastOne.primitive.if?stringOrArray.length.greaterOrSmaller
  */
 
 // Nullable properties for any type
-export type LogicalOr<P extends Primitive> = {
+export type LogicalOrAlternative<P extends Primitive> = {
   or: <U>(
     alternativeValue: MaybeSignal<U>,
   ) => DerivedSignal<NonNullable<P> | U>;
@@ -91,14 +91,14 @@ export type LengthComparison<R extends ComparisonReturnType> = {
   length: Comparison<number, R>;
 };
 
-export type IsAndWhen<T extends Primitive | any[]> = {
+export type IsAndIfComparison<T extends Primitive | any[]> = {
   is: ([T] extends [Primitive] ? Comparison<T, DerivedSignal<boolean>> : {}) &
     ([string] extends [T]
       ? LengthComparison<DerivedSignal<boolean>>
       : [any[]] extends [T]
         ? LengthComparison<DerivedSignal<boolean>>
         : {});
-  when: ([T] extends [Primitive] ? Comparison<T, TernaryThen> : {}) &
+  if: ([T] extends [Primitive] ? Comparison<T, TernaryThen> : {}) &
     ([string] extends [T]
       ? LengthComparison<TernaryThen>
       : [any[]] extends [T]
@@ -111,8 +111,9 @@ export type GenericMethods<T> = [true] extends [
 ]
   ? {}
   : [true] extends [HasPrimitive<T>]
-    ? LogicalOr<Extract<T, Primitive>> & IsAndWhen<Extract<T, Primitive>>
-    : IsAndWhen<any[]>;
+    ? LogicalOrAlternative<Extract<T, Primitive>> &
+        IsAndIfComparison<Extract<T, Primitive>>
+    : IsAndIfComparison<any[]>;
 
 /**
  * Intrinsic mutating methods for array signals.

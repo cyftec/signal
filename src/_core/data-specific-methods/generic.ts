@@ -237,7 +237,7 @@ const getLengthMethods = <R extends ComparisonReturnType>(
  * const logical = getGenericMethods(count);
  * logical.is.truthy; // DerivedSignal<boolean>
  * logical.is.greaterThan(3).truthy; // DerivedSignal<boolean>
- * logical.when.greaterThan(10).then("big", "small"); // DerivedSignal<string>
+ * logical.if.greaterThan(10).then("big", "small"); // DerivedSignal<string>
  * ```
  */
 export const getGenericMethods = <T>(
@@ -260,7 +260,7 @@ export const getGenericMethods = <T>(
       ...getComparisonMethods(valueGetter, false),
       ...getLengthMethods(lenghtGetter, false),
     },
-    when: {
+    if: {
       ...getComparisonMethods(valueGetter, true),
       ...getLengthMethods(lenghtGetter, false),
     },
