@@ -1,13 +1,10 @@
-import { isPlainObject } from "@cyftec/immut";
 import {
-  getArrayNonMutatingMethods,
-  getGenericMethods,
-  getNumberSignalMethods,
-  getObjectNonMutatingMethods,
-  getStringSignalMethods,
   GenericMethods,
+  getGenericMethods,
   NonMutatingMethods,
 } from "../data-specific-methods";
+import { getNonMutatingDataMethods } from "../data-specific-methods/data-methods";
+import { getBaseSignal } from "./base-signal";
 import { BaseDeadSignal } from "./types";
 
 /**
@@ -62,43 +59,26 @@ export type DeadSignal<T> = BaseDeadSignal<T> &
  * @see {@link DeadSignal} - The DeadSignal type
  * @see {@link valueIsDeadSignal} - For checking if a value is a DeadSignal
  */
-export const deadSignal = <T>(input: T): DeadSignal<T> => {
-  const baseDeadSignal: BaseDeadSignal<T> = {
+export const deadSignal = <T>(
+  input: T,
+  nonNullableInitialValue?: NonNullable<T extends Record<string, any> ? {} : T>,
+): DeadSignal<T> => {
+  const baseSignal = getBaseSignal<T>(input);
+
+  const deadSignal = Object.assign(baseSignal, {
     type: "dead-signal",
-    value: input,
-  };
+    mutate: undefined,
+    get value(): T {
+      return baseSignal.value;
+    },
+    set value(_) {},
+    dispose() {},
+  }) as BaseDeadSignal<T>;
 
-  // Add non-mutating methods for array, string, number, and boolean derived signals
-  if (Array.isArray(input)) {
-    return Object.assign(
-      baseDeadSignal,
-      getArrayNonMutatingMethods(baseDeadSignal as BaseDeadSignal<any[]>),
-    ) as any;
-  }
-
-  if (isPlainObject(input)) {
-    return Object.assign(
-      baseDeadSignal,
-      getObjectNonMutatingMethods(
-        baseDeadSignal as BaseDeadSignal<Record<string, any>>,
-      ),
-    ) as any;
-  }
-
-  if (typeof input === "string") {
-    return Object.assign(
-      baseDeadSignal,
-      getStringSignalMethods(baseDeadSignal as BaseDeadSignal<string>),
-    ) as any;
-  }
-
-  if (typeof input === "number") {
-    return Object.assign(
-      baseDeadSignal,
-      getNumberSignalMethods(baseDeadSignal as BaseDeadSignal<number>),
-    ) as any;
-  }
-
-  Object.assign(baseDeadSignal, getGenericMethods(baseDeadSignal));
-  return Object.assign(baseDeadSignal) as any;
+  Object.assign(deadSignal, getGenericMethods(deadSignal as any));
+  Object.assign(
+    deadSignal,
+    getNonMutatingDataMethods(deadSignal as any, nonNullableInitialValue),
+  );
+  return deadSignal as any;
 };

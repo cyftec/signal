@@ -2,13 +2,13 @@ import { value } from "../../utils";
 import { derive, MaybeSignal, type DerivedSignal } from "../signals";
 import type {
   Comparison,
-  ExistenceComparison,
-  LengthComparison,
   ComparisonReturnType,
+  ExistenceComparison,
   GenericMethods,
-  TernaryThen,
+  LengthComparison,
   MeasureComparison,
   Primitive,
+  TernaryThen,
 } from "./types";
 
 /**
@@ -241,6 +241,7 @@ const getLengthMethods = <R extends ComparisonReturnType>(
  * ```
  */
 export const getGenericMethods = <T>(
+  // generic methods are valid even for null or undefined
   baseSignal: MaybeSignal<T>,
 ): GenericMethods<T> => {
   const valueGetter = () => value(baseSignal) as Primitive;

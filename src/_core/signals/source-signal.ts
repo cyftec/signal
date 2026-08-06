@@ -1,15 +1,11 @@
-import { isPlainObject } from "@cyftec/immut";
 import {
   GenericMethods,
-  getArrayMutatingAndNonMutatingMethods,
-  getBooleanSignalMethods,
   getGenericMethods,
-  getNumberSignalMethods,
-  getObjectMutatingAndNonMutatingMethods,
-  getStringSignalMethods,
   MutatingAndNonMutatingMethods,
 } from "../data-specific-methods";
-import { baseSourceSignal, BaseSourceSignal } from "./base-signal";
+import { getMutatingAndNonMutatingDataMethods } from "../data-specific-methods/data-methods";
+import { getBaseSignal } from "./base-signal";
+import { BaseSourceSignal } from "./types";
 
 /**
  * A mutable source signal created from plain JavaScript data.
@@ -79,65 +75,16 @@ export const signal = <T>(
   initialValue: T,
   nonNullableInitialValue?: NonNullable<T extends Record<string, any> ? {} : T>,
 ): SourceSignal<T> => {
-  const baseSignal: BaseSourceSignal<T> = baseSourceSignal(initialValue);
+  const sourceSignal = getBaseSignal(initialValue) as BaseSourceSignal<T>;
+  Object.assign(sourceSignal, { type: "source-signal" });
+  Object.assign(sourceSignal, getGenericMethods(sourceSignal));
+  Object.assign(
+    sourceSignal,
+    getMutatingAndNonMutatingDataMethods(
+      sourceSignal as any,
+      nonNullableInitialValue,
+    ),
+  );
 
-  /**
-   * Type-specific signal creation:
-   * - Arrays get array mutation methods and non-mutating derived signal methods
-   * - Plain objects get the `set()` method for partial updates and non-mutating derived signal methods
-   * - Strings get non-mutating derived signal methods
-   * - Numbers get non-mutating derived signal methods
-   * - Booleans get non-mutating derived signal methods
-   * - Other primitives get only the base signal interface
-   *
-   * The type-specific methods use setValueAndRunEffects to ensure
-   * immutability and effect triggering.
-   */
-  const nonNullableInitial =
-    nonNullableInitialValue === undefined
-      ? initialValue
-      : nonNullableInitialValue;
-  const result: SourceSignal<T> = Array.isArray(nonNullableInitial)
-    ? Object.assign(
-        baseSignal,
-        getArrayMutatingAndNonMutatingMethods(
-          (mutatorMethod) =>
-            baseSignal.mutate(mutatorMethod as unknown as (oldValue: T) => T),
-          baseSignal as BaseSourceSignal<any[]>,
-        ),
-      )
-    : isPlainObject(nonNullableInitial)
-      ? Object.assign(
-          baseSignal,
-          getObjectMutatingAndNonMutatingMethods(
-            (mutatorMethod) =>
-              baseSignal.mutate(mutatorMethod as unknown as (oldValue: T) => T),
-            baseSignal as BaseSourceSignal<Record<string, any>>,
-          ),
-        )
-      : typeof nonNullableInitial === "string"
-        ? Object.assign(
-            baseSignal,
-            getStringSignalMethods(baseSignal as BaseSourceSignal<string>),
-          )
-        : typeof nonNullableInitial === "number"
-          ? Object.assign(
-              baseSignal,
-              getNumberSignalMethods(baseSignal as BaseSourceSignal<number>),
-            )
-          : typeof nonNullableInitial === "boolean"
-            ? Object.assign(
-                baseSignal,
-                getBooleanSignalMethods(
-                  (mutatorMethod) =>
-                    baseSignal.mutate(
-                      mutatorMethod as unknown as (oldValue: T) => T,
-                    ),
-                  baseSignal as BaseSourceSignal<boolean>,
-                ),
-              )
-            : Object.assign(baseSignal);
-  Object.assign(result, getGenericMethods(baseSignal));
-
-  return result as SourceSignal<T>;
+  return sourceSignal as SourceSignal<T>;
 };

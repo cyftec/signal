@@ -524,16 +524,20 @@ describe("derive", () => {
   });
 
   it("should have prevValue getter", () => {
-    const count = signal(0);
+    const count = signal(1);
     const doubled = derive(() => count.value * 2);
 
     // prevValue is set during initial effect run
+    expect(doubled.value).toBe(2);
     expect(doubled.prevValue).toBe(undefined);
-    expect(doubled.value).toBe(0);
 
     count.value = 5;
-    expect(doubled.prevValue).toBe(0); // prevValue updates to previous computed value
-    expect(doubled.value).toBe(10); // prevValue updates to previous computed value
+    expect(doubled.value).toBe(10);
+    expect(doubled.prevValue).toBe(2); // prevValue updates to previous computed value
+
+    count.value = 13;
+    expect(doubled.value).toBe(26);
+    expect(doubled.prevValue).toBe(10); // prevValue updates to previous computed value
   });
 
   it("should have type property", () => {
@@ -577,18 +581,26 @@ describe("derive", () => {
   });
 
   it("should have access to previous value in deriver function", () => {
-    const count = signal(0);
+    const count = signal(1);
     let derivedValuesHistory: (number | undefined)[] = [];
 
     const doubled = derive((prevValue: number | undefined) => {
       derivedValuesHistory.push(prevValue);
       return count.value * 2;
     });
+    expect(derivedValuesHistory).toEqual([undefined]);
+    expect(doubled.value).toEqual(2);
 
     count.value = 5;
-    count.value = 10;
+    expect(derivedValuesHistory).toEqual([undefined, 2]);
+    expect(doubled.value).toEqual(10);
 
-    expect(derivedValuesHistory).toEqual([undefined, 0, 10]);
+    count.value = 11;
+    expect(derivedValuesHistory).toEqual([undefined, 2, 10]);
+    expect(doubled.value).toEqual(22);
+
+    count.value = 42;
+    expect(derivedValuesHistory).toEqual([undefined, 2, 10, 22]);
   });
 });
 

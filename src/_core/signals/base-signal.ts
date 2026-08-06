@@ -1,7 +1,7 @@
 import { newVal } from "@cyftec/immut";
 import { Effect, EffectHook } from "../effect";
 
-export const baseSourceSignal = <T>(initialValue: T) => {
+export const getBaseSignal = <T>(initialValue: T) => {
   let _prevValue: T | undefined = undefined;
   let _value: T = newVal(initialValue);
   const _effects = new Set<Effect>();
@@ -14,10 +14,7 @@ export const baseSourceSignal = <T>(initialValue: T) => {
     }
   };
 
-  // type BaseSourceSignal<T>
   const base = {
-    type: "source-signal",
-
     get prevValue(): T | undefined {
       return _prevValue;
     },
@@ -60,5 +57,3 @@ export const baseSourceSignal = <T>(initialValue: T) => {
 
   return base;
 };
-
-export type BaseSourceSignal<T> = ReturnType<typeof baseSourceSignal<T>>;

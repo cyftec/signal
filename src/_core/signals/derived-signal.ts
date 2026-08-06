@@ -1,15 +1,11 @@
-import { isPlainObject } from "@cyftec/immut";
 import {
-  getArrayNonMutatingMethods,
-  getGenericMethods,
-  getNumberSignalMethods,
-  getObjectNonMutatingMethods,
-  getStringSignalMethods,
   GenericMethods,
+  getGenericMethods,
   NonMutatingMethods,
 } from "../data-specific-methods";
+import { getNonMutatingDataMethods } from "../data-specific-methods/data-methods";
 import { effect } from "../effect";
-import { signal } from "./source-signal";
+import { getBaseSignal } from "./base-signal";
 import { BaseDerivedSignal } from "./types";
 
 /**
@@ -32,7 +28,7 @@ import { BaseDerivedSignal } from "./types";
  * - Number derived signals get non-mutating number methods (toFixed, toPrecision, etc.)
  * - Boolean derived signals get non-mutating boolean methods (not, toString)
  *
- * @see {@link signal} - For creating mutable source signals
+ * @see {@link signal} - For creating mutable baseSignal signals
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
@@ -74,7 +70,7 @@ export type DerivedValueGetterWithSignals<T> = (oldValue: T | undefined) => T;
  * is recomputed whenever any tracked dependency changes.
  *
  * @template T - The type of value the derived signal holds
- * @param valueGetterFn - A function that computes the derived value.
+ * @param signalsCatcher - A function that computes the derived value.
  * Receives the previous computed value (undefined on first run).
  * @returns A derived signal with `value`, `prevValue`, and `dispose()` methods
  *
@@ -98,65 +94,36 @@ export type DerivedValueGetterWithSignals<T> = (oldValue: T | undefined) => T;
  * - Derived signals can depend on other derived signals (chaining)
  *
  * @see {@link DerivedValueGetterWithSignals} - The type of the value getter function
- * @see {@link signal} - For creating mutable source signals
+ * @see {@link signal} - For creating mutable baseSignal signals
  * @see {@link effect} - For registering functions to run when signal values change
  */
 export const derive = <T>(
-  valueGetterFn: DerivedValueGetterWithSignals<T>,
+  signalsCatcher: DerivedValueGetterWithSignals<T>,
+  nonNullableInitialValue?: NonNullable<T extends Record<string, any> ? {} : T>,
 ): DerivedSignal<T> => {
-  let oldValue: T | undefined;
-  let currValue: T | undefined;
-  const derivedSource = signal<T>(oldValue as T);
-  const derivedSourceUpdator = effect(() => {
-    oldValue = currValue;
-    currValue = valueGetterFn(oldValue);
-    derivedSource.value = currValue;
+  const baseSignal = getBaseSignal<T>(undefined as T);
+  const deriverEffect = effect(() => {
+    baseSignal.value = signalsCatcher(baseSignal.nonReactiveValue);
   });
+  deriverEffect.registerDependentSignal(baseSignal);
 
-  const baseDerivedSignal: BaseDerivedSignal<T> = {
-    type: "derived-signal" as const,
-    get prevValue() {
-      return oldValue;
+  const derivedSignal = Object.assign(baseSignal, {
+    type: "derived-signal",
+    mutate: undefined,
+    get value(): T {
+      return baseSignal.value;
     },
-    get value() {
-      return derivedSource.value as T;
-    },
+    set value(_) {},
     dispose() {
-      derivedSourceUpdator.dispose();
+      deriverEffect.dispose();
     },
-  };
+  }) as BaseDerivedSignal<T>;
 
-  // Add non-mutating methods for array, string, number, and boolean derived signals
-  if (Array.isArray(derivedSource.value)) {
-    return Object.assign(
-      baseDerivedSignal,
-      getArrayNonMutatingMethods(baseDerivedSignal as BaseDerivedSignal<any[]>),
-    ) as any;
-  }
+  Object.assign(derivedSignal, getGenericMethods(derivedSignal as any));
+  Object.assign(
+    derivedSignal,
+    getNonMutatingDataMethods(derivedSignal as any, nonNullableInitialValue),
+  );
 
-  if (isPlainObject(derivedSource.value)) {
-    return Object.assign(
-      baseDerivedSignal,
-      getObjectNonMutatingMethods(
-        baseDerivedSignal as BaseDerivedSignal<Record<string, any>>,
-      ),
-    ) as any;
-  }
-
-  if (typeof derivedSource.value === "string") {
-    return Object.assign(
-      baseDerivedSignal,
-      getStringSignalMethods(baseDerivedSignal as BaseDerivedSignal<string>),
-    ) as any;
-  }
-
-  if (typeof derivedSource.value === "number") {
-    return Object.assign(
-      baseDerivedSignal,
-      getNumberSignalMethods(baseDerivedSignal as BaseDerivedSignal<number>),
-    ) as any;
-  }
-
-  Object.assign(baseDerivedSignal, getGenericMethods(baseDerivedSignal));
-  return Object.assign(baseDerivedSignal) as any;
+  return derivedSignal as DerivedSignal<T>;
 };

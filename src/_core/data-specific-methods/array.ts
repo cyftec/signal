@@ -4,7 +4,7 @@ import {
   derive,
   MaybeSignal,
   MaybeSignalValues,
-  type BaseSignal,
+  type Signal,
 } from "../signals";
 import {
   ArrayCustomMutatingMethods,
@@ -160,7 +160,7 @@ export const getArrayMutatingMethods = <T extends any[]>(
  * - Works with both source and derived signals
  */
 export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
-  baseSignalArrayObject: BaseSignal<T>,
+  baseSignalArrayObject: Signal<T>,
 ): ArrayIntrinsicNonMutatingMethods<T> => {
   return {
     at: (...args: MaybeSignalValues<Parameters<Array<T[number]>["at"]>>) =>
@@ -308,7 +308,7 @@ export const getArrayIntrinsicNonMutatingMethods = <T extends any[]>(
  * - `partition` splits an array into two derived signals based on a predicate
  */
 export const getArrayCustomNonMutatingMethods = <T extends any[]>(
-  baseSignalArrayObject: BaseSignal<T>,
+  baseSignalArrayObject: Signal<T>,
 ): ArrayCustomNonMutatingMethods<T> => {
   return {
     lastItem: () => {
@@ -353,7 +353,7 @@ export const getArrayCustomNonMutatingMethods = <T extends any[]>(
  * - Methods are reactive and update when the source array changes
  */
 export const getArrayNonMutatingMethods = <T extends any[]>(
-  baseSignalArrayObject: BaseSignal<T>,
+  baseSignalArrayObject: Signal<T>,
 ): ArrayNonMutatingMethods<T> => ({
   ...getArrayIntrinsicNonMutatingMethods(baseSignalArrayObject),
   ...getArrayCustomNonMutatingMethods(baseSignalArrayObject),
@@ -375,7 +375,7 @@ export const getArrayNonMutatingMethods = <T extends any[]>(
  */
 export const getArrayMutatingAndNonMutatingMethods = <T extends any[]>(
   valueSetter: (method: (oldValue: T) => T) => void,
-  baseArraySifiedignalObject: BaseSignal<T>,
+  baseArraySifiedignalObject: Signal<T>,
 ): ArrayMutatingAndNonMutatingMethods<T> => ({
   ...getArrayMutatingMethods(valueSetter),
   ...getArrayNonMutatingMethods(baseArraySifiedignalObject),

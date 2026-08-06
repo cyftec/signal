@@ -411,7 +411,7 @@ export type StringIntrinsicNonMutatingMethods = {
   localeCompare: (
     that: MaybeSignal<string>,
     locales?: MaybeSignal<string | string[] | undefined>,
-    options?: MaybeSignal<Intl.CollatorOptions>,
+    options?: MaybeSignal<Intl.CollatorOptions | undefined>,
   ) => DerivedSignal<ReturnType<String["localeCompare"]>>;
   normalize: (
     form: MaybeSignal<"NFC" | "NFD" | "NFKC" | "NFKD">,
@@ -493,7 +493,7 @@ export type NumberIntrinsicNonMutatingMethods = {
   ) => DerivedSignal<ReturnType<number["toPrecision"]>>;
   toLocaleString: (
     locales?: MaybeSignal<string | string[] | undefined>,
-    options?: MaybeSignal<Intl.NumberFormatOptions>,
+    options?: MaybeSignal<Intl.NumberFormatOptions | undefined>,
   ) => DerivedSignal<ReturnType<number["toLocaleString"]>>;
 };
 

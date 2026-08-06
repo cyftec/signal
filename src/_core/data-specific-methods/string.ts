@@ -112,7 +112,7 @@ export const getStringIntrinsicNonMutatingMethods = (
     localeCompare: (
       that: MaybeSignal<string>,
       locales?: MaybeSignal<string | string[] | undefined>,
-      options?: MaybeSignal<Intl.CollatorOptions>,
+      options?: MaybeSignal<Intl.CollatorOptions | undefined>,
     ) =>
       derive(() =>
         baseStringSignal.value.localeCompare(

@@ -1,4 +1,4 @@
-import { MaybeBaseSignal, MaybeSignal, Signal } from "../_core/signals";
+import { BaseSignal, MaybeSignal, Signal } from "../_core/signals";
 import { valueIsSignal } from "./type-checkers";
 
 /**
@@ -29,5 +29,5 @@ import { valueIsSignal } from "./type-checkers";
  * @see {@link MaybeSignal} - For the input type
  * @see {@link Signal} - For signal types
  */
-export const value = <T>(input: MaybeBaseSignal<T>): T =>
-  valueIsSignal(input) ? ((input as Signal<T>).value as T) : (input as T);
+export const value = <T>(input: MaybeSignal<T> | BaseSignal<T>): T =>
+  valueIsSignal(input) ? ((input as BaseSignal<T>).value as T) : (input as T);

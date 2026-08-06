@@ -47,7 +47,7 @@ export const getNumberIntrinsicNonMutatingMethods = (
       ),
     toLocaleString: (
       locales?: MaybeSignal<string | string[] | undefined>,
-      options?: MaybeSignal<Intl.NumberFormatOptions>,
+      options?: MaybeSignal<Intl.NumberFormatOptions | undefined>,
     ) =>
       derive(() =>
         baseNumberSignal.value.toLocaleString(value(locales), value(options)),

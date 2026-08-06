@@ -1,73 +1,30 @@
-import type { DerivedSignal } from "./derived-signal";
+import { getBaseSignal } from "./base-signal";
 import type { DeadSignal } from "./dead-signal";
-import { SourceSignal } from "./source-signal";
+import type { DerivedSignal } from "./derived-signal";
+import type { SourceSignal } from "./source-signal";
 
-/**
- * Base source signal type with value getter/setter.
- *
- * @template T - The type of value the signal holds
- */
-export type BaseSourceSignal<T> = {
-  /** Runtime type discriminator for source signals */
-  type: "source-signal";
-  /** Getter/setter for the signal's value */
-  value: T;
-};
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
 
-/**
- * Base derived signal type with read-only value access.
- *
- * Derived signals are computed from other signals and automatically update
- * when their dependencies change.
- *
- * @template T - The type of value the signal holds
- *
- * @remarks
- * - Value is read-only (computed from dependencies)
- * - The `prevValue` getter provides access to the previous computed value
- * - Calling `dispose()` stops the signal from tracking its dependencies
- */
-export type BaseDerivedSignal<T> = {
-  /** Runtime type discriminator for derived signals */
-  type: "derived-signal";
-  /** The previous computed value (undefined on first computation) */
-  get prevValue(): T | undefined;
-  /** The current computed value */
-  get value(): T;
-  /**
-   * Stops the derived signal from tracking its dependencies.
-   *
-   * After calling dispose(), the derived signal's value remains accessible
-   * but will no longer update when its dependencies change.
-   */
-  dispose: () => void;
-};
+export type BaseSignal<T> = ReturnType<typeof getBaseSignal<T>>;
 
-/**
- * A runtime type wrapper for plain values.
- *
- * DeadSignal objects are used for runtime type discrimination in complex
- * type scenarios where TypeScript's compile-time types are insufficient.
- * They enable distinguishing between plain values and signals
- * at runtime.
- *
- * @template T - The type of value wrapped
- *
- * @remarks
- * - Used with `MaybeSignal` types to resolve ambiguity at runtime
- * - Has a `type: "dead-signal"` property for runtime type checking
- * - The `value` property holds the wrapped plain value
- *
- * @see {@link LiveSignal} - For signal objects
- * @see {@link MaybeSignal} - For union types that include signals
- * @see {@link deadSignal} - For creating DeadSignal objects
- */
-export type BaseDeadSignal<T> = {
-  /** Runtime type discriminator for dead-signal objects */
-  type: "dead-signal";
-  /** The wrapped plain value */
-  get value(): T;
-};
+export type BaseSourceSignal<T> = Prettify<
+  BaseSignal<T> & { type: "source-signal" }
+>;
+
+export type BaseDerivedSignal<T> = Prettify<
+  Omit<BaseSignal<T>, "type" | "value" | "mutate"> & {
+    readonly type: "derived-signal";
+    readonly value: T;
+  }
+>;
+
+export type BaseDeadSignal<T> = Prettify<
+  Omit<BaseDerivedSignal<T>, "type"> & {
+    readonly type: "dead-signal";
+  }
+>;
 
 /**
  * Base signal type union for both source and derived signals.
@@ -79,17 +36,6 @@ export type BaseDeadSignal<T> = {
  * - Derived signals have read-only values computed from dependencies
  */
 export type BaseLiveSignal<T> = BaseSourceSignal<T> | BaseDerivedSignal<T>;
-
-/**
- * Base signalifed object type union for source signal, derived signal or dead-signal object.
- *
- * @template T - The type of value the signal holds
- *
- * @remarks
- * - Source signals have mutable values via the setter
- * - Derived signals have read-only values computed from dependencies
- */
-export type BaseSignal<T> = BaseLiveSignal<T> | BaseDeadSignal<T>;
 
 /**
  * A union type representing either a source or derived signal.
@@ -148,8 +94,6 @@ export type Signal<T> = LiveSignal<T> | DeadSignal<T>;
  * @see {@link Signal} - For signals
  */
 export type MaybeSignal<T> = T | LiveSignal<T> | DeadSignal<T>;
-
-export type MaybeBaseSignal<T> = MaybeSignal<T> | BaseSignal<T>;
 
 /**
  * A utility type that removes `null` and `undefined` from signal realm types.

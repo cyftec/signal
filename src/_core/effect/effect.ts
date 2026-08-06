@@ -1,5 +1,5 @@
+import { BaseSignal } from "../signals";
 import { EffectHook } from "./hook";
-import { BaseSignal } from "../signals/base-signal";
 
 /**
  * A function that can be registered to run when signal values change.
