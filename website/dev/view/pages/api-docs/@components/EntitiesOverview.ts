@@ -17,7 +17,7 @@ export const EntitiesOverview = component<EntitiesOverviewProps>(
           eyebrow: "Reference",
           title: "API Docs",
           description:
-            "Complete reference generated from the source tree and validated markdown.",
+            "Reference generated from semantic source comments and source metadata.",
           children: m.If({
             subject: entityCategories,
             isTruthy: () =>

@@ -30,6 +30,31 @@ const getStringMethodDeriver = <InputSignal extends InputSignalType>(
       : deadSignal(deriver())) as DeriverReturnType<InputSignal, T>;
 };
 
+/**
+ * Creates mutating methods for string source signals.
+ *
+ * Wraps string-producing operations so each call replaces the source signal's
+ * value through `mutateWith()`.
+ *
+ * @param baseStringSignal - The mutable base signal whose string value is updated
+ * @returns Mutating string methods for use under a source signal's `.mutate` namespace
+ *
+ * @remarks
+ * - Includes concatenation, padding, repetition, replacement, slicing, trimming, and case conversion
+ * - `deepTrim()` trims the ends and collapses internal whitespace runs
+ * - Each method returns `void` and publishes one source-signal update
+ *
+ * @example
+ * ```typescript
+ * const text = signal("  hello   world  ");
+ * const methods = getStringSignalMutatingMethods(text);
+ * methods.deepTrim();
+ * console.log(text.value); // "hello world"
+ * ```
+ *
+ * @see {@link StringMutatingMethods} - The returned method contract
+ * @see {@link getStringSignalMethods} - For the complete source-signal method bundle
+ */
 export const getStringSignalMutatingMethods = (
   baseStringSignal: BaseSignal<string>,
 ): StringMutatingMethods => {
@@ -150,16 +175,27 @@ export const getStringSignalMutatingMethods = (
 /**
  * Creates intrinsic non-mutating methods for string signals.
  *
- * These methods mirror JavaScript String non-mutating methods but return
- * derived signals instead of plain values.
+ * Adapts standard read-only string operations so their results follow the
+ * liveness category of the input signal.
  *
+ * @template InputSignal - Whether results are live derived signals or dead snapshots
  * @param baseStringSignal - The base string signal to access values from
  * @returns Intrinsic non-mutating methods for string signals
  *
  * @remarks
- * - Live bases return reactive derived signals
- * - Dead bases return dead-signal snapshots
- * - Methods are lazy - derived signals are only created when accessed
+ * - Includes character lookup, search, concatenation, padding, replacement, splitting, trimming, and case conversion
+ * - Method parameters may themselves be signals
+ * - Live inputs produce `DerivedSignal` results; dead inputs produce snapshot `DeadSignal` results
+ *
+ * @example
+ * ```typescript
+ * const text = signal("hello");
+ * const methods = getStringIntrinsicNonMutatingMethods<"live">(text);
+ * console.log(methods.toUpperCase().value); // "HELLO"
+ * ```
+ *
+ * @see {@link StringIntrinsicNonMutatingMethods} - The returned method contract
+ * @see {@link getStringCustomNonMutatingMethods} - For `deepTrim()`
  */
 export const getStringIntrinsicNonMutatingMethods = <
   InputSignal extends InputSignalType,
@@ -324,18 +360,27 @@ export const getStringIntrinsicNonMutatingMethods = <
 /**
  * Creates custom non-mutating methods for string signals.
  *
- * These are library-specific methods that provide additional functionality
- * beyond JavaScript's intrinsic string methods.
+ * Provides the library-specific `deepTrim()` projection while preserving the
+ * liveness category of the input signal.
  *
+ * @template InputSignal - Whether results are live derived signals or dead snapshots
  * @param baseStringSignal - The base string signal to access values from
  * @returns Custom non-mutating methods for string signals
  *
  * @remarks
- * - `lowercase` returns a derived signal for the lowercase version
- * - `Sentencecase` returns a derived signal with first letter capitalized
- * - `TitleCase` returns a derived signal with each word capitalized
- * - `UPPERCASE` returns a derived signal for the uppercase version
- * - Methods are lazy - derived signals are only created when accessed
+ * - `deepTrim()` trims leading and trailing whitespace
+ * - Internal whitespace runs are collapsed to a single space
+ * - Live inputs produce a `DerivedSignal`; dead inputs produce a snapshot `DeadSignal`
+ *
+ * @example
+ * ```typescript
+ * const text = deadSignal("  hello   world  ");
+ * const methods = getStringCustomNonMutatingMethods<"non-live">(text);
+ * console.log(methods.deepTrim().value); // "hello world"
+ * ```
+ *
+ * @see {@link StringCustomNonMutatingMethods} - The returned method contract
+ * @see {@link getStringIntrinsicNonMutatingMethods} - For standard string projections
  */
 export const getStringCustomNonMutatingMethods = <
   InputSignal extends InputSignalType,
@@ -355,15 +400,27 @@ export const getStringCustomNonMutatingMethods = <
 /**
  * Creates combined non-mutating methods for string signals.
  *
- * Combines intrinsic, custom, and logical non-mutating methods into a single object.
+ * Combines the intrinsic string projections with the custom `deepTrim()`
+ * projection used by string signals.
  *
+ * @template InputSignal - Whether results are live derived signals or dead snapshots
  * @param baseStringSignal - The base string signal to access values from
  * @returns Combined non-mutating methods for string signals
  *
  * @remarks
- * - Live bases return reactive derived signals
- * - Dead bases return dead-signal snapshots
- * - Methods are lazy - derived signals are only created when accessed
+ * - The returned object contains only string-specific non-mutating methods
+ * - Generic logical methods are attached separately during signal construction
+ * - Live inputs produce `DerivedSignal` results; dead inputs produce snapshot `DeadSignal` results
+ *
+ * @example
+ * ```typescript
+ * const text = signal("  hello  ");
+ * const methods = getStringSignalNonMutatingMethods<"live">(text);
+ * console.log(methods.deepTrim().value); // "hello"
+ * ```
+ *
+ * @see {@link StringNonMutatingMethods} - The returned method contract
+ * @see {@link getStringSignalMethods} - For the source-signal method bundle
  */
 export const getStringSignalNonMutatingMethods = <
   InputSignal extends InputSignalType,
@@ -373,6 +430,33 @@ export const getStringSignalNonMutatingMethods = <
   ...getStringIntrinsicNonMutatingMethods<InputSignal>(baseStringSignal),
   ...getStringCustomNonMutatingMethods<InputSignal>(baseStringSignal),
 });
+
+/**
+ * Creates combined methods for a string source signal.
+ *
+ * Places string mutation methods under `.mutate` and exposes non-mutating
+ * string projections as direct methods on the returned object.
+ *
+ * @template InputSignal - The liveness category used by non-mutating results
+ * @param baseStringSignal - The mutable base signal whose string value is used
+ * @returns Combined mutating and non-mutating string methods
+ *
+ * @remarks
+ * - Mutation methods are available only under `.mutate`
+ * - Non-mutating projection methods are direct members
+ * - Live inputs produce `DerivedSignal` projections; a non-live type produces snapshots
+ *
+ * @example
+ * ```typescript
+ * const text = signal("hello");
+ * const methods = getStringSignalMethods<"live">(text);
+ * methods.mutate.toUpperCase();
+ * console.log(methods.length().value); // 5
+ * ```
+ *
+ * @see {@link StringMutatingAndNonMutatingMethods} - The returned method contract
+ * @see {@link getStringSignalMutatingMethods} - For the nested mutation methods
+ */
 export const getStringSignalMethods = <InputSignal extends InputSignalType>(
   baseStringSignal: BaseSignal<string>,
 ): StringMutatingAndNonMutatingMethods<InputSignal> => ({

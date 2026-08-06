@@ -20,6 +20,7 @@ export type CodeEntity = {
   kind: "const" | "type";
   filePath: string;
   sourcePath: string;
+  isCallable: boolean;
   isExported: boolean;
   exportKind: "named" | "default" | "reexport";
   category: "core" | "api" | "utils";

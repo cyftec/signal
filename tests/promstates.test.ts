@@ -11,11 +11,21 @@ describe("promstates", () => {
     expect(isRunning.value).toBe(false);
   });
 
-  // Note: initialValue handling has type issues in current implementation
-  // This test is removed as it tests behavior that doesn't work correctly
+  it("should track running state while the promise is pending", async () => {
+    let resolvePromise!: (value: number) => void;
+    const promiseFn = () =>
+      new Promise<number>((resolve) => {
+        resolvePromise = resolve;
+      });
+    const [runPromise, , , isRunning] = promstates(promiseFn);
 
-  // Note: isRunning is not set to true during execution in current implementation
-  // This test is removed as it tests behavior that doesn't exist
+    const pending = runPromise();
+    expect(isRunning.value).toBe(true);
+
+    resolvePromise(42);
+    await pending;
+    expect(isRunning.value).toBe(false);
+  });
 
   it("should update result on successful promise completion", async () => {
     const promiseFn = async (value: number) => value * 2;

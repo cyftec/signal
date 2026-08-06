@@ -6,41 +6,34 @@ import { stringAndArrayOp } from "./string-and-array-operation";
 import type { Operation } from "./types";
 
 /**
- * Creates an operation object for composing logical and mathematical operations.
+ * Selects a lazy operation chain from the input's current runtime value.
  *
- * This function evaluates the input and dispatches to the appropriate operation
- * implementation based on the evaluated type:
- * - Number values → numberOp (provides math operations: add, sub, mul, div, etc.)
- * - String or Array values → stringAndArrayOp (provides length-based operations)
- * - Other types → genericOp (provides logical operations: or, and, equals, etc.)
+ * The input is evaluated once for dispatch: numbers receive arithmetic methods,
+ * strings and arrays receive length methods, and every other value receives the
+ * generic logical surface.
  *
- * @template T - The type of value the operation works with
- * @param input - A signal, plain value, or value-producing function
- * @returns A type-specific operation object with chainable methods
+ * @template T - The input value type used to select the operation return type.
+ * @param input - A signal-capable value or zero-argument evaluator.
+ * @returns The operation variant selected from the initial evaluated value.
+ *
+ * @remarks
+ * - A function input is invoked once immediately for dispatch and again by terminal evaluation.
+ * - The selected operation variant never changes if a live input later changes runtime type.
+ * - Chain methods are lazy; terminal getters and `then()` create derived signals.
+ * - Runtime dispatch uses `typeof` for numbers and strings and `Array.isArray` for arrays.
  *
  * @example
  * ```typescript
  * const count = signal(5);
- * const operation = op(count);
- * const doubled = operation.add(5).result; // DerivedSignal<number>
- *
- * const text = signal("hello");
- * const textOp = op(text);
- * const isLong = textOp.lengthGT(5).truthy; // DerivedSignal<boolean>
- *
- * const value = signal(10);
- * const check = op(value).isBetween(5, 15).truthy; // DerivedSignal<boolean>
+ * const total = op(count).add(3).result;
+ * const inRange = op(count).isBetween(1, 10).truthy;
+ * const label = op(count).isGT(0).then("positive", "other");
  * ```
  *
- * @remarks
- * - The operation type is determined by the runtime type of the evaluated value
- * - If input is a function, it is called to get the value
- * - Type changes in the input signal are not reflected in the operation type
- * - Methods return new operation objects for chaining
- * - Final results are obtained via getters such as `truthy`, `falsy`, and `result`
- *
- * @see {@link Operation} - For the operation type union
- * @see {@link MaybeSignal} - For the input type
+ * @see {@link Operation} - Maps input types to operation variants.
+ * @see {@link numberOp} - Builds numeric chains.
+ * @see {@link stringAndArrayOp} - Builds length-aware chains.
+ * @see {@link genericOp} - Builds generic logical chains.
  */
 export const op = <T>(input: MaybeSignal<T> | (() => T)): Operation<T> => {
   const evaluator: () => T =

@@ -24,26 +24,29 @@ const getObjectMethodDeriver = <InputSignal extends InputSignalType>(
 };
 
 /**
- * Returns an object with methods to update the source signal's value.
+ * Creates mutating methods for a plain-object source signal.
+ *
+ * Provides a shallow `set()` update implemented through the base signal's
+ * `mutateWith()` hook.
  *
  * @template T - The object type
- * @param valueSetter - A function that updates the signal value and triggers effects
- * @returns An object with methods to update the source signal's value
+ * @param baseObjectSignal - The mutable base signal whose object value is updated
+ * @returns Mutating methods for the object source signal
  *
  * @example
  * ```typescript
  * const user = signal({ name: "John", age: 30 });
- * const methods = getObjectMutatingMethods((mutator) => {
- *   user.value = mutator(user.value);
- * });
+ * const methods = getObjectMutatingMethods(user);
  * methods.set({ age: 31 }); // Shallow merge: { name: "John", age: 31 }
  * ```
  *
  * @remarks
  * - `set()` performs a shallow merge with the current value
- * - Works with both source and derived signals
+ * - Nested objects are replaced rather than deeply merged
+ * - Source signals expose this method under `.mutate.set()`
  *
  * @see {@link getObjectMutatingAndNonMutatingMethods} - For combined methods
+ * @see {@link ObjectMutatingMethods} - The returned method contract
  */
 export const getObjectMutatingMethods = <T extends Record<string, any>>(
   baseObjectSignal: BaseSignal<T>,
@@ -56,26 +59,32 @@ export const getObjectMutatingMethods = <T extends Record<string, any>>(
 });
 
 /**
- * Creates the object trap for a signal.
+ * Creates non-mutating projections for a plain-object signal.
  *
+ * Exposes the object's keys, individual properties, and a snapshot of property
+ * signal objects while preserving the liveness category of the input.
+ *
+ * @template InputSignal - Whether results are live derived signals or dead snapshots
  * @template T - The object type
- * @param input - A signal
- * @returns A record trap exposing derived property accessors
+ * @param baseObjectSignal - The base object signal whose properties are projected
+ * @returns Non-mutating methods for object keys and properties
  *
  * @example
  * ```typescript
  * const user = signal({ name: "John", age: 30 });
- * const userSignalWithMethods = getObjectNonMutatingMethods(user);
- * const keysSignal = userSignalWithMethods.keys(); // DerivedSignal<string[]>
- * const nameSignal = userSignalWithMethods.get("name"); // DerivedSignal<string>
- * const allProps = userSignalWithMethods.props(); // Record of derived signals for all properties
+ * const methods = getObjectNonMutatingMethods<"live", typeof user.value>(user);
+ * const name = methods.get("name");
+ * console.log(name.value); // "John"
  * ```
  *
  * @remarks
- * - Throws if the input is not a plain object after unwrapping
- * - Property accessors are derived signals
- * - Live bases return reactive derived projections
- * - Dead bases return dead-signal projection snapshots
+ * - `keys()` and `get()` project through the current object value
+ * - `props()` creates one property signal for each key present when it is called
+ * - Live inputs produce reactive `DerivedSignal` projections
+ * - Dead inputs produce snapshot `DeadSignal` projections
+ *
+ * @see {@link ObjectNonMutatingMethods} - The returned method contract
+ * @see {@link getObjectMutatingMethods} - For shallow source-signal updates
  */
 export const getObjectNonMutatingMethods = <
   InputSignal extends InputSignalType,
@@ -106,30 +115,35 @@ export const getObjectNonMutatingMethods = <
 };
 
 /**
- * Returns an object with methods to update the source signal's value.
+ * Creates combined methods for a plain-object source signal.
  *
+ * Places shallow mutation under `.mutate` and exposes keys and property
+ * projections as direct methods on the returned object.
+ *
+ * @template InputSignal - The liveness category used by non-mutating results
  * @template T - The object type
- * @param valueSetter - A function that updates the signal value and triggers effects
- * @returns An object with methods to update the source signal's value
+ * @param baseObjectSignal - The mutable base signal whose object value is used
+ * @returns Combined mutating and non-mutating object methods
  *
  * @example
  * ```typescript
  * const user = signal({ name: "John", age: 30 });
- * const userSignalMethods = getObjectMutatingAndNonMutatingMethods(
- *   (mutator) => { user.value = mutator(user.value); },
- *   user
- * );
- * userSignalMethods.set({ age: 31 }); // Shallow merge
- * const nameSignal = userSignalMethods.get("name"); // DerivedSignal<string>
+ * const methods = getObjectMutatingAndNonMutatingMethods<
+ *   "live",
+ *   typeof user.value
+ * >(user);
+ * methods.mutate.set({ age: 31 });
+ * console.log(methods.get("name").value); // "John"
  * ```
  *
  * @remarks
- * - `set()` performs a shallow merge with the current value
- * - Works with both source and derived signals
- * - Combines mutating and non-mutating methods
+ * - Mutation is available only through `.mutate.set()`
+ * - Non-mutating projections are direct members
+ * - Live inputs produce `DerivedSignal` projections; a non-live type produces snapshots
  *
  * @see {@link getObjectMutatingMethods} - For mutating methods only
  * @see {@link getObjectNonMutatingMethods} - For non-mutating methods only
+ * @see {@link ObjectMutatingAndNonMutatingMethods} - The returned method contract
  */
 export const getObjectMutatingAndNonMutatingMethods = <
   InputSignal extends InputSignalType,

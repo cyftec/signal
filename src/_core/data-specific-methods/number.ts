@@ -28,15 +28,27 @@ const getNumberMethodDeriver = <InputSignal extends InputSignalType>(
 /**
  * Creates intrinsic non-mutating methods for number signals.
  *
- * These methods mirror JavaScript Number non-mutating methods but return
- * derived signals instead of plain values.
+ * Adapts the standard number formatting methods so their results follow the
+ * liveness category of the input signal.
  *
+ * @template InputSignal - Whether results are live derived signals or dead snapshots
  * @param baseNumberSignal - The base number signal to access values from
  * @returns Intrinsic non-mutating methods for number signals
  *
  * @remarks
- * - Live bases return reactive derived signals
- * - Dead bases return dead-signal snapshots
+ * - Includes `toExponential()`, `toFixed()`, `toPrecision()`, and `toLocaleString()`
+ * - Method parameters may themselves be signals
+ * - Live inputs produce `DerivedSignal` results; dead inputs produce snapshot `DeadSignal` results
+ *
+ * @example
+ * ```typescript
+ * const amount = signal(12.5);
+ * const methods = getNumberIntrinsicNonMutatingMethods<"live">(amount);
+ * console.log(methods.toFixed(2).value); // "12.50"
+ * ```
+ *
+ * @see {@link NumberIntrinsicNonMutatingMethods} - The returned method contract
+ * @see {@link getNumberCustomNonMutatingMethods} - For numeric confinement
  */
 export const getNumberIntrinsicNonMutatingMethods = <
   InputSignal extends InputSignalType,
@@ -76,14 +88,27 @@ export const getNumberIntrinsicNonMutatingMethods = <
 /**
  * Creates custom non-mutating methods for number signals.
  *
- * These are library-specific methods that provide additional functionality
- * beyond JavaScript's intrinsic number methods.
+ * Provides the library-specific `toConfined()` projection and preserves the
+ * liveness category of the input signal.
  *
+ * @template InputSignal - Whether results are live derived signals or dead snapshots
  * @param baseNumberSignal - The base number signal to access values from
  * @returns Custom non-mutating methods for number signals
  *
  * @remarks
- * - `toConfined` confines the number within a range [start, end]
+ * - `toConfined()` clamps the value to the inclusive `[start, end]` range
+ * - Both boundaries may be signals and participate in live dependency tracking
+ * - Live inputs produce a `DerivedSignal`; dead inputs produce a snapshot `DeadSignal`
+ *
+ * @example
+ * ```typescript
+ * const amount = signal(12);
+ * const methods = getNumberCustomNonMutatingMethods<"live">(amount);
+ * console.log(methods.toConfined(0, 10).value); // 10
+ * ```
+ *
+ * @see {@link NumberCustomNonMutatingMethods} - The returned method contract
+ * @see {@link getNumberIntrinsicNonMutatingMethods} - For standard number formatting
  */
 export const getNumberCustomNonMutatingMethods = <
   InputSignal extends InputSignalType,
@@ -110,14 +135,27 @@ export const getNumberCustomNonMutatingMethods = <
 /**
  * Creates combined non-mutating methods for number signals.
  *
- * Combines intrinsic, custom, and logical non-mutating methods into a single object.
+ * Combines the intrinsic formatting projections with the custom confinement
+ * projection used by number signals.
  *
+ * @template InputSignal - Whether results are live derived signals or dead snapshots
  * @param baseNumberSignal - The base number signal to access values from
  * @returns Combined non-mutating methods for number signals
  *
  * @remarks
- * - Live bases return reactive derived signals
- * - Dead bases return dead-signal snapshots
+ * - The returned object contains only number-specific non-mutating methods
+ * - Generic logical methods are attached separately during signal construction
+ * - Live inputs produce `DerivedSignal` results; dead inputs produce snapshot `DeadSignal` results
+ *
+ * @example
+ * ```typescript
+ * const amount = deadSignal(12.345);
+ * const methods = getNumberSignalMethods<"non-live">(amount);
+ * console.log(methods.toFixed(1).value); // "12.3"
+ * ```
+ *
+ * @see {@link NumberNonMutatingMethods} - The returned method contract
+ * @see {@link getNumberIntrinsicNonMutatingMethods} - For intrinsic formatting methods
  */
 export const getNumberSignalMethods = <InputSignal extends InputSignalType>(
   baseNumberSignal: BaseSignal<number>,

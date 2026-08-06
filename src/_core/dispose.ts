@@ -2,42 +2,30 @@ import type { Effect } from "./effect";
 import type { DerivedSignal } from "./signals";
 
 /**
- * Disposes multiple derived signals and/or effects at once.
+ * Disposes derived signals and effects in argument order.
  *
- * This utility function calls `.dispose()` on each argument, stopping
- * dependency tracking for derived signals and marking effects for disposal.
+ * The function invokes `dispose()` synchronously on every supplied value. An
+ * empty argument list is a valid no-op.
  *
- * @param derivedSignalsOrEffects - Variable arguments of derived signals
- * and/or effects to dispose
+ * @template T - The tuple of value types carried by supplied derived signals.
+ * @param derivedSignalsOrEffects - Derived signals and effects to dispose.
+ * @returns Nothing.
+ *
+ * @remarks
+ * - Effect and derived-signal cleanup is immediate.
+ * - Effects are not idempotent: disposing the same effect twice throws.
+ * - If one argument throws during disposal, later arguments are not processed.
  *
  * @example
  * ```typescript
  * const count = signal(0);
  * const doubled = derive(() => count.value * 2);
- * const eff = effect(() => console.log(count.value));
- *
- * // Dispose single
- * dispose(doubled);
- *
- * // Dispose multiple
- * dispose(doubled, eff);
- *
- * // Mixed disposal
- * dispose(doubled, eff);
- *
- * // Empty (no-op)
- * dispose();
+ * const watcher = effect(() => console.log(count.value));
+ * dispose(doubled, watcher);
  * ```
  *
- * @remarks
- * - Empty argument list is valid (no-op)
- * - Can mix derived signals and effects in the same call
- * - Disposing the same effect multiple times is safe (idempotent)
- * - For derived signals: stops dependency tracking
- * - For effects: marks for disposal (removed on next signal update)
- *
- * @see {@link DerivedSignal.dispose} - For disposing individual derived signals
- * @see {@link Effect.dispose} - For disposing individual effects
+ * @see {@link effect} - Creates disposable effects.
+ * @see {@link derive} - Creates disposable derived signals.
  */
 export const dispose = <T extends any[]>(
   ...derivedSignalsOrEffects: { [K in keyof T]: DerivedSignal<T[K]> | Effect }

@@ -7,12 +7,28 @@ import {
 import { valueIsSignal } from "../utils";
 
 /**
- * The expressions allowed inside the template placeholders.
+ * Describes the expression list accepted by the `tmpl` tag.
+ *
+ * Expressions may be signal objects, zero-argument deferred functions, or plain
+ * values. The broad plain-value branch intentionally permits any JavaScript value.
  *
  * @remarks
- * - `Signal<any>` is accepted directly
- * - `DerivedValueGetterWithSignals<any>` is accepted as a deferred expression
- * - Plain values are accepted as-is
+ * - Functions are invoked on each template recomputation.
+ * - Signal values are read reactively when the signal is live.
+ * - Nullish expression results are rendered as empty strings.
+ *
+ * @example
+ * ```typescript
+ * const expressions: StringSignalDeriverTemplateExpressions = [
+ *   signal("Ada"),
+ *   () => 42,
+ *   null,
+ * ];
+ * ```
+ *
+ * @see {@link tmpl} - Consumes this expression list.
+ * @see {@link Signal} - Represents directly accepted signal expressions.
+ * @see {@link DerivedValueGetterWithSignals} - Represents deferred expressions.
  */
 export type StringSignalDeriverTemplateExpressions = (
   | Signal<any>
@@ -21,45 +37,33 @@ export type StringSignalDeriverTemplateExpressions = (
 )[];
 
 /**
- * Tagged template function for string interpolation with signals.
+ * Builds a reactive string from a tagged-template expression list.
  *
- * Creates a derived signal of the interpolated string that recomputes whenever
- * any tracked expression changes.
+ * The tag creates a derived signal, evaluates deferred functions, reads signal
+ * values, replaces nullish results with an empty string, and stringifies every
+ * remaining expression in template order.
  *
- * @param strings - The static string parts of the template literal
- * @param tlExpressions - The dynamic expressions inside the placeholders
- * @returns A derived signal of the interpolated string
+ * @param strings - The static template fragments supplied by JavaScript.
+ * @param tlExpressions - The dynamic placeholder expressions.
+ * @returns A derived signal containing the interpolated string.
+ *
+ * @remarks
+ * - Function expressions are called with no arguments.
+ * - Live signals read on the first interpolation become fixed dependencies.
+ * - Plain and dead expressions do not cause recomputation.
+ * - A throwing function or `toString()` call propagates its error.
  *
  * @example
  * ```typescript
  * const name = signal("World");
- * const greeting = tmpl`Hello ${name}`;
- * console.log(greeting.value); // "Hello World"
- *
- * name.value = "Alice";
- * console.log(greeting.value); // "Hello Alice"
- *
- * // Multiple expressions
- * const firstName = signal("John");
- * const lastName = signal("Doe");
- * const fullName = tmpl`${firstName} ${lastName}`;
- *
- * // Mixed expressions
- * const count = signal(5);
- * const message = tmpl`Count: ${count}`;
- *
- * // Function expressions
- * const doubled = tmpl`Double is ${() => count.value * 2}`;
+ * const greeting = tmpl`Hello ${name}!`;
+ * name.value = "Ada";
+ * console.log(greeting.value); // "Hello Ada!"
  * ```
  *
- * @remarks
- * - Expressions can be signals, derived expression functions, or plain values
- * - `null` and `undefined` become empty strings
- * - Values are converted to strings via `.toString()`
- * - Works with any combination of supported expression types
- *
- * @see {@link DerivedSignal} - For the derived signal type
- * @see {@link derive} - For the underlying derived signal primitive
+ * @see {@link StringSignalDeriverTemplateExpressions} - Describes placeholders.
+ * @see {@link derive} - Provides the reactive lifecycle.
+ * @see {@link DerivedSignal} - Describes the return value.
  */
 export const tmpl = (
   strings: TemplateStringsArray,

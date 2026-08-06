@@ -4,29 +4,31 @@ import { genericOp } from "./generic-operation";
 import type { StringAndArrayOperation } from "./types";
 
 /**
- * Creates the string/array-specific operation chain for a value.
+ * Creates a lazy length-aware operation chain for a string or array.
  *
- * @template T - The string or array value type
- * @param input - A signal string/array or value-producing function
- * @returns A string-and-array operation object with length-based methods
+ * Length methods compose boolean evaluators and return generic operation chains;
+ * their terminal getters then create reactive derived results.
+ *
+ * @template T - The string or array input type.
+ * @param input - A signal-capable value or zero-argument evaluator returning `T`.
+ * @returns A string-and-array operation with length and generic logical methods.
+ *
+ * @remarks
+ * - Length is read with the native `.length` property.
+ * - `lengthBetween` includes both bounds by default and supports independent exclusivity flags.
+ * - Comparison operands can themselves be live signals.
+ * - Each terminal getter access creates a distinct derived signal.
  *
  * @example
  * ```typescript
  * const text = signal("hello");
- * const op = stringAndArrayOp(text);
- * op.lengthEquals(5).truthy; // DerivedSignal<boolean>
- * op.lengthBetween(3, 10).truthy; // DerivedSignal<boolean>
- *
- * const items = signal([1, 2, 3]);
- * const arrOp = stringAndArrayOp(items);
- * arrOp.lengthGT(2).truthy; // DerivedSignal<boolean>
+ * const exact = stringAndArrayOp(text).lengthEquals(5).truthy;
+ * const bounded = stringAndArrayOp(text).lengthBetween(1, 10).truthy;
  * ```
  *
- * @remarks
- * - Used when the evaluated value is a string or array
- * - Methods return new operation objects for chaining
- * - Supports length comparisons (lengthBetween, lengthEquals, lengthLT, etc.)
- * - Inherits all generic logical operations (AND, OR, NOT, equals)
+ * @see {@link op} - Selects this factory for string and array initial values.
+ * @see {@link StringAndArrayOperation} - Describes the returned chain.
+ * @see {@link genericOp} - Supplies generic logical operations.
  */
 export const stringAndArrayOp = <T extends string | unknown[]>(
   input: MaybeSignal<T> | (() => T),

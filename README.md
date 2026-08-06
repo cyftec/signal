@@ -1,55 +1,109 @@
-# signal &middot; [![npm version](https://img.shields.io/badge/npm-v0.1.2-red.svg)](https://www.npmjs.com/package/@cyftech/signal) [![WIP Tag](https://img.shields.io/badge/status-WIP-yellow.svg)](https://github.com/cyftec/signal/blob/main/package.json) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cyftec/signal/blob/main/LICENSE)
+# @cyftec/signal
 
-Signals are basic data units that can automatically alert functions or computations when the data it holds changes.
-This library is a TypeScript implementation of signals.
+[![npm version](https://img.shields.io/npm/v/@cyftec/signal.svg)](https://www.npmjs.com/package/@cyftec/signal)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-The implementation consists of basic building blocks like,
-<br>
-`signal` - the method to create a source signal of data
-<br>
-`derive` - the method to create a read-only signal from other signal(s).
-<br>
-`effect` - the method which takes a callback function, to be run whenever the signals (called inside the callback function's definition), changes
+`@cyftec/signal` is a small reactive state library for TypeScript. It provides mutable source signals, read-only derived signals, synchronous effects, snapshot-style dead signals, and data-specific helpers attached directly to signals.
 
-## Adding to the project
+The current package version is `0.2.4`. This implementation has its own semantics; do not infer its behavior from another signal library.
 
-Currently, only TypeScript and Bun version of the library is completed.
-<br>
-`bun add @cyftech/signal`
-
-## Development Setup
-
-After cloning the repository, set up the git hooks:
+## Install
 
 ```bash
-bun run setup:hooks
+bun add @cyftec/signal
 ```
 
-This configures git to use the pre-commit hook in `.githooks/` which runs tests before allowing commits.
-
-## Usage
+## Quick start
 
 ```ts
-import { signal, effect } from "@cyftech/signal";
+import { derive, effect, signal } from "@cyftec/signal";
 
-const color = signal("green");
-const TRAFFIC_LIGHT_CHANGE_CUTOFF_IN_MS = 10000;
+const count = signal(1);
+const doubled = derive(() => count.value * 2);
 
-setInterval(() => {
-  if (color.value === "green") color.value = "yellow";
-  if (color.value === "yellow") color.value = "red";
-  if (color.value === "red") color.value = "green";
-}, TRAFFIC_LIGHT_CHANGE_CUTOFF_IN_MS);
-
-// the callback in effect method gets executed every time the value of 'color' signal changes
-effect(() => {
-  if (color.value === "green")
-    updateUiWithMessage("Keep moving. Don't congest the traffic.");
-
-  if (color.value === "yellow")
-    updateUiWithMessage("Slow down! Signal is about to stop.");
-
-  if (color.value === "red")
-    updateUiWithMessage("STOP. Please do not cross the crossing.");
+const logger = effect(() => {
+  console.log({ count: count.value, doubled: doubled.value });
 });
+
+count.value = 2; // the effect runs synchronously
+
+logger.dispose(); // unsubscribes immediately
+doubled.dispose();
 ```
+
+An effect runs once when it is created. Signal reads made during that initial run establish its dependencies. Later writes propagate synchronously; there is no batching or scheduler.
+
+## Data-specific methods
+
+Source-signal mutations live under `.mutate`. Read-only methods return signals instead of plain values.
+
+```ts
+const items = signal([1, 2, 3]);
+const last = items.lastItem();
+
+items.mutate.push(4);
+console.log(last.value); // 4
+
+const user = signal({ name: "Ada", active: false });
+const name = user.get("name");
+
+user.mutate.set({ name: "Grace" });
+console.log(name.value); // "Grace"
+
+const enabled = signal(false);
+enabled.mutate.toggle();
+```
+
+Arrays, objects, strings, numbers, and booleans receive methods appropriate to their initial runtime value. For a nullable signal, pass a non-null exemplar as the second argument so the method family can be attached:
+
+```ts
+const names = signal<string[] | undefined>(undefined, []);
+names.value = ["Ada", "Grace"];
+```
+
+Object and array initial values and `.value` reads are copied, but assigned values are retained by reference. After assigning an object or array, do not mutate that original value; use another assignment or `.mutate` so subscribers are notified. Treat the low-level `prevValue` and `nonReactiveValue` views as read-only because they can expose stored references.
+
+## Generic logical methods
+
+Primitive, string, and array signals expose fluent logical helpers:
+
+```ts
+const count = signal(3);
+
+const positive = count.is.greaterThan(0);
+const label = count.if.greaterThan(0).then("positive", "not positive");
+const fallback = signal<string | undefined>(undefined, "").or("anonymous");
+```
+
+Live inputs return reactive `DerivedSignal` results. `deadSignal(...)` inputs return `DeadSignal` snapshots.
+
+## Main exports
+
+- `signal`, `derive`, `effect`, `dispose`
+- `deadSignal` for read-only non-live values with the same projection helpers
+- `compute`, `tmpl`, `receive`, and `transmit`
+- `promstates` for promise result, error, and running state
+- `nullable` for adding generic logical methods to possibly-null primitive inputs
+- `op` for the older chainable operation API
+- `value` and the `valueIs...` runtime type guards
+
+See the source-backed contracts in [`docs-architecture/semantics.md`](./docs-architecture/semantics.md), the API inventory in [`docs-architecture/behavior.md`](./docs-architecture/behavior.md), and the contributor model in [`docs-architecture/overview.md`](./docs-architecture/overview.md).
+
+## Development
+
+```bash
+bun install
+bun run test
+```
+
+Useful commands:
+
+- `bun run test:runtime` — run behavioral tests
+- `bun run test:types` — run TypeScript type checks
+- `bun run test:coverage` — collect runtime coverage
+- `bun run build:meta` — rebuild source-comment metadata for the website
+- `bun run build:validate` — validate generated metadata
+- `bun run docs` — rebuild metadata and publish the static website with Brahma
+- `bun run setup:hooks` — configure the repository pre-commit hook
+
+Generated website output lives under `docs/`. Edit source comments or files under `website/dev/`, then regenerate; do not hand-edit the generated output.

@@ -23,6 +23,7 @@ export type CodeEntity = {
   kind: "const" | "type";
   filePath: string;
   sourcePath: string;
+  isCallable: boolean;
   isExported: boolean;
   exportKind: "named" | "default" | "reexport";
   category: "core" | "api" | "utils";
@@ -48,13 +49,11 @@ export type CodeEntitiesMeta = {
 };
 
 export const OUTPUT_FILENAME = "code_entities_meta.json";
-export const OUTPUT_DIRNAME = "/website/dev/view/pages/assets";
+export const OUTPUT_DIRNAME = "website/dev/view/pages/assets";
 export const REPO_ROOT = path.join(__dirname, "..");
 export const SRC_DIR_PATH = path.join(REPO_ROOT, "src");
 export const OUTPUT_DIR_PATH = path.join(REPO_ROOT, OUTPUT_DIRNAME);
 export const OUTPUT_FILE_PATH = path.join(OUTPUT_DIR_PATH, OUTPUT_FILENAME);
-console.log(OUTPUT_DIR_PATH);
-console.log(OUTPUT_FILE_PATH);
 
 export function readText(filePath: string) {
   return fs.readFileSync(filePath, "utf8");

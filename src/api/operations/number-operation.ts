@@ -4,28 +4,30 @@ import { genericOp } from "./generic-operation";
 import type { NumberOperation } from "./types";
 
 /**
- * Creates the number-specific operation chain for a value.
+ * Creates a lazy numeric operation chain around an evaluator.
  *
- * @template T - The numeric value type
- * @param input - A signal number or value-producing function
- * @returns A number operation object with math and comparison methods
+ * Arithmetic methods compose further numeric evaluators. Comparison methods
+ * switch to generic boolean chains, and terminal getters create derived signals.
+ *
+ * @param input - A signal-capable number or zero-argument numeric evaluator.
+ * @returns A number operation with arithmetic, range, comparison, and generic methods.
+ *
+ * @remarks
+ * - Arithmetic uses native JavaScript operators without validation.
+ * - `isBetween` includes both bounds by default; each bound can be made exclusive independently.
+ * - Operands are unwrapped only when a terminal derived result evaluates.
+ * - Each terminal getter access creates a distinct derived signal.
  *
  * @example
  * ```typescript
  * const count = signal(10);
- * const op = numberOp(count);
- * op.result; // DerivedSignal<number>
- * op.add(5).result; // DerivedSignal<number> = 15
- * op.isBetween(5, 15).truthy; // DerivedSignal<boolean>
- * op.mul(2).isGT(20).truthy; // Chained operations
+ * const doubled = numberOp(count).mul(2).result;
+ * const inside = numberOp(count).isBetween(5, 15).truthy;
  * ```
  *
- * @remarks
- * - Used when the evaluated value is a number
- * - Methods return new operation objects for chaining
- * - Supports arithmetic operations (add, sub, mul, div, mod, pow)
- * - Supports numeric comparisons (isBetween, isLT, isLTE, isGT, isGTE)
- * - Inherits all generic logical operations (AND, OR, NOT, equals)
+ * @see {@link op} - Selects this factory for numeric initial values.
+ * @see {@link NumberOperation} - Describes the returned chain.
+ * @see {@link genericOp} - Supplies generic logical operations.
  */
 export const numberOp = (
   input: MaybeSignal<number> | (() => number),

@@ -8,68 +8,66 @@ import { getBaseSignal } from "./base-signal";
 import { BaseSourceSignal } from "./types";
 
 /**
- * A mutable source signal created from plain JavaScript data.
+ * Represents a mutable live signal with value-specific helpers.
  *
- * Source signals can notify dependent computations when their value changes.
- * The specific type (array, object, string, number, or boolean) determines which
- * additional methods are available.
+ * Source signals combine the low-level signal interface with generic comparison
+ * helpers and methods selected from the value type. Mutating data methods are
+ * grouped under `mutate`; non-mutating methods return derived signals.
  *
- * @template T - The type of value the signal holds
+ * @template T - The value held by the source signal.
  *
  * @remarks
- * - For arrays: includes array mutation methods (push, pop, splice, etc.)
- * - For plain objects: includes `set()` method for partial updates
- * - For strings: includes string methods (toLowerCase, toUpperCase, etc.)
- * - For numbers: includes number methods (toFixed, toPrecision, etc.)
- * - For booleans: includes boolean methods (not, toString)
- * - For other primitives: only the base signal interface
+ * - Arrays, strings, plain objects, numbers, and booleans receive different helper sets.
+ * - Array, string, object, and boolean mutations return `void` and notify synchronously.
+ * - Reads through `value` collect the current effect as a dependency.
+ * - `dispose()` clears the source's current subscribers without freezing its value.
  *
- * @see {@link signal} - For creating source signals
- * @see {@link DerivedSignal} - For read-only derived signals
+ * @example
+ * ```typescript
+ * const items: SourceSignal<number[]> = signal([1, 2]);
+ * items.mutate.push(3);
+ * const size = items.length(); // DerivedSignal<number>
+ * ```
+ *
+ * @see {@link signal} - Creates a source signal.
+ * @see {@link DerivedSignal} - Represents a read-only live signal.
+ * @see {@link DeadSignal} - Represents a non-live signal snapshot.
  */
 export type SourceSignal<T> = BaseSourceSignal<T> &
   MutatingAndNonMutatingMethods<"live", T> &
   GenericMethods<"live", T>;
 
 /**
- * Creates a mutable source signal from any JavaScript value.
+ * Creates a mutable live signal from a JavaScript value.
  *
- * A signal is a reactive data unit that automatically notifies dependent
- * computations when its value changes. Signals use a global variable-based
- * dependency tracking system to establish relationships with effects.
+ * The signal tracks effects that read its `value`, stores the previous value on
+ * change, and runs registered effects synchronously. Its value-specific method
+ * surface is selected once at creation time.
  *
- * @template T - The type of value the signal holds
- * @param initialValue - Any JavaScript value to convert to a signal
- * @returns A source signal with a `value` getter/setter. Arrays include
- * mutation methods and plain objects include `set()`.
+ * @template T - The value held by the signal.
+ * @param initialValue - The initial signal value.
+ * @param nonNullableInitialValue - Optional non-nullish dispatch hint used to attach data methods when `initialValue` is nullish.
+ * @returns A mutable `SourceSignal<T>`.
+ *
+ * @remarks
+ * - Strict-equal assignments are skipped and log an unnecessary-change diagnostic.
+ * - The initial value and values returned by `value` are copied by `@cyftec/immut`.
+ * - The helper set does not change if the value's runtime type changes later.
+ * - Object and array mutations are available under `mutate`, not as direct methods.
  *
  * @example
  * ```typescript
- * // Primitive values
- * const count = signal(0);
- * count.value = 1;
- * console.log(count.value); // 1
+ * const user = signal({ name: "Ada", active: false });
+ * user.mutate.set({ active: true });
+ * const name = user.get("name");
  *
- * // Object values with partial updates
- * const user = signal({ name: "John", age: 30 });
- * user.set({ age: 31 }); // Shallow merge
- * console.log(user.value); // { name: "John", age: 31 }
- *
- * // Array values with mutation methods
- * const items = signal([1, 2, 3]);
- * items.push(4);
- * items.remove((item) => item % 2 === 0); // Custom method
+ * const delayed = signal<string | undefined>(undefined, "");
+ * delayed.value = " ready ";
  * ```
  *
- * @remarks
- * - Setting the same value does not trigger effects
- * - Effects are triggered synchronously and immediately upon value change
- * - Signal values are stored immutably via `@cyftec/immut`
- * - Object `set()` performs a shallow merge
- * - Array mutation methods create new arrays internally
- *
- * @see {@link effect} - For registering functions to run when signal values change
- * @see {@link derive} - For creating read-only derived signals
+ * @see {@link SourceSignal} - Describes the returned signal.
+ * @see {@link effect} - Observes signal reads.
+ * @see {@link derive} - Computes a read-only live signal.
  */
 export const signal = <T>(
   initialValue: T,

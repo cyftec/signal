@@ -36,6 +36,7 @@ const selectedEntity = derive(() => {
       kind: "const",
       filePath: "",
       sourcePath: "",
+      isCallable: false,
       isExported: false,
       exportKind: "default",
       category: "core",

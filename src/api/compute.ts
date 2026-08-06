@@ -7,46 +7,35 @@ import {
 import { value } from "../utils";
 
 /**
- * Creates a derived signal from a function with signal arguments.
+ * Computes a derived signal from signal-capable function arguments.
  *
- * This is a convenience wrapper around `derive` that automatically unwraps
- * signal arguments before passing them to the function. The derived signal
- * recomputes whenever any of the signal arguments changes.
+ * Every argument is unwrapped with `value()` inside a derived evaluator, then
+ * passed to `computerFn` in order. Live argument reads therefore become the
+ * computation's initial dependencies.
  *
- * @template F - The function type
- * @param computerFn - A function that receives plain values and returns a value
- * @param restArgs - Signal arguments matching the function parameters
- * @returns A derived signal of the function's return type
+ * @template F - The function type used for parameter and result inference.
+ * @param computerFn - The function to call with unwrapped argument values.
+ * @param restArgs - Plain, live-signal, or dead-signal values matching the function parameters.
+ * @returns A derived signal containing the function result.
+ *
+ * @remarks
+ * - The computation runs immediately through `derive()`.
+ * - Plain and dead arguments do not cause future recomputation.
+ * - Dependency collection follows `derive` and is limited to the initial call.
+ * - Errors thrown by `computerFn` propagate synchronously.
  *
  * @example
  * ```typescript
- * const a = signal(5);
- * const b = signal(3);
- * const sum = compute((x: number, y: number) => x + y, a, b);
- * console.log(sum.value); // 8
- *
- * // Mixed signals and plain values
- * const sum2 = compute((x: number, y: number) => x + y, a, 10);
- * console.log(sum2.value); // 15
- *
- * // Complex computation
- * const base = signal(100);
- * const rate = signal(0.1);
- * const years = signal(5);
- * const interest = compute(
- *   (b: number, r: number, y: number) => b * Math.pow(1 + r, y),
- *   base, rate, years
- * );
+ * const left = signal(2);
+ * const right = signal(3);
+ * const total = compute((a: number, b: number) => a + b, left, right);
+ * right.value = 5;
+ * console.log(total.value); // 7
  * ```
  *
- * @remarks
- * - Works with functions of any arity
- * - Can mix signals and plain values in arguments
- * - Plain value arguments do not trigger recomputation
- * - Arguments are unwrapped using the `value()` helper
- *
- * @see {@link derive} - For the underlying derived signal primitive
- * @see {@link value} - For unwrapping signals
+ * @see {@link derive} - Provides the derived-signal lifecycle.
+ * @see {@link value} - Unwraps each argument and collects live dependencies.
+ * @see {@link MaybeSignalValues} - Describes accepted argument tuples.
  */
 export const compute = <F extends (...args: any[]) => any>(
   computerFn: F,

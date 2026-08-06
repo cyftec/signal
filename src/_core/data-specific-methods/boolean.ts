@@ -7,20 +7,27 @@ import {
 /**
  * Creates mutating methods for boolean signals.
  *
- * @param valueSetter - Updates the signal value and triggers effects
+ * Returns the boolean mutation surface used to flip a mutable base signal
+ * without exposing its lower-level `mutateWith()` implementation.
+ *
+ * @param baseSignal - The mutable base signal whose boolean value is updated
  * @returns Mutating methods for boolean signals
  *
  * @remarks
  * - `toggle()` flips the boolean value
- * - Triggers effects synchronously
+ * - The update is published through the base signal and notifies its effects synchronously
+ * - Source signals expose this method under `.mutate.toggle()`
  *
  * @example
  * ```typescript
- * const methods = getBooleanMutatingMethods((mutator) => {
- *   signal.value = mutator(signal.value);
- * });
- * methods.toggle(); // Flips the boolean value
+ * const enabled = signal(true);
+ * const methods = getBooleanMutatingMethods(enabled);
+ * methods.toggle();
+ * console.log(enabled.value); // false
  * ```
+ *
+ * @see {@link BooleanMutatingMethods} - The returned method contract
+ * @see {@link getBooleanSignalMethods} - For the source-signal method bundle
  */
 export const getBooleanMutatingMethods = (
   baseSignal: BaseSignal<boolean>,
@@ -31,25 +38,27 @@ export const getBooleanMutatingMethods = (
 /**
  * Creates combined methods for boolean source signals.
  *
- * Combines mutating methods for boolean source signals.
+ * Wraps the boolean mutators in the `.mutate` namespace attached to a source
+ * signal.
  *
- * @param valueSetter - Updates the signal value and triggers effects
  * @param baseSignal - The base boolean signal to access values from
  * @returns Combined methods for boolean source signals
  *
  * @remarks
- * - Includes toggle method for flipping boolean values
- * - Triggers effects synchronously
+ * - The only boolean-specific method is `.mutate.toggle()`
+ * - Toggling publishes one synchronous source-signal update
+ * - Generic logical methods are attached separately by signal construction
  *
  * @example
  * ```typescript
- * const boolSignal = signal(true);
- * const methods = getBooleanSignalMethods(
- *   (mutator) => { boolSignal.value = mutator(boolSignal.value); },
- *   boolSignal
- * );
- * methods.toggle(); // Flips from true to false
+ * const enabled = signal(true);
+ * const methods = getBooleanSignalMethods(enabled);
+ * methods.mutate.toggle();
+ * console.log(enabled.value); // false
  * ```
+ *
+ * @see {@link BooleanMutatingAndNonMutatingMethods} - The returned method contract
+ * @see {@link getBooleanMutatingMethods} - For the unwrapped mutator object
  */
 export const getBooleanSignalMethods = (
   baseSignal: BaseSignal<boolean>,

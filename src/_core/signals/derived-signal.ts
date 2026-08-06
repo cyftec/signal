@@ -9,93 +9,95 @@ import { getBaseSignal } from "./base-signal";
 import { BaseDerivedSignal } from "./types";
 
 /**
- * A read-only derived signal computed from other signals.
+ * Represents a read-only live signal computed from initial dependencies.
  *
- * Derived signals automatically recompute their value whenever any of their
- * tracked dependencies change. Dependencies are established by accessing
- * `.value` on signals during the initial computation.
+ * Derived signals combine a read-only value with generic helpers and
+ * type-specific non-mutating methods. Helper results remain live and are
+ * represented by further derived signals.
  *
- * @template T - The type of value the derived signal holds
+ * @template T - The computed value type.
  *
  * @remarks
- * - The value getter function receives the previous computed value (undefined on first run)
- * - Dependencies are only tracked for signals whose `.value` is accessed during execution
- * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
- * - Calling `dispose()` stops the derived signal from tracking dependencies
- * - After disposal, the value remains accessible but won't update
- * - Array derived signals get non-mutating array methods (map, filter, etc.)
- * - String derived signals get non-mutating string methods (toLowerCase, toUpperCase, etc.)
- * - Number derived signals get non-mutating number methods (toFixed, toPrecision, etc.)
- * - Boolean derived signals get non-mutating boolean methods (not, toString)
+ * - Dependencies are the signals read during the evaluator's initial execution.
+ * - Later executions neither add nor remove dependencies.
+ * - `prevValue` contains the previous computed output after an actual output change.
+ * - Disposal immediately disconnects the internal effect and leaves the last value readable.
  *
- * @see {@link signal} - For creating mutable baseSignal signals
- * @see {@link effect} - For registering functions to run when signal values change
+ * @example
+ * ```typescript
+ * const count = signal(2);
+ * const doubled: DerivedSignal<number> = derive(() => count.value * 2);
+ * count.value = 3;
+ * console.log(doubled.value); // 6
+ * ```
+ *
+ * @see {@link derive} - Creates a derived signal.
+ * @see {@link SourceSignal} - Represents a mutable live signal.
+ * @see {@link DeadSignal} - Represents a non-live snapshot.
  */
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
   NonMutatingMethods<"live", T> &
   GenericMethods<"live", T>;
 
 /**
- * A function that computes a derived signal's value.
+ * Describes the evaluator accepted by `derive`.
  *
- * This function receives the previous computed value and should access
- * `.value` on signals to establish dependencies. The function is called
- * whenever any tracked dependency changes.
+ * The evaluator receives the prior computed output and returns the next output.
+ * Signal values read on its first call become the derived signal's dependencies.
  *
- * @template T - The type of value to return
- * @param oldValue - The previous computed value (undefined on first run)
- * @returns The new computed value
+ * @template T - The value returned by the evaluator.
+ * @param oldValue - The previous computed output, or `undefined` on the first call.
+ * @returns The next computed output.
+ *
+ * @remarks
+ * - `oldValue` is not a previous dependency value.
+ * - Dependencies missed on the first call are not collected on later calls.
+ * - Throwing propagates to the caller that caused the evaluation.
  *
  * @example
  * ```typescript
- * const count = signal(5);
- * const doubled = derive((prev) => {
- *   const current = count.value;
- *   return current * 2;
- * });
+ * const count = signal(1);
+ * const history = derive<number[]>((oldValue) => [
+ *   ...(oldValue ?? []),
+ *   count.value,
+ * ]);
  * ```
  *
- * @remarks
- * - Always access signals via `.value` to establish dependencies
- * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
- * - The previous value is the previous RETURN value, not the previous dependency values
+ * @see {@link derive} - Uses this evaluator type.
+ * @see {@link DerivedSignal} - Represents the resulting signal.
  */
 export type DerivedValueGetterWithSignals<T> = (oldValue: T | undefined) => T;
 
 /**
- * Creates a read-only derived signal computed from other signals.
+ * Creates a read-only live signal from a synchronous evaluator.
  *
- * The derived signal's value is computed by the provided function, which
- * should access `.value` on signals to establish dependencies. The value
- * is recomputed whenever any tracked dependency changes.
+ * The evaluator runs immediately. Signals read during that call become fixed
+ * dependencies whose later changes synchronously recompute the derived value.
+ * Downstream effects run only when the computed output changes by strict equality.
  *
- * @template T - The type of value the derived signal holds
- * @param signalsCatcher - A function that computes the derived value.
- * Receives the previous computed value (undefined on first run).
- * @returns A derived signal with `value`, `prevValue`, and `dispose()` methods
+ * @template T - The computed value type.
+ * @param signalsCatcher - The evaluator that receives the previous computed output.
+ * @param nonNullableInitialValue - Optional non-nullish dispatch hint used to attach data methods when the first output is nullish.
+ * @returns A disposable `DerivedSignal<T>`.
+ *
+ * @remarks
+ * - Assigning to `value` is ignored at runtime.
+ * - The first evaluator call receives `undefined`.
+ * - Dependency collection is initial-only and uses a single global effect slot.
+ * - Calling `dispose()` twice throws through the internal effect.
  *
  * @example
  * ```typescript
- * const count = signal(5);
- * const doubled = derive(() => count.value * 2);
- * console.log(doubled.value); // 10
- *
- * // Using previous value
- * const history = derive((prev) => {
- *   const current = count.value;
- *   return prev ? [...prev, current] : [current];
- * });
+ * const source = signal(2);
+ * const squared = derive(() => source.value ** 2);
+ * source.value = 4;
+ * console.log(squared.value); // 16
+ * squared.dispose();
  * ```
  *
- * @remarks
- * - Dependencies are only tracked for signals whose `.value` is accessed during execution
- * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
- * - The previous value is undefined on the first computation
- * - Derived signals can depend on other derived signals (chaining)
- *
- * @see {@link DerivedValueGetterWithSignals} - The type of the value getter function
- * @see {@link signal} - For creating mutable baseSignal signals
- * @see {@link effect} - For registering functions to run when signal values change
+ * @see {@link DerivedSignal} - Describes the returned value.
+ * @see {@link DerivedValueGetterWithSignals} - Describes the evaluator.
+ * @see {@link effect} - Provides the internal dependency subscription.
  */
 export const derive = <T>(
   signalsCatcher: DerivedValueGetterWithSignals<T>,

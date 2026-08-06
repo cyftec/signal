@@ -67,7 +67,7 @@ export default HtmlPage({
               href: "/api-docs/",
               title: "api-docs",
               description:
-                "Generated API reference driven by TSDoc and validated markdown.",
+                    "Generated API reference driven by semantic source comments and metadata.",
             },
             {
               href: "/tutorial/",

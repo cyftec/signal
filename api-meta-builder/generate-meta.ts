@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import * as fs from "fs";
 import * as path from "path";
+import ts from "typescript";
 import {
   categoryForFile,
   OUTPUT_FILE_PATH,
@@ -15,18 +16,8 @@ import {
   type TSDoc,
 } from "./shared";
 
-type ExportEntry = {
-  name: string;
-  kind: CodeEntity["kind"];
+type ExportEntry = Omit<CodeEntity, "filePath" | "sourcePath"> & {
   filePath: string;
-  isExported: boolean;
-  exportKind: CodeEntity["exportKind"];
-  category: CodeEntity["category"];
-  signature?: string;
-  type?: string;
-  parameters?: Array<{ name: string; type: string; optional: boolean }>;
-  typeParameters?: string[];
-  tsdoc: TSDoc;
 };
 
 const exportMap = new Map<string, ExportEntry>();
@@ -49,6 +40,14 @@ function cleanTagText(text: string) {
   return stripIndent(text).trim();
 }
 
+function parseNamedTag(body: string) {
+  const [name, ...rest] = body.split(/\s+-\s+/);
+  return {
+    name: name.trim(),
+    description: rest.join(" - ").trim() || body,
+  };
+}
+
 function parseTSDoc(comment: string): TSDoc {
   const doc = defaultTSDoc();
   const lines = comment
@@ -62,6 +61,7 @@ function parseTSDoc(comment: string): TSDoc {
     tag: null,
     lines: [],
   };
+
   for (const line of lines) {
     const tagMatch = line.match(
       /^@(remarks|example|param|returns|see|template|deprecated)\b\s*(.*)$/,
@@ -69,19 +69,17 @@ function parseTSDoc(comment: string): TSDoc {
     if (tagMatch) {
       if (current.lines.length || current.tag !== null) blocks.push(current);
       current = { tag: tagMatch[1], lines: [tagMatch[2] ?? ""] };
-    } else {
-      current.lines.push(line);
+      continue;
     }
+    current.lines.push(line);
   }
   if (current.lines.length || current.tag !== null) blocks.push(current);
 
-  const summaryLines: string[] = [];
-  for (const block of blocks) {
-    if (block.tag === null) summaryLines.push(...block.lines);
-    else break;
-  }
-
-  doc.title = summaryLines[1];
+  const summaryBlock = blocks.find((block) => block.tag === null);
+  const summaryLines = [...(summaryBlock?.lines ?? [])];
+  while (summaryLines.length && !summaryLines[0].trim()) summaryLines.shift();
+  doc.title = summaryLines.shift()?.trim() ?? "";
+  while (summaryLines.length && !summaryLines[0].trim()) summaryLines.shift();
   doc.summary = cleanTagText(summaryLines.join("\n"));
 
   for (const block of blocks) {
@@ -92,131 +90,203 @@ function parseTSDoc(comment: string): TSDoc {
     if (block.tag === "returns") doc.returns.push(body);
     if (block.tag === "see") doc.see.push(body);
     if (block.tag === "deprecated") doc.deprecated.push(body);
-    if (block.tag === "template") {
-      const [name, ...rest] = body.split(/\s+-\s+/);
-      doc.template.push({
-        name: name.trim(),
-        description: rest.join(" - ").trim() || body,
-      });
-    }
-    if (block.tag === "param") {
-      const [name, ...rest] = body.split(/\s+-\s+/);
-      doc.params.push({
-        name: name.trim(),
-        description: rest.join(" - ").trim() || body,
-      });
-    }
+    if (block.tag === "template") doc.template.push(parseNamedTag(body));
+    if (block.tag === "param") doc.params.push(parseNamedTag(body));
   }
+
   return doc;
 }
 
-function extractLeadingComment(content: string, index: number) {
-  const before = content.slice(0, index);
-  const start = before.lastIndexOf("/**");
-  const end = before.lastIndexOf("*/");
-  if (start === -1 || end === -1 || end < start) return "";
-  return before.slice(start, end + 2);
+function extractAdjacentComment(
+  content: string,
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+) {
+  const leadingTrivia = content.slice(
+    node.getFullStart(),
+    node.getStart(sourceFile),
+  );
+  const start = leadingTrivia.lastIndexOf("/**");
+  if (start === -1) return "";
+
+  const candidate = leadingTrivia.slice(start);
+  const end = candidate.indexOf("*/");
+  if (end === -1 || candidate.slice(end + 2).trim()) return "";
+  return candidate.slice(0, end + 2);
 }
 
-function extractSignature(content: string, startIndex: number) {
-  const source = content.slice(startIndex);
-  let depthParen = 0;
-  let depthBracket = 0;
-  let depthBrace = 0;
-  let inString: string | null = null;
-  let escape = false;
-  let sawBodyStart = false;
+function hasExportModifier(node: ts.Node) {
+  return Boolean(
+    ts.canHaveModifiers(node) &&
+      ts
+        .getModifiers(node)
+        ?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword),
+  );
+}
 
-  for (let i = 0; i < source.length; i++) {
-    const ch = source[i];
-
-    if (inString) {
-      if (escape) {
-        escape = false;
-        continue;
-      }
-      if (ch === "\\") {
-        escape = true;
-        continue;
-      }
-      if (ch === inString) inString = null;
-      continue;
-    }
-
-    if (ch === "'" || ch === '"' || ch === "`") {
-      inString = ch;
-      continue;
-    }
-
-    if (ch === "(") depthParen++;
-    else if (ch === ")") depthParen = Math.max(0, depthParen - 1);
-    else if (ch === "[") depthBracket++;
-    else if (ch === "]") depthBracket = Math.max(0, depthBracket - 1);
-    else if (ch === "{") {
-      if (depthParen === 0 && depthBracket === 0) sawBodyStart = true;
-      depthBrace++;
-    } else if (ch === "}") {
-      depthBrace = Math.max(0, depthBrace - 1);
-      if (
-        sawBodyStart &&
-        depthBrace === 0 &&
-        depthParen === 0 &&
-        depthBracket === 0
-      ) {
-        const tail = source.slice(0, i + 1);
-        const semicolon = source.slice(i + 1).match(/^\s*;/);
-        return (semicolon ? tail + semicolon[0] : tail).trimEnd();
-      }
-    } else if (
-      ch === ";" &&
-      depthParen === 0 &&
-      depthBracket === 0 &&
-      depthBrace === 0 &&
-      !sawBodyStart
+function callableForDeclaration(
+  declaration:
+    | ts.VariableDeclaration
+    | ts.FunctionDeclaration
+    | ts.TypeAliasDeclaration,
+) {
+  if (ts.isFunctionDeclaration(declaration)) return declaration;
+  if (ts.isVariableDeclaration(declaration)) {
+    const initializer = declaration.initializer;
+    if (
+      initializer &&
+      (ts.isArrowFunction(initializer) || ts.isFunctionExpression(initializer))
     ) {
-      return source.slice(0, i + 1).trimEnd();
+      return initializer;
     }
+    return undefined;
   }
+  return ts.isFunctionTypeNode(declaration.type) ? declaration.type : undefined;
+}
 
-  return source.trimEnd();
+function parameterMeta(
+  parameters: readonly ts.ParameterDeclaration[] | undefined,
+  sourceFile: ts.SourceFile,
+) {
+  return (parameters ?? []).map((parameter) => ({
+    name: parameter.name.getText(sourceFile),
+    type: parameter.type?.getText(sourceFile) ?? "unknown",
+    optional: Boolean(parameter.questionToken || parameter.initializer),
+  }));
+}
+
+function typeParameterMeta(
+  parameters: readonly ts.TypeParameterDeclaration[] | undefined,
+) {
+  return (parameters ?? []).map((parameter) => parameter.name.text);
 }
 
 function record(entry: ExportEntry) {
-  const key = `${categoryForFile(entry.filePath)}:${entry.name}`;
+  const key = `${entry.category}:${entry.name}`;
+  const existing = exportMap.get(key);
+  if (existing) {
+    throw new Error(
+      `Duplicate generated entity '${key}' in ${relSource(existing.filePath)} and ${relSource(entry.filePath)}.`,
+    );
+  }
   exportMap.set(key, entry);
+}
+
+function recordEntity(
+  filePath: string,
+  content: string,
+  sourceFile: ts.SourceFile,
+  docNode: ts.Node,
+  declaration:
+    | ts.VariableDeclaration
+    | ts.FunctionDeclaration
+    | ts.TypeAliasDeclaration
+    | ts.InterfaceDeclaration,
+  name: string,
+  kind: CodeEntity["kind"],
+  signatureNode: ts.Node,
+) {
+  const callable = ts.isInterfaceDeclaration(declaration)
+    ? undefined
+    : callableForDeclaration(declaration);
+  const typeParameters = ts.isVariableDeclaration(declaration)
+    ? callable?.typeParameters
+    : declaration.typeParameters;
+  const comment = extractAdjacentComment(content, docNode, sourceFile);
+
+  record({
+    name,
+    kind,
+    filePath,
+    isCallable: Boolean(callable),
+    isExported: true,
+    exportKind: "named",
+    category: categoryForFile(filePath),
+    signature: signatureNode.getText(sourceFile),
+    type: undefined,
+    parameters: parameterMeta(callable?.parameters, sourceFile),
+    typeParameters: typeParameterMeta(typeParameters),
+    tsdoc: comment ? parseTSDoc(comment) : defaultTSDoc(),
+  });
 }
 
 function parseFile(filePath: string) {
   const content = readText(filePath);
-  const exportRegex =
-    /export\s+(const|type|interface|function)\s+([A-Za-z0-9_]+)([\s\S]*?)(?=\n\s*export\s+(?:const|type|interface|function)|\n\s*export\s+\{|$)/g;
-  let match: RegExpExecArray | null;
-  while ((match = exportRegex.exec(content))) {
-    const declaration = match[1];
-    const name = match[2];
-    if (!declaration || !name) continue;
-    const comment = extractLeadingComment(content, match.index);
-    const tsdoc = comment ? parseTSDoc(comment) : defaultTSDoc();
-    const category = categoryForFile(filePath);
-    const signature = extractSignature(content, match.index);
-    record({
-      name,
-      kind: declaration as CodeEntity["kind"],
-      filePath,
-      isExported: true,
-      exportKind: "named",
-      category,
-      signature,
-      type: undefined,
-      parameters: [],
-      typeParameters: [],
-      tsdoc,
-    });
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    content,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
+
+  for (const statement of sourceFile.statements) {
+    if (!hasExportModifier(statement)) continue;
+
+    if (ts.isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        if (!ts.isIdentifier(declaration.name)) continue;
+        recordEntity(
+          filePath,
+          content,
+          sourceFile,
+          statement,
+          declaration,
+          declaration.name.text,
+          "const",
+          statement,
+        );
+      }
+      continue;
+    }
+
+    if (ts.isFunctionDeclaration(statement) && statement.name) {
+      recordEntity(
+        filePath,
+        content,
+        sourceFile,
+        statement,
+        statement,
+        statement.name.text,
+        "const",
+        statement,
+      );
+      continue;
+    }
+
+    if (ts.isTypeAliasDeclaration(statement)) {
+      recordEntity(
+        filePath,
+        content,
+        sourceFile,
+        statement,
+        statement,
+        statement.name.text,
+        "type",
+        statement,
+      );
+      continue;
+    }
+
+    if (ts.isInterfaceDeclaration(statement)) {
+      recordEntity(
+        filePath,
+        content,
+        sourceFile,
+        statement,
+        statement,
+        statement.name.text,
+        "type",
+        statement,
+      );
+    }
   }
 }
 
 function walk(dir: string) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+  for (const entry of fs
+    .readdirSync(dir, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name))) {
     if (entry.name.startsWith(".")) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full);
@@ -224,34 +294,38 @@ function walk(dir: string) {
   }
 }
 
+function sortEntities(entities: CodeEntity[]) {
+  entities.sort((left, right) => left.name.localeCompare(right.name));
+}
+
 function main() {
   walk(SRC_DIR_PATH);
 
   const meta: CodeEntitiesMeta = {
-    const: {
-      core: [],
-      api: [],
-      utils: [],
-    },
-    type: {
-      core: [],
-      api: [],
-      utils: [],
-    },
+    const: { core: [], api: [], utils: [] },
+    type: { core: [], api: [], utils: [] },
   };
 
-  for (const [key, entry] of exportMap.entries()) {
+  for (const entry of exportMap.values()) {
+    const sourcePath = relSource(entry.filePath);
     const entity: CodeEntity = {
       ...entry,
-      sourcePath: relSource(entry.filePath),
+      filePath: sourcePath,
+      sourcePath,
     };
     meta[entity.kind][entity.category].push(entity);
   }
 
-  const entitiesCount = Array.from(exportMap.values()).length;
+  for (const kind of ["const", "type"] as const) {
+    for (const category of ["core", "api", "utils"] as const) {
+      sortEntities(meta[kind][category]);
+    }
+  }
 
-  writeText(OUTPUT_FILE_PATH, JSON.stringify(meta, null, 2) + "\n");
-  console.log(`Generated '${OUTPUT_FILENAME}' with ${entitiesCount} entities.`);
+  writeText(OUTPUT_FILE_PATH, `${JSON.stringify(meta, null, 2)}\n`);
+  console.log(
+    `Generated '${OUTPUT_FILENAME}' with ${exportMap.size} documented entities.`,
+  );
 }
 
 main();

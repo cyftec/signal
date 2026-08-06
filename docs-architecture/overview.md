@@ -1,252 +1,257 @@
-# Architecture Notes
+# Architecture Overview
 
-## High-Level Architecture
+This document explains the current implementation of `@cyftec/signal` for contributors. It describes repository structure and runtime mechanics; [semantics.md](./semantics.md) remains the observable contract.
 
-This is a custom signal implementation for reactive state management in TypeScript. The library provides three main primitive types:
+## Runtime model
 
-1. **Source Signals** - Mutable signals created from plain values
-2. **Derived Signals** - Read-only signals computed from other signals
-3. **Effects** - Functions that run when dependent signals change
+The runtime has three signal kinds and one active computation kind:
 
-The architecture uses a global variable-based dependency tracking system rather than an explicit graph structure.
+```text
+SourceSignal ──value read──▶ EffectHook ──registers──▶ Effect
+     │                                               │
+     └──value write──▶ subscribed Effect.run() ◀─────┘
 
-## Major Concepts
+DerivedSignal = base-signal storage + updater Effect + read-only setter
+DeadSignal    = base-signal storage + read-only setter + non-live methods
+```
 
-### Signal Primitives
+- A **source signal** owns mutable state.
+- A **derived signal** owns computed state updated by an effect.
+- A **dead signal** is a read-only snapshot with signal-shaped helper methods.
+- An **effect** is an immediately invoked callback plus its subscription bookkeeping.
 
-**SourceSignal<T>**
+There is no scheduler, queue, batch, transaction, or cycle detector. A write directly runs subscribed effects in the same call stack.
 
-- Created via `signal(input: T)` function
-- Has `type: "source-signal"` property for runtime type discrimination
-- Contains a `value` getter/setter
-- For arrays: extends with array mutation methods (push, pop, splice, etc.)
-- For objects: extends with `set(partial)` method for partial updates
-- Internally uses `@cyftec/immut` for immutable value handling
+## Repository layers
 
-**DerivedSignal<T>**
+### Core: `src/_core`
 
-- Created via `derive(valueGetterFn: (oldValue) => T)` function
-- Has `type: "derived-signal"` property
-- Read-only - has `value` getter but no setter
-- Has `prevValue` getter to access previous computed value
-- Has `dispose()` method to stop tracking dependencies
-- Internally implemented as a source signal + effect pattern
+- `signals/base-signal.ts` — storage, tracked and non-reactive reads, mutation publishing, subscribers, and source disposal.
+- `signals/source-signal.ts` — mutable source facade and data-method attachment.
+- `signals/derived-signal.ts` — evaluator effect, read-only facade, and live non-mutating methods.
+- `signals/dead-signal.ts` — read-only non-live facade and snapshot methods.
+- `effect/effect.ts` — effect object, subscription sets, execution, and immediate disposal.
+- `effect/hook.ts` — singleton current-effect hook used during initial collection.
+- `data-specific-methods/` — array, object, string, number, boolean, and generic method factories.
+- `dispose.ts` — bulk disposal helper.
 
-**NonSignal<T>**
+### Higher-level API: `src/api`
 
-- Runtime type wrapper for plain values
-- Has `type: "non-signal"` property
-- Used for runtime type discrimination in MaybeSignalValue types
-- Created via `getNonSignalObject(input: T)`
+- `compute.ts` — function application over maybe-signal arguments.
+- `connectors.ts` — eager signal/value-to-source bindings.
+- `nullable.ts` — generic logical methods for nullable primitive inputs.
+- `operations/` — the chainable `op` evaluator API.
+- `promstates.ts` — promise result, error, and running projections.
+- `tmpl.ts` — reactive tagged-template interpolation.
 
-### Effects
+### Utilities: `src/utils`
 
-**SignalsEffect**
+- `value-getter.ts` — maybe-signal unwrapping through `.value`.
+- `plain-method-params.ts` — parameter-list unwrapping.
+- `type-checkers.ts` — runtime discrimination by the `type` field.
 
-- Created via `effect(fn: () => void)` function
-- Has `canDisposeNow: boolean` flag
-- Has `dispose()` method to mark for cleanup
-- Registered to signals when their `.value` is accessed during effect execution
-- Only re-runs if it actually accessed signal values during previous execution
+The package root re-exports `src/index.ts`, which combines the core, API, and utility barrels.
 
-### Dependency Tracking Strategy
+## Base-signal storage
 
-**Global Variable-Based Tracking**
+`getBaseSignal(initialValue)` creates the shared storage object used by all three signal kinds.
 
-- Uses module-level `_currentSignalEffect: SignalsEffect | null` variable
-- When `effect()` is called, it sets `_currentSignalEffect` before executing the function
-- When a signal's `.value` getter is called, it checks if `_currentSignalEffect` exists
-- If it exists, the effect is added to the signal's internal `_effects` Set
-- After effect execution, `_currentSignalEffect` is set back to `null`
+Current internal state:
 
-**No Explicit Graph Structure**
+- `_value` — current stored value.
+- `_prevValue` — prior value from the last successful update.
+- `_effects` — a Set of subscribed `Effect` objects.
 
-- No dependency graph data structure
-- Each signal maintains a Set of registered effects
-- Dependencies are tracked implicitly through the global variable during execution
-- This means effects must access `.value` during execution to establish dependencies
+Important access paths:
 
-### Scheduling Strategy
+- `value` getter checks `EffectHook.getCurrentEffect()`, records the two-way subscription, and returns `newVal(_value)`.
+- `nonReactiveValue` returns the raw stored value without dependency collection. Derived evaluation uses it to pass the previous computed value.
+- `value` setter checks strict equality, moves the current reference into previous state, stores the setter input directly, then calls every subscribed effect's `run()`.
+- `mutateWith(evaluator)` computes a new value from the stored value and publishes it through the setter.
+- `removeEffect(effect)` removes one known subscription and throws if the effect is absent.
+- `dispose()` clears the source's subscriber Set immediately.
 
-**Synchronous Execution**
+`nonReactiveValue`, `mutateWith`, and `removeEffect` are exposed by the inferred base type, but they exist primarily to connect runtime pieces. Application code should normally use `.value`, attached methods, and `.dispose()`.
 
-- No batching or deferred execution
-- When a signal's value is set, all registered effects run immediately
-- Effects run in the order they were registered
-- No scheduling queue or microtask timing
+`newVal(...)` isolates initial object and array inputs and tracked `.value` reads. It is not applied by the setter: an object or array assigned through `.value` remains shared with the caller. Mutating that original reference changes stored data without publishing an update. `prevValue` and `nonReactiveValue` can also expose raw stored references and should be treated as read-only.
 
-**Effect Execution Flow**
+## Initial dependency collection
 
-1. Signal value is set via setter
-2. Signal checks if new value equals old value (short-circuits if equal)
-3. Signal updates internal value using `immut()`
-4. Signal iterates through its `_effects` Set
-5. For each effect: if `canDisposeNow` is true, remove it; otherwise, execute it
-6. Effects may access other signals' `.value`, triggering their effects recursively
+Effect creation follows this sequence:
 
-### Batching
+```text
+effect(callback)
+  ├─ create Effect with empty stimulus/dependent Sets
+  ├─ EffectHook.setCurrentEffect(effect)
+  ├─ effect.run() → callback()
+  │    └─ every live signal.value read records the subscription
+  ├─ finally: EffectHook.setCurrentEffect(null)
+  └─ return Effect
+```
 
-**No Batching Mechanism**
+When a base signal sees a current effect, it:
 
-- All updates are synchronous and immediate
-- No automatic batching of multiple signal updates
-- No manual batch API provided
-- Each signal update triggers all dependent effects immediately
+1. calls `effect.registerStimulusSignal(baseSignal)`; and
+2. adds the effect to its local `_effects` Set.
 
-### Cleanup/Disposal
+The hook is installed only around the initial call made by `effect(...)`. `Effect.run()` itself does not reinstall it. This is why dependencies are initial-run only: later executions retain the original subscription set but do not reconcile it with newly taken branches.
 
-**Effect Disposal**
+The hook is a single slot rather than a stack. Nested effect construction changes that slot while the inner effect is created, so code must not assume stack-based restoration of an outer collector.
 
-- Call `effect.dispose()` to set `canDisposeNow = true`
-- Disposed effects are removed from signal's `_effects` Set on next signal update
-- Disposed effects never run again
+## Effect bookkeeping and disposal
 
-**Derived Signal Disposal**
+An `Effect` owns:
 
-- Call `derivedSignal.dispose()` to dispose its internal effect
-- This stops the derived signal from tracking its dependencies
-- The derived signal's value remains accessible but won't update
+- `_isDisposed` — surfaced as `isDisposed`.
+- `_stimulusSignals` — signals whose writes can run this effect.
+- `_dependentSignals` — signals explicitly registered as depending on this effect; derived signals currently use this for bookkeeping.
 
-**Bulk Disposal**
+Disposal is immediate:
 
-- `dispose(...derivedSignalsOrEffects)` utility function
-- Accepts multiple derived signals and/or effects
-- Calls `.dispose()` on each argument
+```text
+effect.dispose()
+  ├─ for each stimulus: stimulus.removeEffect(effect)
+  ├─ clear stimulus and dependent Sets
+  └─ set isDisposed = true
+```
 
-### Internal Graph Structures
+`run()` returns without invoking the callback after disposal. A second disposal throws instead of silently succeeding.
 
-**Signal Internal State**
+Source disposal and effect disposal are not fully symmetric. A source clears its own subscriber Set but does not remove itself from the subscribed effects' `_stimulusSignals` Sets. If one of those effects is disposed later, its attempt to call `source.removeEffect(effect)` can throw because the source subscription was already cleared. This is a current bookkeeping limitation, not intended graph behavior.
 
-- `_value`: The current value (stored immutably via `@cyftec/immut`)
-- `_effects`: A Set of registered SignalsEffect functions
+This replaces the older deferred-cleanup design. Documentation or generated metadata that mentions cleanup on a future signal update describes an obsolete implementation.
 
-**Derived Signal Internal State**
+## Derived-signal construction
 
-- `oldValue`: Previous computed value
-- `derivedSource`: Internal source signal holding the computed value
-- `derivedSourceUpdator`: Internal effect that recomputes the value
+`derive(evaluator)` creates a base signal initialized with `undefined` and an updater effect:
 
-**Effect Internal State**
+```text
+dependency write
+  → updater Effect
+  → evaluator(previousComputedValue)
+  → internal base value setter
+  → downstream effects if the output changed
+```
 
-- `canDisposeNow`: Boolean flag for disposal status
-- `dispose()`: Method to mark for disposal
+After initial computation, `derive`:
 
-## Data Flow
+1. registers the internal base as a dependent signal of the updater effect;
+2. replaces the public `value` setter with a no-op;
+3. assigns `type: "derived-signal"` and a `dispose()` method that disposes the updater; and
+4. attaches generic and type-specific non-mutating methods.
 
-1. **Signal Creation**
-   - `signal(input)` creates a source signal with immutable initial value
-   - Array/object signals get extended with mutation methods
+The derived signal therefore uses the same storage and downstream subscriber mechanism as a source, but it is not implemented as a public source signal wrapper. Its setter is read-only and it has no source `.mutate` surface.
 
-2. **Effect Registration**
-   - `effect(fn)` sets `_currentSignalEffect`, executes fn, then clears it
-   - When fn accesses `signal.value`, the signal adds the effect to its `_effects` Set
+Strict-equality short-circuiting occurs at the internal base setter. If recomputation returns the current output, `prevValue` and downstream effects do not change.
 
-3. **Value Update**
-   - Setting `signal.value = newValue` triggers immediate effect execution
-   - Signal updates its internal value immutably
-   - Signal runs all registered effects (removing disposed ones)
+## Dead-signal construction
 
-4. **Derived Signal Computation**
-   - `derive(fn)` creates internal source signal + effect
-   - The effect runs `fn(oldValue)` and updates the internal source signal
-   - When dependencies change, the effect re-runs, updating the derived value
+`deadSignal(input)` also starts from base-signal storage, then:
 
-## Areas That Differ from Common Signal Libraries
+1. replaces the public setter with a no-op;
+2. assigns `type: "dead-signal"`;
+3. assigns a no-op `dispose()`; and
+4. attaches generic and non-mutating data methods in non-live mode.
 
-1. **Global Variable Dependency Tracking**
-   - Most libraries use explicit dependency graphs or stacks
-   - This implementation uses a single module-level variable
-   - Simpler but less flexible for nested scenarios
+Non-live method factories evaluate immediately and wrap results in another dead signal. They do not create an updater effect. This gives live and dead values a similar projection vocabulary without falsely making snapshots reactive.
 
-2. **No Batching**
-   - SolidJS, Preact Signals, Angular Signals all have batching
-   - This implementation has no batching mechanism
-   - Every update triggers immediate synchronous propagation
+## Data-method dispatch
 
-3. **Derived Signal Implementation**
-   - Most libraries have dedicated derived signal nodes
-   - This implementation wraps a source signal + effect
-   - More indirect but achieves same result
+Source, derived, and dead constructors choose a method family once. The dispatch value is:
 
-4. **Array Mutation Methods**
-   - Most signal libraries treat arrays as immutable
-   - This implementation provides mutating methods (push, pop, etc.)
-   - Methods create new immutable arrays internally but feel mutable
+1. the optional non-null exemplar, when supplied; otherwise
+2. the base's current non-reactive value.
 
-5. **Custom Array Methods**
-   - Includes `remove()` method (inverse of filter)
-   - Not standard in JavaScript or other signal libraries
+Dispatch order matters:
 
-6. **No Scheduling**
-   - No microtask scheduling or deferred execution
-   - All propagation is synchronous
-   - Different from most frameworks that use scheduling for performance
+1. arrays;
+2. plain objects;
+3. strings;
+4. numbers;
+5. booleans for source mutation only; and
+6. no data-specific methods for other kinds.
 
-7. **Type Discrimination**
-   - Uses `type` property on all signal objects
-   - Enables runtime type checking for MaybeSignalValue types
-   - Not common in other signal libraries
+Arrays are checked before objects because arrays are objects in JavaScript. Plain-object detection comes from `@cyftec/immut`.
 
-8. **NonSignal Objects**
-   - Explicit runtime type wrapper for plain values
-   - Used for type discrimination in complex type scenarios
-   - Uncommon pattern in other libraries
+Source method bundles combine:
 
-## Unusual Implementation Details
+- `.mutate` methods that publish through `mutateWith`; and
+- read-only methods that produce live derived results.
 
-1. **Effect Registration Condition**
-   - Effects only register to signals if `.value` is accessed during execution
-   - If an effect has conditional logic that skips `.value` access, it won't track that dependency
-   - This is intentional but different from automatic dependency collection
+Derived bundles contain only live read-only methods. Dead bundles contain the same read-only method names, but their results are dead snapshots.
 
-2. **Disposal Cleanup Timing**
-   - Disposed effects are not removed immediately
-   - They are removed on the next signal update
-   - Lazy cleanup strategy
+All maybe-signal method parameters flow through `value(...)`. On a live result's initial derivation, this captures both the base signal and every live parameter that is read.
 
-3. **Array Signal Implementation**
-   - Array mutation methods create new arrays internally
-   - But the API feels like standard array mutation
-   - Uses `mutator` pattern to wrap array methods
+## Generic method architecture
 
-4. **Derived Signal Previous Value**
-   - Derived signals expose `prevValue` getter
-   - This is uncommon in other signal libraries
-   - Useful for diffing or change detection
+`getGenericMethods` builds three groups:
 
-5. **Object Signal Partial Updates**
-   - Object signals have `set(partial)` method
-   - Performs shallow merge with existing value
-   - Different from full replacement
+- `or(alternative)` — a JavaScript `||` evaluator.
+- `is` — boolean projections for truthiness, equality, numeric measure, and string/array length.
+- `if` — the same checks returning a `then(truthy, falsy)` selector.
 
-6. **No Automatic Disposal**
-   - No automatic disposal based on scope or lifecycle
-   - Manual disposal required
-   - Different from frameworks with component lifecycle
+The factory checks `valueIsLiveSignal(base)` once:
 
-## API Layer Structure
+- live base → wrap evaluators with `derive`;
+- dead or plain base → evaluate now and wrap with `deadSignal`.
 
-The library has two main layers:
+This same factory powers methods attached to signals and the public `nullable(...)` adapter.
 
-**Core Layer** (`src/_core/`)
+## Higher-level flow
 
-- Primitive implementations: signal, derive, effect, dispose
-- Type definitions and utilities
-- Type checkers and value getters
+### Unwrapping
 
-**API Layer** (`src/api/`)
+`value(input)` calls `.value` for every source, derived, or dead signal. For a live signal, that means unwrapping is a tracked read during initial collection. `compute`, connectors, operation evaluators, and parameter unwrapping rely on this behavior.
 
-- Higher-level convenience APIs
-- Operations: composable operations on signals
-- Traps: type-specific utility methods
-- Connectors: signal-to-signal connections
-- Templates: string interpolation with signals
-- Promise states: async state management
-- Compute: function-based derived signals
+### Connectors
 
-## Dependencies
+`receive` constructs one immediate effect per transmitter; `transmit` constructs one immediate effect for all receivers. Because effect construction runs eagerly, connectors synchronize current values before returning. Plain and dead inputs still perform this initial write but capture no changing live stimulus.
 
-- `@cyftec/immut` - Used for immutable value handling
-  - `immut()` - Creates immutable copy of value
-  - `newVal()` - Extracts value from immutable wrapper
-  - `isPlainObject()` - Type checking for plain objects
+### Promise state
+
+`promstates` owns one object source signal with `isRunning`, `result`, and `error` properties, then returns `state.props()` projections. Each run publishes a pending object before invoking the promise function and publishes a settled object from the promise chain.
+
+Known implementation limitations include falsy initial-value loss, unhandled synchronous throws before a promise is returned, and races between overlapping runs.
+
+### Operation chains
+
+`op` evaluates once to select generic, number, or string/array chain shape. Each chained operation returns another evaluator object. A final getter or `then(...)` creates a derived signal whose initial run captures every live value read through the evaluator chain.
+
+## Documentation build architecture
+
+There are three documentation sources:
+
+- human-authored Markdown under `docs-architecture/` and `README.md`;
+- semantic comments in `src/**/*.ts`; and
+- human-authored website pages under `website/dev/`.
+
+The API metadata path is:
+
+```text
+src/**/*.ts comments
+  → bun run build:meta
+  → website/dev/view/pages/assets/code_entities_meta.json
+  → website API page renders the JSON
+  → bun run docs / Brahma publish
+  → generated static output under docs/
+```
+
+`docs/` and its metadata copy are generated output. Changes belong in source comments or `website/dev/`, followed by regeneration.
+
+The metadata builder uses the TypeScript compiler AST to discover supported exported declarations, extract callable parameters and type parameters, and associate each declaration with its adjacent raw TSDoc block. A deliberately limited parser handles the supported semantic tags, and `build:validate` enforces required comment sections plus parameter/template agreement with the extracted signature. Contributor checks should still inspect generated names, signatures, links, and completeness because validation covers the documented schema rather than every aspect of API meaning.
+
+## Architecture invariants
+
+When changing the runtime, preserve or explicitly revise these contracts:
+
+- synchronous, unbatched propagation;
+- strict-equality update suppression;
+- initial-run-only dependency collection;
+- read-only derived and dead public values;
+- immediate effect and derived disposal, including the double-dispose error;
+- live methods returning derived signals and dead methods returning dead snapshots;
+- source mutation methods living under `.mutate`;
+- eager connector initialization; and
+- `value(...)` acting as a tracked read for live signals.
+
+Any intentional public behavior change requires behavioral tests and coordinated updates to the semantic, behavioral, architecture, and agent-facing documents.

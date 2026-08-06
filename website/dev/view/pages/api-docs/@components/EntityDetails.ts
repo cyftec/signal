@@ -16,8 +16,17 @@ export const EntityDetails = component<EntityDetailsProps>(
     const { kind, category, name, sourcePath, signature, tsdoc } =
       derivedCodeEntity.props();
     const nonNullSignature = derive(() => signature?.value || "");
-    const { title, summary, returns, remarks, params, examples, see } =
-      tsdoc.props();
+    const {
+      title,
+      summary,
+      returns,
+      remarks,
+      params,
+      examples,
+      see,
+      template,
+      deprecated,
+    } = tsdoc.props();
     const remarkLines = derive(() => {
       let onlyRem = remarks.value[0] || "";
       if (onlyRem.startsWith("-")) onlyRem = onlyRem.slice(1).trim();
@@ -37,6 +46,8 @@ export const EntityDetails = component<EntityDetailsProps>(
             children: ["Source: ", m.Code(sourcePath)],
           }),
         }),
+        m.If({ subject: deprecated.length(), isTruthy: () => m.H2("Deprecated") }),
+        m.Div(m.For({ subject: deprecated, map: (notice) => m.P(notice) })),
         Paragraph({ text: summary }),
         m.Br(),
         m.H2("Signature"),
@@ -44,7 +55,19 @@ export const EntityDetails = component<EntityDetailsProps>(
           tokens: compute(extractCodeTokens, nonNullSignature, "ts"),
         }),
         m.Br(),
-        m.H2("Parameters"),
+        m.If({
+          subject: template.length(),
+          isTruthy: () => m.H2("Type parameters"),
+        }),
+        m.Ul(
+          m.For({
+            subject: template,
+            map: (prm) =>
+              m.Li([m.Code(prm.name), m.Span(": "), m.Span(prm.description)]),
+          }),
+        ),
+        m.Br(),
+        m.If({ subject: params.length(), isTruthy: () => m.H2("Parameters") }),
         m.Ul(
           m.For({
             subject: params,
@@ -53,7 +76,7 @@ export const EntityDetails = component<EntityDetailsProps>(
           }),
         ),
         m.Br(),
-        m.H2("Returns"),
+        m.If({ subject: returns.length(), isTruthy: () => m.H2("Returns") }),
         m.Div(m.For({ subject: returns, map: (ret) => m.P(ret) })),
         m.Br(),
         m.If({
@@ -62,7 +85,7 @@ export const EntityDetails = component<EntityDetailsProps>(
         }),
         m.Ul(m.For({ subject: remarkLines, map: (rem) => m.Li(rem) })),
         m.Br(),
-        m.H2("Examples"),
+        m.If({ subject: examples.length(), isTruthy: () => m.H2("Examples") }),
         m.Div(
           m.For({
             subject: examples,

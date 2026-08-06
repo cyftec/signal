@@ -2,80 +2,113 @@ import type { MaybeSignal } from "../_core/signals/types";
 import { value } from "./value-getter";
 
 /**
- * Checks whether a value is a source signal.
+ * Checks for the source-signal runtime discriminator.
  *
- * @param input - Any value to check
- * @returns `true` if the value has `type: "source-signal"`, `false` otherwise
+ * This structural guard tests only whether `input?.type` equals
+ * `"source-signal"`; it does not validate the rest of the signal interface.
+ *
+ * @param input - The value to inspect.
+ * @returns `true` for the source discriminator and `false` otherwise.
  *
  * @remarks
- * - Returns false for derived signals, dead-signals, and plain values
- * - Returns false for `null` and `undefined`
+ * - Derived signals, dead signals, nullish values, and ordinary values return `false`.
+ * - A plain object can satisfy this check by carrying the matching discriminator.
+ * - The check does not read `value` and therefore does not collect dependencies.
  *
- * @see {@link SourceSignal} - For source signal type
- * @see {@link valueIsDerivedSignal} - For checking derived signals
- * @see {@link valueIsLiveSignal} - For checking any signal type
+ * @example
+ * ```typescript
+ * valueIsSourceSignal(signal(1)); // true
+ * valueIsSourceSignal(derive(() => 1)); // false
+ * ```
+ *
+ * @see {@link SourceSignal} - The corresponding structural type.
+ * @see {@link valueIsDerivedSignal} - Checks the computed-live discriminator.
+ * @see {@link valueIsLiveSignal} - Checks either live discriminator.
  */
 export const valueIsSourceSignal = (input: MaybeSignal<any>): boolean =>
   !!(input?.type === "source-signal");
 
 /**
- * Checks whether a value is a derived signal.
+ * Checks for the derived-signal runtime discriminator.
  *
- * @param input - Any value to check
- * @returns `true` if the value has `type: "derived-signal"`, `false` otherwise
+ * This structural guard tests only whether `input?.type` equals
+ * `"derived-signal"`; it does not validate computation or disposal members.
+ *
+ * @param input - The value to inspect.
+ * @returns `true` for the derived discriminator and `false` otherwise.
  *
  * @remarks
- * - Returns false for source signals, dead-signals, and plain values
- * - Returns false for `null` and `undefined`
+ * - Source signals, dead signals, nullish values, and ordinary values return `false`.
+ * - A plain object can satisfy this check by carrying the matching discriminator.
+ * - The check does not read `value` and therefore does not collect dependencies.
  *
- * @see {@link DerivedSignal} - For derived signal type
- * @see {@link valueIsSourceSignal} - For checking source signals
- * @see {@link valueIsLiveSignal} - For checking any signal type
+ * @example
+ * ```typescript
+ * valueIsDerivedSignal(derive(() => 1)); // true
+ * valueIsDerivedSignal(signal(1)); // false
+ * ```
+ *
+ * @see {@link DerivedSignal} - The corresponding structural type.
+ * @see {@link valueIsSourceSignal} - Checks the mutable-live discriminator.
+ * @see {@link valueIsLiveSignal} - Checks either live discriminator.
  */
 export const valueIsDerivedSignal = (input: MaybeSignal<any>): boolean =>
   !!(input?.type === "derived-signal");
 
 /**
- * Checks whether a value is any signal (source or derived).
+ * Checks whether a value carries either live-signal discriminator.
  *
- * @param input - Any value to check
- * @returns `true` if the value is a source or derived signal, `false` otherwise
+ * Source and derived discriminator strings are accepted; dead signals and all
+ * other values are rejected.
+ *
+ * @param input - The value to inspect.
+ * @returns `true` for a structurally recognized source or derived signal.
  *
  * @remarks
- * - Returns true for both source and derived signals
- * - Returns false for dead-signals and plain values
- * - Returns false for `null` and `undefined`
+ * - The check is structural and does not validate other signal members.
+ * - Dead signals intentionally return `false`.
+ * - The check does not read `value` and therefore does not collect dependencies.
  *
- * @see {@link SourceSignal} - For source signal type
- * @see {@link DerivedSignal} - For derived signal type
- * @see {@link LiveSignal} - For the signal union type
+ * @example
+ * ```typescript
+ * valueIsLiveSignal(signal(1)); // true
+ * valueIsLiveSignal(deadSignal(1)); // false
+ * ```
+ *
+ * @see {@link LiveSignal} - The corresponding union type.
+ * @see {@link valueIsSignal} - Also accepts dead signals.
+ * @see {@link valueIsDeadSignal} - Checks the non-live discriminator.
  */
 export const valueIsLiveSignal = (input: MaybeSignal<any>): boolean =>
   ["source-signal", "derived-signal"].includes(input?.type);
 
 /**
- * Checks whether a value is a dead-signal object, optionally matching specific types.
+ * Checks for a dead-signal discriminator and optional value `typeof` filters.
  *
- * @param input - Any value to check
- * @param shouldMatchAnyOfTypes - Optional array of primitive type names to match
- * (for example, `["string", "number"]`)
- * @returns `true` if the value has `type: "dead-signal"` and (if types provided)
- * the value matches one of the types
+ * A matching discriminator is required first. When a non-empty filter list is
+ * supplied, at least one entry must equal `typeof input.value`.
+ *
+ * @param input - The value to inspect.
+ * @param shouldMatchAnyOfTypes - Optional `typeof` strings accepted for the wrapped value.
+ * @returns Whether the discriminator and optional type filter match.
+ *
+ * @remarks
+ * - An omitted or empty filter list accepts every dead-signal value type.
+ * - Arrays and null use JavaScript's `"object"` `typeof` result.
+ * - The check is structural and reads `value` only when a type filter is present.
+ * - Nullish and ordinary values return `false`.
  *
  * @example
  * ```typescript
- * const nonSig = deadSignal(42);
- * valueIsDeadSignal(nonSig); // true
- * valueIsDeadSignal(nonSig, ["number"]); // true
- * valueIsDeadSignal(nonSig, ["string"]); // false
+ * const snapshot = deadSignal(42);
+ * valueIsDeadSignal(snapshot); // true
+ * valueIsDeadSignal(snapshot, ["number"]); // true
+ * valueIsDeadSignal(snapshot, ["string"]); // false
  * ```
  *
- * @remarks
- * - Empty types array is treated as no type restriction
- * - Returns false for `null` and `undefined`
- *
- * @see {@link DeadSignal} - For dead-signal type
- * @see {@link deadSignal} - For creating dead-signal objects
+ * @see {@link DeadSignal} - The corresponding structural type.
+ * @see {@link deadSignal} - Creates recognized snapshots.
+ * @see {@link valueIsSignal} - Accepts live and dead signals.
  */
 export const valueIsDeadSignal = (
   input: any,
@@ -87,51 +120,83 @@ export const valueIsDeadSignal = (
     shouldMatchAnyOfTypes.some((type) => typeof input?.value === type));
 
 /**
- * Checks whether a value is a signal or dead-signal object.
+ * Checks whether a value carries any supported signal discriminator.
  *
- * @param input - Any value to check
- * @returns `true` if the value is a signal or dead-signal object, `false` otherwise
+ * The result combines the live-signal and dead-signal structural checks.
+ *
+ * @param input - The value to inspect.
+ * @returns `true` for source, derived, or dead discriminator values.
  *
  * @remarks
- * - Returns true for source signals, derived signals, and dead-signal objects
- * - Returns false for plain values
- * - Returns false for `null` and `undefined`
+ * - Plain and nullish values return `false`.
+ * - The check does not validate getters, methods, or signal provenance.
+ * - No signal `value` is read when no dead-signal type filter is requested.
  *
- * @see {@link LiveSignal} - For signal types
- * @see {@link DeadSignal} - For dead-signal type
- * @see {@link Signal} - For the signal union type
+ * @example
+ * ```typescript
+ * valueIsSignal(signal(1)); // true
+ * valueIsSignal(deadSignal(1)); // true
+ * valueIsSignal(1); // false
+ * ```
+ *
+ * @see {@link Signal} - The corresponding union type.
+ * @see {@link valueIsLiveSignal} - Checks source and derived signals.
+ * @see {@link valueIsDeadSignal} - Checks dead signals.
  */
 export const valueIsSignal = (input: any): boolean =>
   valueIsLiveSignal(input) || valueIsDeadSignal(input);
 
 /**
- * Checks whether a value is a dead-signal of type string.
+ * Checks for a dead signal whose wrapped value has string `typeof`.
  *
- * @param input - Any value to check
- * @returns `true` if the value is a dead-signal with a string value, `false` otherwise
+ * This convenience guard delegates to `valueIsDeadSignal` with a single
+ * `"string"` value-type filter.
+ *
+ * @param input - The value to inspect.
+ * @returns `true` only for a structurally recognized dead string signal.
  *
  * @remarks
- * - Returns false for plain strings (not wrapped in dead-signal)
+ * - Plain strings and live string signals return `false`.
+ * - The check reads a matching dead signal's `value` for the type comparison.
+ * - Runtime recognition remains structural rather than branded.
  *
- * @see {@link DeadSignal} - For dead-signal type
- * @see {@link valueIsDeadSignal} - For the general dead-signal checker
+ * @example
+ * ```typescript
+ * valueIsDeadSignalString(deadSignal("text")); // true
+ * valueIsDeadSignalString("text"); // false
+ * ```
+ *
+ * @see {@link valueIsDeadSignal} - Performs the discriminator and type check.
+ * @see {@link DeadSignal} - Represents the accepted signal kind.
+ * @see {@link valueIsDeadSignalStringArray} - Checks dead string arrays.
  */
 export const valueIsDeadSignalString = (input: any): boolean =>
   valueIsDeadSignal(input, ["string"]);
 
 /**
- * Checks whether a value is a dead-signal of type string array.
+ * Checks for a dead signal containing only string array elements.
  *
- * @param input - Any value to check
- * @returns `true` if the value is a dead-signal with a string array value, `false` otherwise
+ * The discriminator and `Array.isArray` must match, then every element is
+ * validated with `typeof item === "string"`.
+ *
+ * @param input - The value to inspect.
+ * @returns `true` for dead string arrays, including empty arrays.
  *
  * @remarks
- * - Checks that all array elements are strings
- * - Returns false for empty arrays
- * - Returns false for arrays with non-string elements
+ * - Empty arrays pass because `Array.prototype.every` is vacuously true.
+ * - Mixed and non-string arrays return `false`.
+ * - Plain and live string arrays return `false`.
  *
- * @see {@link DeadSignal} - For dead-signal type
- * @see {@link valueIsDeadSignal} - For the general dead-signal checker
+ * @example
+ * ```typescript
+ * valueIsDeadSignalStringArray(deadSignal(["a", "b"])); // true
+ * valueIsDeadSignalStringArray(deadSignal([])); // true
+ * valueIsDeadSignalStringArray(["a"]); // false
+ * ```
+ *
+ * @see {@link valueIsDeadSignal} - Checks general dead signals.
+ * @see {@link valueIsDeadSignalString} - Checks a scalar dead string.
+ * @see {@link DeadSignal} - Represents the accepted signal kind.
  */
 export const valueIsDeadSignalStringArray = (input: any): boolean =>
   input?.type === "dead-signal" &&
@@ -139,19 +204,30 @@ export const valueIsDeadSignalStringArray = (input: any): boolean =>
   (input?.value as any[]).every((item) => typeof item === "string");
 
 /**
- * Checks whether a value, after unwrapping, is a string or array.
+ * Checks whether an unwrapped input is a string or an array.
  *
- * @param input - Any value to check
- * @returns `true` if the unwrapped value is a string or array, `false` otherwise
+ * The helper calls `value()` and accepts either string `typeof` or
+ * `Array.isArray` on the resulting plain value.
+ *
+ * @param input - A plain value or structurally recognized signal to inspect.
+ * @returns `true` when the unwrapped value is a string or any array.
  *
  * @remarks
- * - Unwraps signals and dead-signals to get the plain value
- * - Returns true if the plain value is a string or array
- * - Returns false for other types
- * - Returns false for `null` and `undefined`
+ * - Empty arrays return `true`.
+ * - Nullish, numeric, boolean, and object values return `false`.
+ * - Live signal inputs are read reactively and can be collected as dependencies.
+ * - The implementation unwraps separately for each half of the boolean expression.
  *
- * @see {@link MaybeSignal} - For the input type
- * @see {@link value} - For unwrapping signals
+ * @example
+ * ```typescript
+ * valueIsMaybeSignalValueOfStringOrArray(signal("text")); // true
+ * valueIsMaybeSignalValueOfStringOrArray(deadSignal([1])); // true
+ * valueIsMaybeSignalValueOfStringOrArray(1); // false
+ * ```
+ *
+ * @see {@link value} - Performs signal unwrapping.
+ * @see {@link MaybeSignal} - Describes common supported inputs.
+ * @see {@link valueIsSignal} - Checks signal structure without unwrapping.
  */
 export const valueIsMaybeSignalValueOfStringOrArray = (input: any): boolean =>
   typeof value(input) === "string" || Array.isArray(value(input));

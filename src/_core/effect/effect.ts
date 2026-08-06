@@ -2,18 +2,28 @@ import { BaseSignal } from "../signals";
 import { EffectHook } from "./hook";
 
 /**
- * A function that can be registered to run when signal values change.
+ * Describes a runnable and disposable reactive effect.
  *
- * Effects are created by the `effect()` function and track dependencies
- * by accessing `.value` on signals during execution.
+ * An effect records stimulus signals read during its initial execution and can
+ * also record dependent signals created by that execution. Its methods expose
+ * execution, registration, and immediate cleanup behavior.
  *
  * @remarks
- * - The effect function runs immediately when created
- * - It re-runs whenever any tracked signal's value changes
- * - The `canDisposeNow` flag marks the effect for disposal
- * - Calling `dispose()` sets `canDisposeNow` to true
+ * - `run()` does nothing after disposal.
+ * - `dependentSignals` is the live internal set and is cleared by disposal.
+ * - Registering signals after disposal throws.
+ * - Calling `dispose()` more than once throws.
  *
- * @see {@link effect} - For creating effects
+ * @example
+ * ```typescript
+ * const count = signal(0);
+ * const watcher: Effect = effect(() => console.log(count.value));
+ * console.log(watcher.isDisposed); // false
+ * watcher.dispose();
+ * ```
+ *
+ * @see {@link effect} - Creates and initially runs an effect.
+ * @see {@link dispose} - Disposes several effects or derived signals.
  */
 export type Effect = {
   get isDisposed(): boolean;
@@ -26,52 +36,33 @@ export type Effect = {
 };
 
 /**
- * Registers a function to run whenever its accessed signals change.
+ * Creates an effect and runs its callback immediately.
  *
- * The function runs immediately when `effect()` is called, and re-runs
- * synchronously whenever any tracked signal's value changes. Dependencies
- * are established by accessing `.value` on signals during execution.
+ * Reads of signal `value` properties during the initial callback execution
+ * become permanent stimulus dependencies. Changes to those signals rerun the
+ * callback synchronously until the returned effect is disposed.
+ *
+ * @param signalsCatcherFn - The callback to execute and initially inspect for signal reads.
+ * @returns An `Effect` object for manual runs, inspection, registration, and disposal.
  *
  * @remarks
- * - The function runs immediately when `effect()` is called
- * - Dependencies are only tracked for signals whose `.value` is accessed during execution
- * - If a signal is accessed conditionally and the condition is false on first run, it won't be tracked
- * - Effects run synchronously when dependencies change
- * - Disposal is lazy - effects are removed on the next signal update, not immediately
- *
- * @param signalsCatcherFn - A function that should access `.value` on signals to establish
- * dependencies. Contains side effects (logging, DOM updates, etc.).
- *
- * @returns The input function augmented with `canDisposeNow` and `dispose()`
- * methods for cleanup
+ * - Dependency collection occurs only during the initial execution.
+ * - Dependencies skipped by the initial control-flow path are never added later.
+ * - Dependencies collected initially are not removed when later runs skip them.
+ * - Disposal immediately unsubscribes from every stimulus signal.
+ * - Callback errors propagate; the global collection slot is still cleared after an initial error.
  *
  * @example
  * ```typescript
  * const count = signal(0);
- *
- * // Simple effect
- * effect(() => {
- *   console.log("Count is:", count.value);
- * });
- *
- * // Multiple signal tracking
- * const name = signal("John");
- * const age = signal(30);
- * effect(() => {
- *   console.log(`${name.value} is ${age.value} years old`);
- * });
- *
- * // Disposal
- * const eff = effect(() => {
- *   console.log(count.value);
- * });
- * eff.dispose();
- * count.value = 5; // Effect won't run
+ * const watcher = effect(() => console.log(count.value)); // logs 0 now
+ * count.value = 1; // logs 1 synchronously
+ * watcher.dispose();
  * ```
  *
- * @see {@link signal} - For creating signals
- * @see {@link derive} - For creating derived signals
- * @see {@link dispose} - For disposing multiple effects or derived signals
+ * @see {@link Effect} - Describes the returned controller.
+ * @see {@link signal} - Creates mutable stimulus signals.
+ * @see {@link dispose} - Disposes multiple effects or derived signals.
  */
 export const effect = (signalsCatcherFn: () => void): Effect => {
   let _isDisposed = false;

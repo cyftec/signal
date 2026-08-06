@@ -33,7 +33,7 @@ export default HtmlPage({
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
                     class: "card shallow diagram-node",
-                    children: m.Span({ children: "immutable value storage" }),
+                    children: m.Span({ children: "base-signal storage" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
@@ -43,7 +43,7 @@ export default HtmlPage({
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
                     class: "card shallow diagram-node",
-                    children: m.Span({ children: "register current effect" }),
+                    children: m.Span({ children: "EffectHook registration" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
@@ -68,11 +68,11 @@ export default HtmlPage({
                 m.Li({ children: "`signal()` creates mutable source state" }),
                 m.Li({
                   children:
-                    "reading `.value` adds the current effect to the signal",
+                    "reading `.value` records the current EffectHook effect on the base signal",
                 }),
                 m.Li({
                   children:
-                    "writing `.value` or mutating arrays/objects triggers dependent effects immediately",
+                    "writing `.value` or using `.mutate` runs dependent effects immediately",
                 }),
               ],
             }),
@@ -93,7 +93,7 @@ export default HtmlPage({
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
                     class: "card shallow diagram-node",
-                    children: m.Span({ children: "_currentSignalEffect" }),
+                    children: m.Span({ children: "EffectHook" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
@@ -103,7 +103,7 @@ export default HtmlPage({
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
                     class: "card shallow diagram-node",
-                    children: m.Span({ children: "signal._effects" }),
+                    children: m.Span({ children: "base signal effect Set" }),
                   }),
                 ],
               }),
@@ -115,15 +115,15 @@ export default HtmlPage({
               children: [
                 m.Li({
                   children:
-                    "`effect()` sets a module-level current effect before executing the callback",
+                    "`effect()` places itself in the singleton EffectHook before the initial callback",
                 }),
                 m.Li({
                   children:
-                    "each signal getter registers that effect in the signal's local `_effects` set",
+                    "each live signal getter records a two-way subscription between the signal and effect",
                 }),
                 m.Li({
                   children:
-                    "when execution ends, the current effect is cleared",
+                    "a `finally` block clears the hook when initial execution ends",
                 }),
               ],
             }),
@@ -145,7 +145,7 @@ export default HtmlPage({
                   m.Div({
                     class: "card shallow diagram-node",
                     children: m.Span({
-                      children: "internal derived source signal",
+                      children: "base-signal storage",
                     }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
@@ -162,20 +162,20 @@ export default HtmlPage({
                   m.Div({
                     class: "card shallow diagram-node",
                     children: m.Span({
-                      children: "internal derived source signal",
+                      children: "read-only public facade",
                     }),
                   }),
                 ],
               }),
             }),
             m.P({
-              children: "Derived signals are not a separate storage engine:",
+              children: "Derived signals reuse the base-signal engine:",
             }),
             m.Ul({
               children: [
                 m.Li({
                   children:
-                    "they are implemented using an internal source signal",
+                    "a base signal stores the current and previous computed values",
                 }),
                 m.Li({ children: "an internal effect recomputes the value" }),
                 m.Li({
@@ -201,37 +201,40 @@ export default HtmlPage({
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
                     class: "card shallow diagram-node",
-                    children: m.Span({ children: "canDisposeNow = true" }),
+                    children: m.Span({ children: "remove subscriptions now" }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
                     class: "card shallow diagram-node",
                     children: m.Span({
-                      children: "cleanup on next signal update",
+                      children: "clear effect bookkeeping",
                     }),
                   }),
                   m.Div({ class: "diagram-arrow", children: "→" }),
                   m.Div({
                     class: "card shallow diagram-node",
                     children: m.Span({
-                      children: "removed from signal._effects",
+                      children: "isDisposed = true",
                     }),
                   }),
                 ],
               }),
             }),
             m.P({
-              children: "Disposal is intentionally lazy:",
+              children: "Disposal is immediate:",
             }),
             m.Ul({
               children: [
-                m.Li({ children: "calling `dispose()` marks the effect" }),
                 m.Li({
-                  children: "the effect is removed on the next update cycle",
+                  children:
+                    "calling `dispose()` removes the effect from every captured stimulus signal",
+                }),
+                m.Li({
+                  children: "future writes cannot run the disposed effect",
                 }),
                 m.Li({
                   children:
-                    "this keeps disposal simple and synchronous with the rest of the runtime",
+                    "disposing the same live effect or derived signal twice throws",
                 }),
               ],
             }),
@@ -290,22 +293,27 @@ export default HtmlPage({
         }),
         m.Section({
           children: [
-            m.H2({ children: "6. Internal State" }),
+            m.H2({ children: "6. Internal State And Method Liveness" }),
             m.Ul({
               children: [
                 m.Li({
                   children: "Source signals store `_value` and `_effects`",
                 }),
                 m.Li({
-                  children: "The Effects store `canDisposeNow` and `dispose()`",
+                  children:
+                    "Effects store disposal state plus stimulus and dependent signal Sets",
                 }),
                 m.Li({
                   children:
-                    "Derived signals store an internal source signal plus an updater effect",
+                    "Derived signals combine base-signal storage, an updater effect, and a read-only setter",
                 }),
                 m.Li({
                   children:
-                    "Array and object signals add shape-specific helpers on top of the same source signal core",
+                    "Live data methods return derived signals; dead-signal methods return snapshots",
+                }),
+                m.Li({
+                  children:
+                    "Source mutations for arrays, objects, strings, and booleans live under `.mutate`",
                 }),
               ],
             }),
@@ -324,11 +332,11 @@ export default HtmlPage({
                 }),
                 m.Li({
                   children:
-                    "It matches the repository's semantics and behavioral tests exactly",
+                    "It gives live and dead values a consistent projection vocabulary",
                 }),
                 m.Li({
                   children:
-                    "It makes the signal graph easy to reason about because every dependency comes from an actual getter read",
+                    "It keeps dependency capture explicit: only initial live getter reads subscribe",
                 }),
               ],
             }),

@@ -1,670 +1,275 @@
 # Semantics
 
-This document defines the observable and guaranteed behavior of the @cyftech/signal library. It specifies what behaviors users can rely upon, what behaviors are not guaranteed, and which behaviors are validated by tests.
+This document defines the behavior that callers of `@cyftec/signal` may rely on. The source and behavioral tests are authoritative when this document is incomplete. The library has its own model; behavior from another reactive system is not part of this contract.
 
----
+The sections below distinguish:
 
-## Signal Value Updates
+- **Guarantee** — observable behavior supported by the current implementation and tests.
+- **Current limitation** — observable behavior that callers must account for, but which may be improved in a future release.
+- **Implementation detail** — useful contributor context that should not be treated as a permanent public promise.
 
-### Purpose
+## Signal kinds
 
-Define the contract for updating signal values and triggering dependent computations.
+### Source signals
 
-### Guarantees
+`signal(initialValue, nonNullableInitialValue?)` returns a mutable `SourceSignal<T>` with `type === "source-signal"`.
 
-- Setting a signal's value to a new value (strict inequality with current value) triggers all registered effects synchronously
-- Setting a signal's value to the same value (strict equality with current value) does not trigger effects
-- Effects are triggered in the order they were registered to the signal
-- When an effect runs, it may access other signals' values, triggering their effects recursively
-- All propagation is synchronous and immediate
+Guarantees:
 
-### Non-Guarantees
+- `.value` reads the current value and accepts assignments.
+- `.prevValue` is `undefined` initially and becomes the prior stored value after a successful update.
+- Assigning a strictly equal value does not change `.prevValue` or notify effects.
+- Initial object and array inputs are isolated from subsequent mutation of the original input.
+- Object and array values returned by `.value` are copies; mutating a returned value does not mutate the signal.
+- `.dispose()` immediately clears the effects subscribed to that source. The source remains readable and writable afterward.
+- Updates and effect propagation are synchronous.
 
-- The order of effect execution across multiple signals is not guaranteed when a single update triggers effects on multiple signals
-- No guarantee about the maximum depth of recursive effect triggering
-- No guarantee about performance characteristics of effect execution
+Current limitations:
 
-### Edge Cases
+- Equality uses strict identity/equality, not structural comparison.
+- Object and array setter inputs are stored directly rather than copied. Mutating an assigned input afterward can change stored data without an assignment, dependency notification, or `prevValue` update.
+- `.prevValue` and the low-level `.nonReactiveValue` accessor can expose stored object or array references. Treat those values as read-only.
+- Source `.dispose()` clears only the source's subscriber Set. It does not remove that source from each affected effect's stimulus bookkeeping, so later disposing one of those effects can throw when it tries to remove the already-cleared subscription.
+- An unchanged assignment currently writes a diagnostic to the console. The diagnostic text is not a semantic guarantee.
+- No transaction or batch API coalesces several writes.
 
-- Setting a signal's value to the same value multiple times does not trigger effects (verified by tests/signal.test.ts)
-- Null and undefined are valid signal values and can be set like any other value (verified by tests/signal.test.ts)
+### Derived signals
 
-### Examples
+`derive(evaluator, nonNullableInitialValue?)` returns a read-only `DerivedSignal<T>` with `type === "derived-signal"`.
 
-```typescript
+Guarantees:
+
+- The evaluator runs immediately during construction.
+- It receives the previous computed value; that argument is `undefined` on the first run.
+- It recomputes synchronously when a dependency captured during its initial run changes.
+- `.value` is read-only at both the type level and runtime. A forced assignment is ignored.
+- `.prevValue` changes only when the computed output changes by strict equality.
+- An unchanged computed output does not notify downstream effects.
+- Derived signals may depend on source or derived signals.
+- `.dispose()` immediately detaches the evaluator from its captured dependencies. The last value stays readable.
+
+Current limitations:
+
+- A second call to `.dispose()` reaches the underlying already-disposed effect and throws.
+- Dependencies are captured only during the initial evaluator run; later runs do not add or remove dependencies.
+
+### Dead signals
+
+`deadSignal(input, nonNullableInitialValue?)` returns a read-only `DeadSignal<T>` with `type === "dead-signal"`.
+
+Guarantees:
+
+- The wrapped value is readable through `.value` and cannot be replaced through the public setter.
+- `.dispose()` is a no-op and may be called repeatedly.
+- Non-mutating data methods and generic logical methods return `DeadSignal` snapshots.
+- A dead result does not become reactive merely because one of its method arguments is a live signal.
+
+A dead signal is a value wrapper with signal-shaped projection helpers. It is not a live source or derived computation.
+
+## Dependency tracking
+
+`effect(callback)` returns an `Effect` and invokes `callback` immediately.
+
+Guarantees:
+
+- Reading `.value` from a live signal while the initial callback is running registers that signal as a stimulus for the effect.
+- Reading the same signal several times registers one subscription.
+- Reading multiple signals registers each one.
+- A signal not read during the initial run is not a dependency.
+- Dependencies captured in the initial run remain subscribed even if a later branch stops reading them.
+- A dependency skipped by the initial branch is not added if a later run starts reading it.
+- A dependency write calls the effect synchronously in the same call stack.
+- `value(liveSignal)` participates in tracking because it reads the signal's `.value`. Helpers built on `value`, including `compute`, connector effects, method parameters, and operation chains, inherit this behavior.
+- Initial callback errors propagate, and the global collection hook is cleared in a `finally` block.
+
+Example of the initial-run rule:
+
+```ts
+const enabled = signal(false);
 const count = signal(0);
-let runCount = 0;
 
-effect(() => {
-  runCount++;
-  count.value;
-});
+const selected = derive(() => (enabled.value ? count.value : -1));
 
-count.value = 1; // runCount becomes 2 (initial + 1 update)
-count.value = 1; // runCount remains 2 (no change, no effect run)
+enabled.value = true; // selected recomputes and reads count
+count.value = 1; // selected does not recompute: count was missed initially
 ```
 
-### Verified By
+Current limitations:
 
-- tests/signal.test.ts: "should not trigger effects if value is unchanged"
-- tests/signal.test.ts: "should handle null values"
-- tests/signal.test.ts: "should handle undefined values"
+- Dependencies are not dynamically reconciled after the first run.
+- A single current-effect hook is used, not a nested effect stack. Do not depend on implicit dependency collection across nested effect construction.
+- Propagation is recursive and synchronous; the library does not impose a recursion-depth guard or cycle detector.
 
----
+## Effect execution and disposal
 
-## Dependency Tracking
+Guarantees:
 
-### Purpose
+- An effect runs once before `effect(...)` returns.
+- Subsequent runs are synchronous.
+- Effects subscribed to one signal are visited in their registration order by the current implementation.
+- `.isDisposed` changes from `false` to `true` on disposal.
+- `.dispose()` immediately removes the effect from every captured stimulus signal and clears its dependent-signal bookkeeping.
+- A disposed effect's `run()` method is a no-op.
+- Disposing the same effect twice throws `"This receiver is already destroyed."`.
+- `dispose(...items)` calls `.dispose()` on each supplied effect or derived signal in argument order; an empty call is a no-op.
 
-Define how effects and derived signals establish dependencies on signals.
+Current limitations:
 
-### Guarantees
+- If one item passed to `dispose(...)` throws, later items are not disposed by that call.
+- If an effect throws during propagation, the error escapes synchronously. There is no retry or error boundary.
+- Ordering across a recursively propagating graph is a consequence of synchronous writes and Set iteration, not a separately scheduled topological order.
 
-- An effect or derived signal establishes a dependency on a signal only if the signal's `.value` getter is accessed during execution
-- Dependencies are established during the initial execution of an effect or derived signal computation
-- Once a dependency is established, the effect or derived signal will re-run whenever that signal's value changes
-- Dependencies are not automatically re-evaluated on subsequent executions
+The returned `Effect` also exposes `run`, `registerStimulusSignal`, `registerDependentSignal`, `removeAllSignals`, and `dependentSignals`. Those are low-level bookkeeping APIs. Their exact data structures are implementation details; ordinary callers should use `dispose()` and `isDisposed`.
 
-### Non-Guarantees
+## Data-specific methods
 
-- No automatic dependency collection beyond what is accessed during execution
-- No guarantee that conditional dependencies will be tracked if the condition is false during initial execution
-- No guarantee about the internal mechanism of dependency tracking
+Method families are chosen from the initial runtime value, or from the optional non-null exemplar passed as the second argument to `signal`, `derive`, or `deadSignal`.
 
-### Edge Cases
+Guarantees:
 
-- If a signal's `.value` is accessed conditionally and the condition is false during initial execution, that signal will not be tracked as a dependency (verified by tests/signal.test.ts)
-- If an effect or derived signal does not access any signal values during execution, it runs only once (verified by tests/signal.test.ts)
+- Source-only mutators are grouped under `.mutate` and return `void`.
+- A mutator publishes one new value through the base signal and therefore triggers each subscribed effect once.
+- Non-mutating methods never change the base value.
+- Non-mutating methods on a source or derived signal return live `DerivedSignal` results.
+- The same methods on a dead signal return `DeadSignal` snapshots.
+- Signal-valued method parameters are unwrapped with `value(...)`; live parameters therefore become dependencies of live results.
+- Unsupported value kinds remain usable as base signals without data-specific methods.
 
-### Examples
+### Arrays
 
-```typescript
-const shouldShow = signal(false);
-const count = signal(5);
+Source arrays provide these mutators under `.mutate`:
 
-// WRONG: count won't be tracked if shouldShow is false initially
-const displayed = derive(() => {
-  if (shouldShow.value) {
-    return count.value;
-  }
-  return 0;
-});
-// Changing count.value won't trigger recomputation
+`concat`, `copyWithin`, `fill`, `filter`, `pop`, `push`, `shift`, `toReversed`, `toSorted`, `toSpliced`, and `unshift`.
 
-// CORRECT: Always access the signal
-const displayed = derive(() => {
-  return shouldShow.value ? count.value : 0;
-});
-```
+Array source, derived, and dead signals provide:
 
-### Verified By
+`at`, `concat`, `every`, `filter`, `find`, `findIndex`, `findLast`, `findLastIndex`, `length`, `map`, `reduce`, `reduceRight`, `some`, `toReversed`, `toSorted`, `toSpliced`, `lastItem`, and `partition`.
 
-- tests/signal.test.ts: "should only re-run effect if signal value was accessed"
-- tests/signal.test.ts: "should only re-run effect if signal value inside a conditional block was accessed in effect's first run"
-- tests/signal.test.ts: "should skip running effect if signal value inside a conditional block was missed in effect's first run"
+`partition(predicate, thisArg?)` returns `[passing, failing]` and honors the predicate's `thisArg`.
 
----
+### Objects
 
-## Effect Execution Timing
+Plain-object source signals provide `.mutate.set(partial)`, which performs a shallow merge. Object source, derived, and dead signals provide:
 
-### Purpose
+- `keys()` — key projection.
+- `get(key)` — one property projection.
+- `props()` — an object containing one projection per property that exists when `props()` is called.
 
-Define when effects run and how many times they run.
+The projection set from `props()` is not automatically expanded when later writes introduce new keys.
 
-### Guarantees
+### Strings
 
-- Effects run immediately when created via `effect()`
-- Effects run synchronously when any tracked signal's value changes
-- Effects run exactly once per signal value change (assuming the value actually changes)
-- Effects do not run if the signal's value is set to the same value
+String source signals expose transformation mutators under `.mutate`, including `concat`, `deepTrim`, padding, repetition, replacement, slicing, trimming, and case conversion.
 
-### Non-Guarantees
+String source, derived, and dead signals expose read-only string projections including character lookup, search, inclusion, comparison, padding, repetition, replacement, splitting, trimming, case conversion, `length()`, and `deepTrim()`.
 
-- No guarantee about the timing of effect execution relative to other code in the same call stack
-- No guarantee about the order of effect execution when multiple signals change in the same tick
-- No batching or deferred execution is provided
+### Numbers and booleans
 
-### Edge Cases
+Number source, derived, and dead signals provide `toExponential`, `toFixed`, `toPrecision`, `toLocaleString`, and `toConfined`. Bounds and formatting parameters may be signals.
 
-- If an effect throws an error during execution, the error propagates immediately and may prevent subsequent runs (verified by BEHAVIORAL_INVENTORY.md)
+Boolean source signals provide `.mutate.toggle()`. There is no separate boolean read-only data-method family.
 
-### Examples
+Current limitations:
 
-```typescript
-const count = signal(0);
-let runCount = 0;
+- Method dispatch is fixed at construction. Changing a signal's runtime value to another kind does not replace its attached method family.
+- For nullable values, callers must provide a suitable non-null exemplar when methods cannot be inferred from the initial value.
+- Object-specific methods are attached only when the dispatch value is a plain object.
 
-effect(() => {
-  runCount++;
-  count.value;
-});
+## Generic logical methods
 
-// runCount is 1 immediately after effect() call
-count.value = 1; // runCount becomes 2 synchronously
-count.value = 2; // runCount becomes 3 synchronously
-```
+Eligible signals expose `or`, `is`, and `if`.
 
-### Verified By
+Guarantees:
 
-- tests/signal.test.ts: "should run immediately when created"
-- tests/signal.test.ts: "should re-run when accessed signal changes"
+- `or(alternative)` uses JavaScript `||`, so every falsy value selects the alternative.
+- `is.truthy()`, `is.falsy()`, `is.equalTo(value)`, and `is.notEqualTo(value)` return boolean results.
+- Numbers also support `greaterThan`, `greaterThanOrEqualTo`, `smallerThan`, and `smallerThanOrEqualTo` under `is` and `if`.
+- Strings and arrays expose the same checks for `.length`, for example `text.is.length.greaterThan(3)`.
+- Each `if` check returns an object with `.then(truthyOption, falsyOption)`.
+- Live bases return derived results that react to live operands and options.
+- Dead or plain bases return dead snapshots.
+- Equality checks use `===` and `!==`.
 
----
+`nullable(input)` exposes the same generic method surface for a maybe-signal primitive whose static type may include `null` or `undefined`. It preserves liveness: live inputs produce derived results; dead and plain inputs produce dead results.
 
-## Disposal Behavior
+## Higher-level APIs
 
-### Purpose
+### `compute`
 
-Define how disposal of effects and derived signals works.
+`compute(fn, ...arguments)` returns a derived signal of `fn` called with unwrapped arguments.
 
-### Guarantees
+- Live signal arguments read through `value(...)` and are tracked.
+- Plain and dead arguments contribute values but cannot initiate future updates.
+- Errors from `fn` propagate synchronously.
 
-- Calling `dispose()` on an effect marks it for disposal by setting `canDisposeNow = true`
-- Calling `dispose()` on a derived signal stops it from tracking dependencies
-- Disposed effects are removed from signals on the next signal update
-- Disposed effects never run again after being removed
-- Disposal is synchronous
+### `receive` and `transmit`
 
-### Non-Guarantees
+Connector construction is eager because it uses immediate effects.
 
-- Disposed effects are not removed immediately; removal happens on the next signal update
-- No guarantee about when exactly the removal occurs if no signal update happens
-- No guarantee about the performance of disposal
+- `receive(receiver, ...transmitters)` creates one effect per transmitter, immediately assigns each transmitter's current value in argument order, and returns the effects. The receiver therefore initially holds the last transmitter's value. With no transmitters it returns `[]`.
+- `transmit(transmitter, ...receivers)` creates one effect, immediately assigns the current transmitter value to every receiver in argument order, and returns that effect. With no receivers it creates a no-op effect.
+- Live transmitters continue to propagate synchronously. Plain and dead transmitters perform only the eager initial assignment because no changing dependency is captured.
+- Disposing the returned effects disconnects immediately.
+- Receivers remain independently mutable.
 
-### Edge Cases
+### `tmpl`
 
-- Disposed effects may run one more time after disposal if a signal update occurs before cleanup (verified by tests/signal.test.ts)
-- Disposing the same effect multiple times is safe (idempotent) (verified by tests/signal.test.ts)
+`tmpl` returns a derived interpolated string.
 
-### Examples
+- Live signal expressions and function expressions that read live signals are tracked during the initial derivation.
+- Plain expressions are snapshots.
+- `null` and `undefined` become empty strings.
+- Other values use `.toString()`; conversion errors propagate.
 
-```typescript
-const count = signal(0);
-let runCount = 0;
+### `promstates`
 
-const eff = effect(() => {
-  runCount++;
-  count.value;
-});
+`promstates(promiseFn, initialValue?, ultimately?)` returns `[runPromise, result, error, isRunning]`.
 
-eff.dispose();
-count.value = 1; // Effect is removed here without running
-count.value = 2; // Effect is already gone
-// runCount remains 1
-```
+Guarantees:
 
-### Verified By
+- Calling `runPromise` sets `isRunning.value` to `true` before invoking `promiseFn`.
+- `isRunning.value` remains `true` while that returned promise is pending.
+- Fulfillment stores the result, clears the error, and sets running to `false`.
+- Rejection stores the rejection value in `error`, preserves the prior result, and sets running to `false`.
+- `ultimately` is passed to `.finally(...)` and runs after fulfillment or rejection.
+- The three state projections are derived signals.
 
-- tests/signal.test.ts: "should not run after disposal"
-- tests/signal.test.ts: "should be removed from signal on next update after disposal"
-- tests/signal.test.ts: "should be idempotent" (in dispose utility tests)
+Current limitations:
 
----
+- Falsy initial values (`0`, `false`, `""`, and similar) are currently replaced with `undefined` because initialization uses `initialValue || undefined`.
+- A synchronous throw before `promiseFn` returns a promise bypasses the promise chain, leaves `isRunning` true, and does not run `ultimately`.
+- Concurrent runs are not counted or ordered. One settlement can set `isRunning` false while another run remains pending, and later settlements overwrite earlier state.
+- Rejection values are not normalized to `Error` instances at runtime.
 
-## Derived Signal Behavior
+### `op`
 
-### Purpose
+`op(input)` is the chainable operation API. It selects number, string/array, or generic operations from the input's evaluated runtime kind at construction.
 
-Define the behavior of derived signals computed from other signals.
+- Operation methods build lazy evaluator chains.
+- Accessing `result`, `truthy`, `falsy`, or `truthyFalsyPair`, or calling `then`, creates a derived signal.
+- Live values read by the final evaluator are dependencies.
+- Number chains add arithmetic/range comparisons; string and array chains add length comparisons.
 
-### Guarantees
+Current limitation: the operation family is fixed at construction and is not redispatched if the runtime value kind changes.
 
-- Derived signals recompute whenever any tracked dependency's value changes
-- Derived signals provide access to the previous computed value via `prevValue` getter
-- Derived signals can depend on other derived signals (chaining)
-- Calling `dispose()` on a derived signal stops it from updating
-- After disposal, the derived signal's value remains accessible but won't update
+## Utilities and type discrimination
 
-### Non-Guarantees
+Guarantees:
 
-- No guarantee about the order of recomputation when multiple dependencies change
-- No guarantee about the performance of derived signal computation
-- The `prevValue` is the previous return value, not the previous dependency values
+- `value(input)` unwraps source, derived, and dead signals; plain values are returned unchanged.
+- Unwrapping a live signal during initial dependency collection tracks it.
+- `getPlainMethodParams(...inputs)` applies `value(...)` to each input in order.
+- `valueIsSourceSignal`, `valueIsDerivedSignal`, `valueIsLiveSignal`, `valueIsDeadSignal`, and `valueIsSignal` discriminate using the `type` field.
+- `valueIsSignal` includes source, derived, and dead signals. `valueIsLiveSignal` includes only source and derived signals.
+- `valueIsDeadSignalStringArray(deadSignal([]))` is `true`; the empty array satisfies the all-elements-are-strings check vacuously.
 
-### Edge Cases
+## Implementation details
 
-- If the value getter function doesn't access any signal values, the derived signal runs only once (verified by tests/signal.test.ts)
-- The `prevValue` is undefined on the first computation (verified by tests/signal.test.ts)
+The following explains the current code but is not an independent compatibility promise:
 
-### Examples
-
-```typescript
-const count = signal(0);
-const doubled = derive(() => count.value * 2);
-
-console.log(doubled.value); // 0
-console.log(doubled.prevValue); // undefined
-
-count.value = 5;
-console.log(doubled.value); // 10
-console.log(doubled.prevValue); // 0
-```
-
-### Verified By
-
-- tests/signal.test.ts: "should create derived signal"
-- tests/signal.test.ts: "should update when dependency changes"
-- tests/signal.test.ts: "should have prevValue getter"
-
----
-
-## Array Signal Mutation
-
-### Purpose
-
-Define the behavior of array signal mutation methods.
-
-### Guarantees
-
-- Array signals provide mutation methods (push, pop, shift, unshift, splice, reverse, sort, fill, copyWithin, remove)
-- Calling these methods updates the array and triggers all registered effects
-- The `remove()` method removes items where the predicate returns true (inverse of filter)
-- All mutation methods trigger effects synchronously
-
-### Non-Guarantees
-
-- No guarantee about the internal implementation of mutation methods
-- No guarantee about the performance characteristics of array mutations
-
-### Edge Cases
-
-- Empty arrays are valid signal values (verified by tests/signal.test.ts)
-
-### Examples
-
-```typescript
-const arr = signal([1, 2, 3]);
-arr.push(4); // arr.value is [1, 2, 3, 4]
-arr.remove((item) => item % 2 === 0); // arr.value is [1, 3]
-```
-
-### Verified By
-
-- tests/signal.test.ts: "should have push method", "should have pop method", etc.
-- tests/signal.test.ts: "should have remove method (inverse of filter)"
-- tests/signal.test.ts: "should trigger effects on array mutations"
-
----
-
-## Object Signal Partial Updates
-
-### Purpose
-
-Define the behavior of object signal partial updates.
-
-### Guarantees
-
-- Object signals provide a `set(partial)` method for partial updates
-- The `set()` method performs a shallow merge with the current value
-- Calling `set()` triggers all registered effects
-
-### Non-Guarantees
-
-- No deep merge is performed
-- No guarantee about the behavior when partial contains nested objects
-
-### Edge Cases
-
-- Empty objects are valid signal values (verified by tests/signal.test.ts)
-
-### Examples
-
-```typescript
-const user = signal({ name: "John", age: 30 });
-user.set({ age: 31 }); // user.value is { name: "John", age: 31 }
-```
-
-### Verified By
-
-- tests/signal.test.ts: "should have set method for partial updates"
-- tests/signal.test.ts: "should trigger effects on set"
-
----
-
-## Type Discrimination
-
-### Purpose
-
-Define the runtime type discrimination mechanism.
-
-### Guarantees
-
-- All signal objects have a `type` property with value `"source-signal"` or `"derived-signal"`
-- All non-signal objects have a `type` property with value `"non-signal"`
-- Type checkers use the `type` property for runtime type discrimination
-
-### Non-Guarantees
-
-- No guarantee about additional properties on signal objects beyond those documented
-- No guarantee about the internal structure of signal objects
-
-### Edge Cases
-
-- Type checkers return false for `null` and `undefined` (verified by tests/utils.test.ts)
-
-### Examples
-
-```typescript
-const count = signal(0);
-console.log(count.type); // "source-signal"
-
-const doubled = derive(() => count.value * 2);
-console.log(doubled.type); // "derived-signal"
-
-const nonSig = getNonSignalObject(42);
-console.log(nonSig.type); // "non-signal"
-```
-
-### Verified By
-
-- tests/utils.test.ts: All type checker tests
-
----
-
-## Trap Type Determination
-
-### Purpose
-
-Define how trap types are determined and their limitations.
-
-### Guarantees
-
-- The trap type is determined by the runtime type of the unwrapped value at creation time
-- Type-specific traps provide methods appropriate to their type (number, string, array, object)
-- All trap methods return derived signals that update when the input changes
-
-### Non-Guarantees
-
-- Type changes in the input signal are not reflected in the trap type
-- No guarantee about the behavior if the input signal's value type changes after trap creation
-- Object trap throws an error if the value is not a plain object
-
-### Edge Cases
-
-- If a signal's value type changes after trap creation, the trap type does not change (verified by tests/traps.test.ts)
-
-### Examples
-
-```typescript
-const value = signal(5);
-const trapped = trap(value); // NumberSignalTrap
-value.value = "hello"; // Type change not reflected
-// trapped still has number methods, not string methods
-```
-
-### Verified By
-
-- tests/traps.test.ts: "should dispatch to number trap for numbers", etc.
-
----
-
-## Operation Type Determination
-
-### Purpose
-
-Define how operation types are determined and their limitations.
-
-### Guarantees
-
-- The operation type is determined by the runtime type of the evaluated value
-- Type-specific operations provide methods appropriate to their type (number, string/array, generic)
-- All operation methods return new operation objects for chaining
-- Final results are obtained via getters (truthy, falsy, result, etc.)
-
-### Non-Guarantees
-
-- Type changes in the input signal are not reflected in the operation type
-- No guarantee about the behavior if the input signal's value type changes after operation creation
-
-### Edge Cases
-
-- If a signal's value type changes after operation creation, the operation type does not change
-
-### Examples
-
-```typescript
-const value = signal(5);
-const operation = op(value); // NumberOperation
-value.value = "hello"; // Type change not reflected
-// operation still has number methods, not string methods
-```
-
-### Verified By
-
-- tests/operations.test.ts: "should create operation for number values", etc.
-
----
-
-## Promise States
-
-### Purpose
-
-Define the behavior of promise state signals.
-
-### Guarantees
-
-- Calling `runPromise(...args)` executes the promise function
-- On success: `result` is updated, `error` is set to `undefined`
-- On failure: `error` is updated, `result` preserves the previous successful result
-- The `ultimately` callback runs in the finally block
-- The promise can be run multiple times
-
-### Non-Guarantees
-
-- No guarantee about the timing of state updates relative to promise resolution
-- No guarantee about the behavior if the promise function throws synchronously
-
-### Edge Cases
-
-- If no initial value is provided, result signal starts as `undefined` (verified by tests/promstates.test.ts)
-- If the promise fails multiple times, the last successful result is preserved (verified by tests/promstates.test.ts)
-
-### Examples
-
-```typescript
-const promiseFn = async (value: number) => value * 2;
-const [runPromise, result, error] = promstates(promiseFn, 0);
-
-await runPromise(5);
-console.log(result.value); // 10
-console.log(error.value); // undefined
-
-await runPromise(-1); // Assume this throws
-console.log(result.value); // 10 (preserved)
-console.log(error.value); // Error instance
-```
-
-### Verified By
-
-- tests/promstates.test.ts: "should update result on successful promise completion"
-- tests/promstates.test.ts: "should update error on promise failure"
-- tests/promstates.test.ts: "should preserve previous result on error"
-
----
-
-## Template Interpolation
-
-### Purpose
-
-Define the behavior of template string interpolation with signals.
-
-### Guarantees
-
-- The derived signal's value is the interpolated string
-- Recomputes whenever any signal in the expressions changes
-- Null/undefined values are converted to empty strings
-- All values are converted to strings via `.toString()`
-
-### Non-Guarantees
-
-- No guarantee about the performance of template recomputation
-- No guarantee about the behavior if `.toString()` throws on a value
-
-### Edge Cases
-
-- Works with signals, deriver functions, and plain values (verified by tests/tmpl.test.ts)
-
-### Examples
-
-```typescript
-const name = signal("World");
-const greeting = tmpl`Hello ${name}`;
-console.log(greeting.value); // "Hello World"
-
-name.value = "Alice";
-console.log(greeting.value); // "Hello Alice"
-```
-
-### Verified By
-
-- tests/tmpl.test.ts: "should create derived signal from template literal"
-- tests/tmpl.test.ts: "should update when signal expressions change"
-
----
-
-## Connectors
-
-### Purpose
-
-Define the behavior of signal-to-signal connections.
-
-### Guarantees
-
-- `receive()`: When any transmitter's value changes, the receiver's value is updated to match
-- `transmit()`: When the transmitter's value changes, all receivers are updated to match
-- All updates are synchronous
-- Receivers can still be updated independently
-- Returned effects can be disposed to stop the connections
-
-### Non-Guarantees
-
-- For `receive()`: If multiple transmitters change simultaneously, which value the receiver gets is not guaranteed (last one wins based on execution order)
-- No guarantee about the order of receiver updates in `transmit()`
-
-### Edge Cases
-
-- Empty transmitters array in `receive()` returns empty effects array (verified by tests/connectors.test.ts)
-- Empty receivers array in `transmit()` creates an effect that does nothing (verified by tests/connectors.test.ts)
-
-### Examples
-
-```typescript
-const transmitter = signal("Hello");
-const receiver1 = signal("");
-const receiver2 = signal("");
-
-transmit(transmitter, receiver1, receiver2);
-transmitter.value = "Hi";
-// Both receivers are updated to "Hi"
-```
-
-### Verified By
-
-- tests/connectors.test.ts: "should broadcast from transmitter to multiple receivers"
-- tests/connectors.test.ts: "should connect multiple transmitters to a receiver"
-
----
-
-## Compute
-
-### Purpose
-
-Define the behavior of function-based derived signals.
-
-### Guarantees
-
-- The derived signal's value is the result of calling the function with unwrapped arguments
-- Recomputes whenever any of the signalified arguments changes
-- Plain value arguments don't trigger recomputation
-- Works with functions of any arity
-
-### Non-Guarantees
-
-- No guarantee about the performance of function execution
-- No guarantee about the order of recomputation when multiple arguments change
-
-### Edge Cases
-
-- If the function throws an error, the error propagates (verified by BEHAVIORAL_INVENTORY.md)
-
-### Examples
-
-```typescript
-const a = signal(5);
-const b = signal(3);
-const sum = compute((x: number, y: number) => x + y, a, b);
-console.log(sum.value); // 8
-```
-
-### Verified By
-
-- tests/compute.test.ts: "should create derived signal from function with signal arguments"
-- tests/compute.test.ts: "should recompute when signal arguments change"
-
----
-
-## Value Getter
-
-### Purpose
-
-Define the behavior of the `value()` utility function.
-
-### Guarantees
-
-- If input is a signal or non-signal, returns `input.value`
-- If input is a plain value, returns it as-is
-- Does not trigger dependency tracking
-
-### Non-Guarantees
-
-- No guarantee about the performance of value extraction
-
-### Edge Cases
-
-- Works with `null` and `undefined` (verified by tests/utils.test.ts)
-
-### Examples
-
-```typescript
-const count = signal(42);
-value(count); // 42
-value(100); // 100
-```
-
-### Verified By
-
-- tests/utils.test.ts: "should return plain value from source signal"
-
----
-
-## Ambiguities and Inferred Behaviors
-
-### Effect Execution Order Across Multiple Signals
-
-When a single signal update triggers effects on multiple signals (through recursive effect triggering), the order of effect execution across those signals is not specified by tests. This behavior should not be relied upon.
-
-**Status:** Not verified by tests - implementation detail
-
-### Maximum Recursion Depth
-
-There is no specified limit on the depth of recursive effect triggering. This behavior should not be relied upon for correctness.
-
-**Status:** Not verified by tests - implementation detail
-
-### Performance Characteristics
-
-No performance guarantees are provided for any operation. Performance may vary based on the number of signals, effects, and complexity of computations.
-
-**Status:** Not verified by tests - implementation characteristic
-
-### Concurrent Signal Updates
-
-If multiple signals are updated in sequence without yielding control, all effects will run synchronously for each update. There is no batching mechanism to coalesce these updates.
-
-**Status:** Verified by ARCHITECTURE_NOTES.md - "No Batching Mechanism"
-
-### Error Recovery in Effects
-
-If an effect throws an error during execution, the error propagates immediately. There is no automatic error recovery or retry mechanism. Subsequent signal changes may or may not trigger the effect again depending on whether the error prevented dependency tracking.
-
-**Status:** Partially verified by BEHAVIORAL_INVENTORY.md - "If the function throws an error, the error propagates and may prevent subsequent runs"
+- `getBaseSignal` stores the current value, previous value, and a Set of effects.
+- `EffectHook` holds one current effect during initial collection.
+- Each effect stores stimulus signals so immediate disposal can remove itself from them.
+- A derived signal uses base-signal storage plus an updater effect, then replaces the public setter with a no-op.
+- Data-method factories choose live `derive(...)` or non-live `deadSignal(...)` results from the base kind.
+- Propagation is direct Set iteration with no scheduler.

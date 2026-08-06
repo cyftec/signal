@@ -3,27 +3,32 @@ import { value } from "../../utils";
 import type { GenericOperation, OperationResult } from "./types";
 
 /**
- * Creates the generic operation chain for a value.
+ * Creates a generic lazy operation chain around an evaluator.
  *
- * @template T - The value type
- * @param input - A signal or value-producing function
- * @returns A generic operation object with composable logical methods
+ * Chain methods compose a new evaluator without creating a signal. Reading a
+ * terminal getter or calling `then` creates a fresh derived signal that executes
+ * the complete chain and tracks live values read on its first evaluation.
+ *
+ * @template T - The input evaluator's value type.
+ * @param input - A signal-capable value or a zero-argument evaluator.
+ * @returns A generic operation object with logical chains and terminal results.
+ *
+ * @remarks
+ * - `or`, `orNot`, `and`, and `andNot` preserve JavaScript operand semantics.
+ * - Strict equality is used by equality operations.
+ * - JavaScript short-circuiting can skip a signal on the first terminal evaluation; such a signal is not added later.
+ * - Every access to `result`, `truthy`, `falsy`, or `truthyFalsyPair` creates a distinct derived signal.
  *
  * @example
  * ```typescript
- * const flag = signal(true);
- * const op = genericOp(flag);
- * op.truthy; // DerivedSignal<boolean>
- * op.or(false).truthy; // Chained OR operation
- * op.and(false).falsy; // Chained AND operation
- * op.equals(true).truthy; // Equality comparison
+ * const enabled = signal(true);
+ * const visible = genericOp(enabled).and(true).truthy;
+ * const label = genericOp(enabled).then("shown", "hidden");
  * ```
  *
- * @remarks
- * - Used for non-numeric and non-string-or-array inputs
- * - Methods return new operation objects for chaining
- * - Supports truthy/falsy checks and equality comparisons
- * - Can combine logical operations with comparisons on other values
+ * @see {@link op} - Dispatches to the appropriate operation factory.
+ * @see {@link GenericOperation} - Describes the returned chain.
+ * @see {@link derive} - Creates terminal reactive results.
  */
 export const genericOp = <T>(
   input: MaybeSignal<T> | (() => T),

@@ -8,56 +8,62 @@ import { getBaseSignal } from "./base-signal";
 import { BaseDeadSignal } from "./types";
 
 /**
- * A runtime type wrapper for plain values.
+ * Represents a read-only, non-reactive signal snapshot.
  *
- * DeadSignal objects are used for runtime type discrimination in complex
- * type scenarios where TypeScript's compile-time types are insufficient.
- * They enable distinguishing between plain values and signals
- * at runtime.
+ * A dead signal provides the same value-oriented read helpers as a compatible
+ * live signal, but helper results are further dead snapshots rather than
+ * reactive derived signals.
  *
- * @template T - The type of value wrapped
+ * @template T - The wrapped value type.
  *
  * @remarks
- * - Used with `MaybeSignal` types to resolve ambiguity at runtime
- * - Has a `type: "dead-signal"` property for runtime type checking
- * - The `value` property holds the wrapped plain value
- * - Array dead-signals get non-mutating array methods (map, filter, etc.)
- * - String dead-signals get non-mutating string methods (toLowerCase, toUpperCase, etc.)
- * - Number dead-signals get non-mutating number methods (toFixed, toPrecision, etc.)
- * - Boolean dead-signals get non-mutating boolean methods (not, toString)
+ * - Its discriminator is `type: "dead-signal"`.
+ * - Assigning to `value` is ignored.
+ * - `dispose()` is a repeatable no-op.
+ * - Signal arguments supplied to its helpers are read once when the helper is called.
  *
- * @see {@link LiveSignal} - For signal objects
- * @see {@link MaybeSignal} - For union types that include signals
- * @see {@link deadSignal} - For creating DeadSignal objects
+ * @example
+ * ```typescript
+ * const text: DeadSignal<string> = deadSignal("hello");
+ * const upper = text.toUpperCase();
+ * console.log(upper.type, upper.value); // "dead-signal", "HELLO"
+ * ```
+ *
+ * @see {@link deadSignal} - Creates a dead signal.
+ * @see {@link LiveSignal} - Represents reactive signals.
+ * @see {@link valueIsDeadSignal} - Checks the runtime discriminator.
  */
 export type DeadSignal<T> = BaseDeadSignal<T> &
   NonMutatingMethods<"non-live", T> &
   GenericMethods<"non-live", T>;
 
 /**
- * Wraps a plain value in a DeadSignal object for runtime type discrimination.
+ * Wraps a value in a read-only, non-reactive signal snapshot.
  *
- * This function is useful when you need to explicitly mark a value as a
- * dead-signal for runtime type checking in complex type scenarios.
+ * The returned object supports runtime signal discrimination, generic helpers,
+ * and value-specific non-mutating helpers without subscribing to live inputs.
  *
- * @template T - The type of value to wrap
- * @param input - Any JavaScript value to wrap
- * @returns A DeadSignal object with the wrapped value
+ * @template T - The wrapped value type.
+ * @param input - The value to snapshot.
+ * @param nonNullableInitialValue - Optional non-nullish dispatch hint used to attach data methods when `input` is nullish.
+ * @returns A `DeadSignal<T>` containing the copied snapshot.
+ *
+ * @remarks
+ * - The helper set is selected once at creation time.
+ * - The `value` setter is a no-op.
+ * - Dead-signal helper results do not react to live signal parameters.
+ * - Unlike live effect disposal, dead-signal disposal never throws.
  *
  * @example
  * ```typescript
- * const nonSig = deadSignal(42);
- * console.log(nonSig.type); // "dead-signal"
- * console.log(nonSig.value); // 42
+ * const snapshot = deadSignal([1, 2, 3]);
+ * const last = snapshot.lastItem();
+ * console.log(last.type, last.value); // "dead-signal", 3
  * ```
  *
- * @remarks
- * - Used for runtime type checking in complex type scenarios
- * - Enables distinguishing between plain values and signals
- * - The wrapped value can be any JavaScript type
- *
- * @see {@link DeadSignal} - The DeadSignal type
- * @see {@link valueIsDeadSignal} - For checking if a value is a DeadSignal
+ * @see {@link DeadSignal} - Describes the returned snapshot.
+ * @see {@link signal} - Creates a mutable live signal.
+ * @see {@link valueIsDeadSignal} - Checks dead signals.
  */
 export const deadSignal = <T>(
   input: T,

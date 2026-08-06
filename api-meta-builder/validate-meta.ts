@@ -1,36 +1,137 @@
-import { CodeEntitiesMeta, OUTPUT_FILE_PATH, readText } from "./shared";
-
-// TODO: Implement meta validator to check if any comments are incomplete or incorrect
+#!/usr/bin/env bun
+import {
+  type CodeEntitiesMeta,
+  type CodeEntity,
+  OUTPUT_FILE_PATH,
+  readText,
+} from "./shared";
 
 const issues: string[] = [];
-const meta: CodeEntitiesMeta = JSON.parse(readText(OUTPUT_FILE_PATH));
+const rawMeta = readText(OUTPUT_FILE_PATH);
+const meta: CodeEntitiesMeta = JSON.parse(rawMeta);
 
-// for (const [key, entity] of Object.entries(meta.entitys)) {
-//   const expected = path.join(OUTPUT_DIR_PATH, entity.category, `${entitySlug(entity.category, entity.name, entity.kind)}.md`);
-//   if (!fs.existsSync(expected)) {
-//     issues.push(`Missing page for ${key}: ${expected}`);
-//   }
+const entities = (
+  ["const", "type"] as const
+).flatMap((kind) =>
+  (["core", "api", "utils"] as const).flatMap(
+    (category) => meta[kind][category],
+  ),
+);
 
-//   if (/\/Users\/|\/private\//.test(readText(expected))) {
-//     issues.push(`Leaked absolute path in ${key}`);
-//   }
-// }
+function report(entity: CodeEntity, message: string) {
+  issues.push(`${entity.sourcePath}:${entity.name} - ${message}`);
+}
 
-// for (const file of fs.readdirSync(OUTPUT_DIR_PATH, { recursive: true })) {
-//   const rel = String(file);
-//   if (!rel.endsWith(".md")) continue;
-//   const text = readText(path.join(OUTPUT_DIR_PATH, rel));
-//   if (/\{@link\s+[^}]+\}/.test(text))
-//     issues.push(`Unresolved TSDoc link syntax in ${rel}`);
-//   if (!/^#\s+/m.test(text)) issues.push(`Missing H1 in ${rel}`);
-//   const codeFenceCount = (text.match(/```/g) || []).length;
-//   if (codeFenceCount % 2 !== 0) issues.push(`Unbalanced code fences in ${rel}`);
-// }
+function nonEmpty(values: string[]) {
+  return values.every((value) => value.trim().length > 0);
+}
 
-// if (issues.length) {
-//   console.error("API doc validation failed:");
-//   for (const issue of issues) console.error(`- ${issue}`);
-//   process.exit(1);
-// }
+function sameNames(actual: string[], expected: string[]) {
+  return (
+    actual.length === expected.length &&
+    actual.every((name, index) => name === expected[index])
+  );
+}
 
-console.log("API doc validation passed.");
+function validateEntity(entity: CodeEntity) {
+  const { tsdoc } = entity;
+  const label = `${entity.category}:${entity.kind}:${entity.name}`;
+
+  if (!entity.sourcePath.startsWith("src/")) {
+    report(entity, `sourcePath must be repository-relative, received '${entity.sourcePath}'.`);
+  }
+  if (entity.filePath !== entity.sourcePath) {
+    report(entity, "filePath and sourcePath must use the same repository-relative path.");
+  }
+  if (/^(?:\/|[A-Za-z]:\\)/.test(entity.filePath)) {
+    report(entity, "filePath must not contain an absolute machine path.");
+  }
+  if (!entity.signature?.trim()) report(entity, "missing declaration signature.");
+  if (!tsdoc.title.trim()) report(entity, "missing title sentence.");
+  else if (!/[.!?]$/.test(tsdoc.title.trim())) {
+    report(entity, "title must be a complete sentence.");
+  }
+  if (!tsdoc.summary.trim()) report(entity, "missing summary.");
+
+  for (const [section, values] of [
+    ["remarks", tsdoc.remarks],
+    ["examples", tsdoc.examples],
+    ["see", tsdoc.see],
+  ] as const) {
+    if (!values.length) report(entity, `missing @${section === "examples" ? "example" : section} section.`);
+    else if (!nonEmpty(values)) report(entity, `contains an empty @${section} entry.`);
+  }
+
+  if (tsdoc.remarks.length !== 1) {
+    report(entity, "must contain exactly one @remarks block.");
+  } else if (!tsdoc.remarks[0].trimStart().startsWith("- ")) {
+    report(entity, "@remarks must use a semantic bullet list.");
+  }
+
+  for (const example of tsdoc.examples) {
+    const fences = example.match(/```/g)?.length ?? 0;
+    if (fences < 2 || fences % 2 !== 0) {
+      report(entity, "each @example must contain balanced fenced code.");
+    }
+  }
+
+  for (const see of tsdoc.see) {
+    if (!/^\{@link\s+[^}\s]+\}\s+-\s+\S/.test(see)) {
+      report(entity, `invalid @see entry '${see}'.`);
+    }
+  }
+
+  const expectedParams = (entity.parameters ?? []).map(({ name }) => name);
+  const actualParams = tsdoc.params.map(({ name }) => name);
+  if (!sameNames(actualParams, expectedParams)) {
+    report(
+      entity,
+      `@param names [${actualParams.join(", ")}] do not match signature [${expectedParams.join(", ")}].`,
+    );
+  }
+  if (tsdoc.params.some(({ name, description }) => !name || !description)) {
+    report(entity, "every @param needs a name and description.");
+  }
+
+  const expectedTemplates = entity.typeParameters ?? [];
+  const actualTemplates = tsdoc.template.map(({ name }) => name);
+  if (!sameNames(actualTemplates, expectedTemplates)) {
+    report(
+      entity,
+      `@template names [${actualTemplates.join(", ")}] do not match signature [${expectedTemplates.join(", ")}].`,
+    );
+  }
+  if (tsdoc.template.some(({ name, description }) => !name || !description)) {
+    report(entity, "every @template needs a name and description.");
+  }
+
+  if (entity.isCallable && !tsdoc.returns.length) {
+    report(entity, "callable entity is missing @returns.");
+  }
+  if (!nonEmpty(tsdoc.returns)) report(entity, "contains an empty @returns entry.");
+  if (!nonEmpty(tsdoc.deprecated)) {
+    report(entity, "contains an empty @deprecated entry.");
+  }
+
+  return label;
+}
+
+const keys = new Set<string>();
+for (const entity of entities) {
+  const key = validateEntity(entity);
+  if (keys.has(key)) report(entity, `duplicate generated key '${key}'.`);
+  keys.add(key);
+}
+
+if (!entities.length) issues.push("Metadata contains no entities.");
+if (/\/(?:Users|private)\//.test(rawMeta)) {
+  issues.push("Metadata contains an absolute local filesystem path.");
+}
+
+if (issues.length) {
+  console.error(`API metadata validation failed with ${issues.length} issue(s):`);
+  for (const issue of issues) console.error(`- ${issue}`);
+  process.exit(1);
+}
+
+console.log(`API metadata validation passed for ${entities.length} entities.`);

@@ -270,32 +270,33 @@ const getLengthMethods = <
 /**
  * Creates logical methods for signals.
  *
- * This function creates a comprehensive logical methods object that supports:
- * - OR operations for providing alternative values
- * - Truthy/falsy checks via `is`
- * - Conditional value selection via `if`
- * - Length-based checks for strings and arrays
- * - Numeric comparisons for numbers
+ * Builds the `or`, `is`, and `if` method groups shared by supported signal
+ * values. Comparison results follow the liveness of the input at runtime.
  *
- * @template T - The type of the signal
+ * @template InputSignal - Whether results are live derived signals or dead snapshots
+ * @template T - The value type exposed by the input
  * @param baseSignal - The signal to add logical methods to
  * @returns A logical methods object
  *
  * @remarks
- * - `or` provides alternative values for nullable/undefined cases
- * - `is` returns signals matching the base kind for boolean checks
- * - `if` returns TernaryThen objects for conditional value selection
- * - Length methods are only available for strings and arrays
- * - Numeric comparison methods are only available for numbers
+ * - `or()` selects its alternative for every JavaScript-falsy input value
+ * - `is` methods return boolean signals matching the input's liveness
+ * - `if` methods return a `then()` selector for reactive conditional values
+ * - Length comparisons are exposed for strings and arrays
+ * - Measure comparisons are exposed for numbers
+ * - Live inputs produce `DerivedSignal` results; dead or plain inputs produce snapshot `DeadSignal` results
  *
  * @example
  * ```typescript
  * const count = signal(5);
- * const logical = getGenericMethods(count);
- * logical.is.truthy; // DerivedSignal<boolean>
- * logical.is.greaterThan(3).truthy; // DerivedSignal<boolean>
- * logical.if.greaterThan(10).then("big", "small"); // DerivedSignal<string>
+ * const logical = getGenericMethods<"live", number>(count);
+ * logical.is.truthy().value; // true
+ * logical.is.greaterThan(3).value; // true
+ * logical.if.greaterThan(10).then("big", "small").value; // "small"
  * ```
+ *
+ * @see {@link GenericMethods} - The conditional logical-method surface
+ * @see {@link TernaryThen} - The selector returned by `if` comparisons
  */
 export const getGenericMethods = <InputSignal extends InputSignalType, T>(
   // generic methods are valid even for null or undefined

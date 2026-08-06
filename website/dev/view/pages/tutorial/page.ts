@@ -209,7 +209,7 @@ export default HtmlPage({
               children: [
                 m.Li({
                   children:
-                    "the disposed effect does not run again after the next update cycle",
+                    "the disposed effect is disconnected immediately and does not run again",
                 }),
               ],
             }),
@@ -230,10 +230,10 @@ export default HtmlPage({
             m.Ul({
               children: [
                 m.Li({
-                  children: "array helpers update the array signal",
+                  children: "array mutations are grouped under `.mutate`",
                 }),
                 m.Li({
-                  children: "object `set()` performs a shallow merge",
+                  children: "object `.mutate.set()` performs a shallow merge",
                 }),
               ],
             }),

@@ -2,47 +2,37 @@ import { effect, MaybeSignal, Effect, SourceSignal } from "../_core";
 import { value } from "../utils";
 
 /**
- * Connects multiple transmitter signals to a single receiver signal.
+ * Connects several signal-capable transmitters to one mutable receiver.
  *
- * Whenever any transmitter changes, the receiver is updated to match that
- * transmitter's current value. If more than one transmitter changes in the same
- * propagation chain, the final receiver value follows effect execution order.
+ * One effect is created per transmitter. Each effect immediately copies its
+ * transmitter into the receiver, then repeats for future changes when that
+ * transmitter is live.
  *
- * @template T - The type of value the signals hold
- * @param receiver - A source signal that will receive updates
- * @param transmittors - Multiple signals (source or derived) of the same type
- * @returns Array of effects that can be disposed to disconnect the bindings
+ * @template T - The transmitted value type.
+ * @param receiver - The source signal that receives values.
+ * @param transmittors - Plain values or signals to connect, in initialization order.
+ * @returns One disposable effect per transmitter.
+ *
+ * @remarks
+ * - Initialization is synchronous; the last argument supplies the final initial value.
+ * - Plain and dead transmitters perform only their immediate copy.
+ * - A live transmitter continues updating the receiver until its effect is disposed.
+ * - Passing no transmitters returns an empty array.
  *
  * @example
  * ```typescript
- * const sportsEvent = signal("cricket @ 9am");
- * const mediaEvent = signal("movie @ 3pm");
- * const noticeBoard = signal("");
- *
- * const effects = receive(noticeBoard, sportsEvent, mediaEvent);
- *
- * sportsEvent.value = "football @ 1pm";
- * console.log(noticeBoard.value); // "football @ 1pm"
- *
- * mediaEvent.value = "concert @ 8pm";
- * console.log(noticeBoard.value); // "concert @ 8pm"
- *
- * // Manual update still works
- * noticeBoard.value = "No events";
- *
- * // Dispose connections
- * effects.forEach(eff => eff.dispose());
+ * const first = signal("first");
+ * const second = signal("second");
+ * const receiver = signal("");
+ * const connections = receive(receiver, first, second);
+ * console.log(receiver.value); // "second"
+ * first.value = "updated";
+ * connections.forEach((connection) => connection.dispose());
  * ```
  *
- * @remarks
- * - Each transmitter gets its own effect that updates the receiver
- * - Transmitters can be source or derived signals
- * - Receiver must be a source signal
- * - Passing no transmitters returns an empty effects array
- * - The receiver remains independently mutable
- *
- * @see {@link transmit} - For broadcasting from one transmitter to multiple receivers
- * @see {@link effect} - For the underlying effect primitive
+ * @see {@link transmit} - Connects one transmitter to several receivers.
+ * @see {@link effect} - Implements each connection.
+ * @see {@link value} - Unwraps transmitter values.
  */
 export const receive = <T>(
   receiver: SourceSignal<T>,
@@ -55,46 +45,36 @@ export const receive = <T>(
 };
 
 /**
- * Broadcasts changes from one transmitter signal to multiple receiver signals.
+ * Connects one signal-capable transmitter to several mutable receivers.
  *
- * When the transmitter changes, all receivers are updated synchronously to the
- * same value. Each receiver remains independently mutable.
+ * A single effect immediately copies the transmitter into each receiver in
+ * argument order and repeats that ordered broadcast when a live transmitter changes.
  *
- * @template T - The type of value the signals hold
- * @param transmittor - A signal (source or derived) that broadcasts changes
- * @param receivers - Multiple source signals that will receive updates
- * @returns A single effect that can be disposed to disconnect the broadcast
+ * @template T - The transmitted value type.
+ * @param transmittor - The plain value or signal whose value is broadcast.
+ * @param receivers - Source signals to update in argument order.
+ * @returns The disposable effect controlling the broadcast.
+ *
+ * @remarks
+ * - Receiver initialization is synchronous during this call.
+ * - Plain and dead transmitters perform only the immediate broadcast.
+ * - Receivers remain independently mutable between broadcasts.
+ * - Passing no receivers creates an effect with no signal dependencies.
  *
  * @example
  * ```typescript
- * const temperature = signal(22);
- * const display1 = signal(0);
- * const display2 = signal(0);
- * const display3 = signal(0);
- *
- * const effect = transmit(temperature, display1, display2, display3);
- *
- * temperature.value = 25;
- * console.log(display1.value); // 25
- * console.log(display2.value); // 25
- * console.log(display3.value); // 25
- *
- * // Manual updates still work
- * display1.value = 30;
- *
- * // Dispose connection
- * effect.dispose();
+ * const source = signal(1);
+ * const left = signal(0);
+ * const right = signal(0);
+ * const connection = transmit(source, left, right);
+ * source.value = 2;
+ * console.log(left.value, right.value); // 2, 2
+ * connection.dispose();
  * ```
  *
- * @remarks
- * - A single effect manages all receiver updates
- * - Transmitter can be source or derived signal
- * - Receivers must be source signals
- * - Passing no receivers creates a no-op effect
- * - The order of receiver updates is not guaranteed
- *
- * @see {@link receive} - For connecting multiple transmitters to a receiver
- * @see {@link effect} - For the underlying effect primitive
+ * @see {@link receive} - Connects several transmitters to one receiver.
+ * @see {@link effect} - Implements the broadcast.
+ * @see {@link value} - Unwraps the transmitter.
  */
 export const transmit = <T>(
   transmittor: MaybeSignal<T>,

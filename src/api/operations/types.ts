@@ -15,16 +15,35 @@ type LogicWithComparisonOperation<T> = (
 ) => GenericOperation;
 
 /**
- * Base operation result getters.
+ * Describes terminal result creation shared by every operation chain.
  *
- * These getters provide the final derived signal results of composed operations.
+ * Getter access and `then()` terminate lazy operation composition by creating a
+ * new derived signal that evaluates the chain.
+ *
+ * @remarks
+ * - `result` preserves the evaluated value with the broad `unknown` type here.
+ * - Boolean getters coerce with JavaScript truthiness.
+ * - `then()` evaluates only the selected option on each run.
+ * - Each terminal access creates a separate derived signal and subscription.
+ *
+ * @example
+ * ```typescript
+ * const operation: OperationResult = op(true);
+ * const raw = operation.result;
+ * const pair = operation.truthyFalsyPair;
+ * const label = operation.then("yes", "no");
+ * ```
+ *
+ * @see {@link GenericOperation} - Adds logical composition methods.
+ * @see {@link NumberOperation} - Narrows `result` to a numeric signal.
+ * @see {@link DerivedSignal} - Represents every terminal result.
  */
 export type OperationResult = {
-  /** Derived signal of whether the value is truthy */
+  /** Derived signal of the evaluated operation value. */
   get result(): DerivedSignal<unknown>;
-  /** Derived signal of whether the value is truthy */
+  /** Derived signal of whether the evaluated value is truthy. */
   get truthy(): DerivedSignal<boolean>;
-  /** Derived signal of whether the value is falsy */
+  /** Derived signal of whether the evaluated value is falsy. */
   get falsy(): DerivedSignal<boolean>;
   /** Derived signal of the `[isTruthy, isFalsy]` pair. */
   get truthyFalsyPair(): DerivedSignal<readonly [boolean, boolean]>;
@@ -36,7 +55,28 @@ export type OperationResult = {
 };
 
 /**
- * Generic operation with logical operations available for all types.
+ * Describes the logical chain available for every operation input.
+ *
+ * Each method returns another generic chain whose evaluator composes the prior
+ * value with signal-capable logical or comparison operands.
+ *
+ * @remarks
+ * - Logical operations use native `||`, `&&`, and `!` semantics.
+ * - Equality operations use strict equality and inequality.
+ * - Two-value comparison helpers evaluate their subject and comparison operands.
+ * - Terminal behavior is inherited from `OperationResult`.
+ *
+ * @example
+ * ```typescript
+ * const chain: GenericOperation = op(true)
+ *   .and(signal(1))
+ *   .notEquals(false);
+ * const result = chain.truthy;
+ * ```
+ *
+ * @see {@link OperationResult} - Creates terminal derived results.
+ * @see {@link genericOp} - Constructs this operation shape.
+ * @see {@link Operation} - Selects an operation shape by input type.
  */
 export type GenericOperation = OperationResult & {
   /** Chains an OR operation */
@@ -89,9 +129,26 @@ type ConfinementCheckOperation = (
 type MathOperation = (num: MaybeSignal<number>) => NumberOperation;
 
 /**
- * Number operation with math operations and comparisons.
+ * Describes numeric arithmetic and comparison operation chains.
  *
- * Extends `GenericOperation` with number-specific operations.
+ * This operation extends generic logical composition, narrows `result` to a
+ * number, and adds native arithmetic and range comparisons.
+ *
+ * @remarks
+ * - Arithmetic methods return another `NumberOperation`.
+ * - Numeric comparisons return `GenericOperation` boolean chains.
+ * - Range bounds are inclusive by default.
+ * - JavaScript numeric edge cases such as `NaN` and division by zero are preserved.
+ *
+ * @example
+ * ```typescript
+ * const chain: NumberOperation = op(10).add(2).mul(3);
+ * console.log(chain.result.value); // 36
+ * ```
+ *
+ * @see {@link numberOp} - Constructs this operation shape.
+ * @see {@link GenericOperation} - Supplies inherited logical methods.
+ * @see {@link Operation} - Selects this shape for numeric inputs.
  */
 export type NumberOperation = GenericOperation & {
   /** The numeric value as a derived signal. */
@@ -121,9 +178,26 @@ export type NumberOperation = GenericOperation & {
 };
 
 /**
- * String and array operation with length-based operations.
+ * Describes length comparisons for string and array operation chains.
  *
- * Extends `GenericOperation` with length-specific operations for strings and arrays.
+ * This operation extends generic logical composition with equality, ordering,
+ * and bounded-range checks against the evaluated value's `.length`.
+ *
+ * @remarks
+ * - Every length method returns a generic boolean operation chain.
+ * - Comparison values may be plain, live, or dead signals.
+ * - `lengthBetween` includes both bounds by default.
+ * - String length follows JavaScript UTF-16 code-unit semantics.
+ *
+ * @example
+ * ```typescript
+ * const chain: StringAndArrayOperation = op("hello");
+ * const longEnough = chain.lengthGTE(5).truthy;
+ * ```
+ *
+ * @see {@link stringAndArrayOp} - Constructs this operation shape.
+ * @see {@link GenericOperation} - Supplies inherited logical methods.
+ * @see {@link Operation} - Selects this shape for strings and arrays.
  */
 export type StringAndArrayOperation = GenericOperation & {
   /** Checks whether the length is between lower and upper values. */
@@ -143,14 +217,29 @@ export type StringAndArrayOperation = GenericOperation & {
 };
 
 /**
- * Union type for all operation types, determined by the value type.
+ * Maps an input value type to its operation-chain surface.
  *
- * @template T - The type of value the operation works with
+ * Numeric types receive arithmetic operations, string and array types receive
+ * length operations, and all other types receive generic logical operations.
+ *
+ * @template T - The input value type to classify.
  *
  * @remarks
- * - Number values map to `NumberOperation`
- * - String or array values map to `StringAndArrayOperation`
- * - Other types map to `GenericOperation`
+ * - The conditional type distributes over union inputs.
+ * - Runtime `op()` dispatch is based only on the initially evaluated value.
+ * - This type does not make a chain change shape after creation.
+ *
+ * @example
+ * ```typescript
+ * type Numeric = Operation<number>; // NumberOperation
+ * type Textual = Operation<string>; // StringAndArrayOperation
+ * type Flag = Operation<boolean>; // GenericOperation
+ * ```
+ *
+ * @see {@link op} - Performs the corresponding runtime dispatch.
+ * @see {@link NumberOperation} - Numeric result shape.
+ * @see {@link StringAndArrayOperation} - String and array result shape.
+ * @see {@link GenericOperation} - Fallback result shape.
  */
 export type Operation<T> = T extends number
   ? NumberOperation

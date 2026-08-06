@@ -2,32 +2,33 @@ import { BaseSignal, MaybeSignal, Signal } from "../_core/signals";
 import { valueIsSignal } from "./type-checkers";
 
 /**
- * Extracts the plain value from a signal, dead-signal, or plain value.
+ * Unwraps a signal-capable input to its plain value.
  *
- * This utility function unwraps signals to get their underlying
- * plain values. If the input is already a plain value, it returns it as-is.
+ * Structurally recognized source, derived, and dead signals are read through
+ * their `value` getter; every other input is returned unchanged.
  *
- * @template T - The type of the plain value
- * @param input - A signal, dead-signal, or plain value
- * @returns The unwrapped plain value
+ * @template T - The unwrapped value type.
+ * @param input - A plain value or any base/supported signal shape.
+ * @returns The signal's current value or the original plain input.
+ *
+ * @remarks
+ * - Reading a live signal through this helper participates in dependency collection.
+ * - Signal getters return copied object and array values according to base-signal behavior.
+ * - `null` and `undefined` pass through unchanged.
+ * - Recognition relies only on the `type` discriminator.
  *
  * @example
  * ```typescript
  * const count = signal(42);
- * const nonSig = deadSignal("hello");
- *
- * value(count); // 42
- * value(nonSig); // "hello"
- * value(100); // 100
+ * const snapshot = deadSignal("hello");
+ * console.log(value(count)); // 42
+ * console.log(value(snapshot)); // "hello"
+ * console.log(value(null)); // null
  * ```
  *
- * @remarks
- * - Does not trigger dependency tracking
- * - Works with `null` and `undefined`
- * - Works with nested structures
- *
- * @see {@link MaybeSignal} - For the input type
- * @see {@link Signal} - For signal types
+ * @see {@link valueIsSignal} - Performs runtime recognition.
+ * @see {@link MaybeSignal} - Describes the general accepted input.
+ * @see {@link BaseSignal} - Describes the additional low-level input shape.
  */
 export const value = <T>(input: MaybeSignal<T> | BaseSignal<T>): T =>
   valueIsSignal(input) ? ((input as BaseSignal<T>).value as T) : (input as T);

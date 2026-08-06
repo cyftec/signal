@@ -1,53 +1,42 @@
 import { type DerivedSignal, signal } from "../_core";
 
 /**
- * Creates promise state signals for async operations.
+ * Creates reactive result, error, and pending state for a promise function.
  *
- * This function returns a tuple containing a promise runner function and three
- * derived signals that track the promise's state: result, error, and running status.
+ * The returned runner marks the operation as running before invoking
+ * `promiseFn`. Settlement updates a shared state signal whose properties are
+ * exposed as three derived signals.
  *
- * @template R - The type of the promise result
- * @template Args - The type of the promise function's arguments
- * @template I - The type of the initial value
- * @param promiseFn - A promise-returning function
- * @param initialValue - Optional initial value for the result signal
- * @param ultimately - Optional callback to run in the promise's finally block
- * @returns A tuple of:
- * - `runPromise`: Function to run the promise
- * - `result`: Derived signal of the promise result
- * - `error`: Derived signal of the promise error
- * - `isRunning`: Derived signal of whether the promise is running
+ * @template R - The fulfilled promise result type.
+ * @template Args - The tuple of arguments accepted by the promise function.
+ * @template I - The optional initial-result type.
+ * @param promiseFn - The promise-returning function to execute.
+ * @param initialValue - Optional initial result; current runtime initialization converts falsy values to `undefined`.
+ * @param ultimately - Optional callback passed to the returned promise's `finally` stage.
+ * @returns A readonly tuple of the runner, result signal, error signal, and running signal.
+ *
+ * @remarks
+ * - `isRunning` becomes `true` synchronously when the runner is called and `false` on fulfillment or handled rejection.
+ * - Success replaces the result and clears the prior error.
+ * - Rejection is handled into the error signal and preserves the prior result.
+ * - Rejected values are stored without runtime validation despite the `Error` type annotation.
+ * - A synchronous throw before `promiseFn` returns a promise leaves `isRunning` true and escapes the runner.
+ * - Concurrent runs share one boolean and use settlement order rather than request identity.
  *
  * @example
  * ```typescript
- * const promiseFn = async (value: number) => value * 2;
- * const [runPromise, result, error, isRunning] = promstates(promiseFn, 0);
- *
- * await runPromise(5);
- * console.log(result.value); // 10
- * console.log(error.value); // undefined
- *
- * await runPromise(-1); // Assume this throws
- * console.log(result.value); // 10 (preserved)
- * console.log(error.value); // Error instance
- *
- * // Best practice: always check error first
- * if (error.value) {
- *   console.error(error.value);
- * } else {
- *   console.log(result.value);
- * }
+ * const [run, result, error, isRunning] = promstates(
+ *   async (value: number) => value * 2,
+ * );
+ * const pending = run(3);
+ * console.log(isRunning.value); // true
+ * await pending;
+ * console.log(result.value, error.value, isRunning.value); // 6, undefined, false
  * ```
  *
- * @remarks
- * - On success: `result` is updated and `error` is cleared
- * - On failure: `error` is updated and `result` preserves the previous successful result
- * - The `ultimately` callback runs in the finally block
- * - The promise can be run multiple times
- * - If no initial value is provided, the result signal starts as `undefined`
- * - If the promise fails multiple times, the last successful result is preserved
- *
- * @see {@link DerivedSignal} - For the derived signal type
+ * @see {@link DerivedSignal} - Describes each state projection.
+ * @see {@link signal} - Stores the shared promise state.
+ * @see {@link effect} - Observes derived state values.
  */
 export const promstates = <R, Args extends Array<any>, I>(
   promiseFn: (...args: Args) => Promise<R>,
@@ -79,8 +68,14 @@ export const promstates = <R, Args extends Array<any>, I>(
     error: undefined,
   });
 
-  const runPromise = (...args: Args) =>
-    promiseFn(...args)
+  const runPromise = (...args: Args) => {
+    state.value = {
+      ...state.value,
+      isRunning: true,
+      error: undefined,
+    };
+
+    return promiseFn(...args)
       .then((res) => {
         state.value = {
           isRunning: false,
@@ -112,6 +107,7 @@ export const promstates = <R, Args extends Array<any>, I>(
         };
       })
       .finally(ultimately);
+  };
 
   const { isRunning, result, error } = state.props();
   return [runPromise, result, error, isRunning] as const;

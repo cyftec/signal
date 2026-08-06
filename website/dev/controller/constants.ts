@@ -1,5 +1,5 @@
 export const CODE_SAMPLES = {
-  SHOWCASE: `import { signal, effect } from "@cyftech/signal";
+  SHOWCASE: `import { signal, effect } from "@cyftec/signal";
 
 type LightState = "red" | "amber" | "green";
 
@@ -62,8 +62,8 @@ logger.dispose();
 count.value = 1; // no log`,
 
   ARRAYS_AND_OBJECTS: `const items = signal([1, 2, 3]);
-items.push(4);
+items.mutate.push(4);
 
 const user = signal({ name: "Ada", age: 36 });
-user.set({ age: 37 });`,
+user.mutate.set({ age: 37 });`,
 };
