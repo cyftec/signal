@@ -128,12 +128,18 @@ export type GenericMethods<T> = [true] extends [
  * - Effects are triggered synchronously
  * - Methods expose a mutable-style API while maintaining immutability
  */
-export type ArrayIntrinsicMutatingMethods<T extends any[]> = {
+export type ArrayMutatingMethods<T extends any[]> = {
+  concat: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["concat"]>>
+  ) => void;
   copyWithin: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["copyWithin"]>>
   ) => void;
   fill: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["fill"]>>
+  ) => void;
+  filter: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
   ) => void;
   pop: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["pop"]>>
@@ -141,55 +147,22 @@ export type ArrayIntrinsicMutatingMethods<T extends any[]> = {
   push: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["push"]>>
   ) => void;
-  reverse: (
-    ...args: MaybeSignalValues<Parameters<Array<T[number]>["reverse"]>>
-  ) => void;
   shift: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["shift"]>>
   ) => void;
-  sort: (
+  toReversed: (
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["reverse"]>>
+  ) => void;
+  toSorted: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["sort"]>>
   ) => void;
-  splice: (
+  toSpliced: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["splice"]>>
   ) => void;
   unshift: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["unshift"]>>
   ) => void;
 };
-
-/**
- * Custom mutating methods for array signals.
- *
- * These are library-specific methods that provide additional functionality
- * beyond JavaScript's intrinsic array methods.
- *
- * @template T - The array type
- *
- * @remarks
- * - `keep()` is the inverse of `filter()` - keeps items matching the predicate
- * - `remove()` deletes items matching the predicate
- */
-export type ArrayCustomMutatingMethods<T extends any[]> = {
-  /** Keeps items where the predicate returns true */
-  keep: (
-    ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
-  ) => void;
-  /** Removes items where the predicate returns true */
-  remove: (
-    ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
-  ) => void;
-};
-
-/**
- * Combined mutating methods for array signals.
- *
- * Combines intrinsic and custom mutating methods into a single type.
- *
- * @template T - The array type
- */
-export type ArrayMutatingMethods<T extends any[]> =
-  ArrayIntrinsicMutatingMethods<T> & ArrayCustomMutatingMethods<T>;
 
 /**
  * Intrinsic non-mutating methods for array signals.

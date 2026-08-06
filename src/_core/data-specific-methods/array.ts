@@ -2,9 +2,7 @@ import { newVal } from "@cyftec/immut";
 import { getPlainMethodParams, value } from "../../utils";
 import { BaseSignal, derive, MaybeSignal, MaybeSignalValues } from "../signals";
 import {
-  ArrayCustomMutatingMethods,
   ArrayCustomNonMutatingMethods,
-  ArrayIntrinsicMutatingMethods,
   ArrayIntrinsicNonMutatingMethods,
   ArrayMutatingAndNonMutatingMethods,
   ArrayMutatingMethods,
@@ -26,9 +24,9 @@ import {
  * - Effects are triggered synchronously
  * - Methods expose a mutable-style API while maintaining immutability
  */
-export const getArrayIntrinsicMutatingMethods = <T extends any[]>(
+export const getArrayMutatingMethods = <T extends any[]>(
   baseArraySignal: BaseSignal<T>,
-): ArrayIntrinsicMutatingMethods<T> => {
+): ArrayMutatingMethods<T> => {
   const signalUpdator = (mutatorMethod: (newVal: T) => void): void =>
     baseArraySignal.mutateWith((oldValue: T) => {
       const newValue = Array.from(oldValue) as T;
@@ -37,6 +35,12 @@ export const getArrayIntrinsicMutatingMethods = <T extends any[]>(
     });
 
   return {
+    concat: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["concat"]>>
+    ) =>
+      signalUpdator((newValue) =>
+        newValue.concat(...getPlainMethodParams(...args)),
+      ),
     copyWithin: (
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["copyWithin"]>>
     ) =>
@@ -47,6 +51,12 @@ export const getArrayIntrinsicMutatingMethods = <T extends any[]>(
       signalUpdator((newValue) =>
         newValue.fill(...getPlainMethodParams(...args)),
       ),
+    filter: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
+    ) =>
+      baseArraySignal.mutateWith((oldValue: T) => {
+        return oldValue.filter(...getPlainMethodParams(...args)) as T;
+      }),
     pop: (...args: MaybeSignalValues<Parameters<Array<T[number]>["pop"]>>) =>
       signalUpdator((newValue) =>
         newValue.pop(...getPlainMethodParams(...args)),
@@ -55,23 +65,25 @@ export const getArrayIntrinsicMutatingMethods = <T extends any[]>(
       signalUpdator((newValue) =>
         newValue.push(...getPlainMethodParams(...args)),
       ),
-    reverse: (
-      ...args: MaybeSignalValues<Parameters<Array<T[number]>["reverse"]>>
-    ) =>
-      signalUpdator((newValue) =>
-        newValue.reverse(...getPlainMethodParams(...args)),
-      ),
     shift: (
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["shift"]>>
     ) =>
       signalUpdator((newValue) =>
         newValue.shift(...getPlainMethodParams(...args)),
       ),
-    sort: (...args: MaybeSignalValues<Parameters<Array<T[number]>["sort"]>>) =>
+    toReversed: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["reverse"]>>
+    ) =>
+      signalUpdator((newValue) =>
+        newValue.reverse(...getPlainMethodParams(...args)),
+      ),
+    toSorted: (
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["sort"]>>
+    ) =>
       signalUpdator((newValue) =>
         newValue.sort(...getPlainMethodParams(...args)),
       ),
-    splice: (
+    toSpliced: (
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["splice"]>>
     ) =>
       signalUpdator((newValue) =>
@@ -85,59 +97,6 @@ export const getArrayIntrinsicMutatingMethods = <T extends any[]>(
       ),
   };
 };
-
-/**
- * Creates custom mutating methods for array signals.
- *
- * These are library-specific methods that provide additional functionality
- * beyond JavaScript's intrinsic array methods.
- *
- * @template T - The array type
- * @param valueSetter - Updates the signal value and triggers effects
- * @returns Custom mutating methods for array signals
- *
- * @remarks
- * - `keep()` is the inverse of `filter()` - keeps items matching the predicate
- * - `remove()` deletes items matching the predicate
- */
-export const getArrayCustomMutatingMethods = <T extends any[]>(
-  baseArraySignal: BaseSignal<T>,
-): ArrayCustomMutatingMethods<T> => ({
-  /** Keeps items where the predicate returns true. */
-  keep: (...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>) =>
-    baseArraySignal.mutateWith((oldValue: T) => {
-      return oldValue.filter(...getPlainMethodParams(...args)) as T;
-    }),
-  /** Removes items where the predicate returns true. */
-  remove: (
-    ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
-  ) => {
-    const predicate = args[0];
-    const negativeLogicPredicate = (
-      ...predicateArgs: Parameters<typeof predicate>
-    ) => !predicate(...predicateArgs);
-    args[0] = negativeLogicPredicate;
-    baseArraySignal.mutateWith((oldValue: T) => {
-      return oldValue.filter(...getPlainMethodParams(...args)) as T;
-    });
-  },
-});
-
-/**
- * Creates combined mutating methods for array signals.
- *
- * Combines intrinsic and custom mutating methods into a single object.
- *
- * @template T - The array type
- * @param valueSetter - Updates the signal value and triggers effects
- * @returns Combined mutating methods for array signals
- */
-export const getArrayMutatingMethods = <T extends any[]>(
-  baseArraySignal: BaseSignal<T>,
-): ArrayMutatingMethods<T> => ({
-  ...getArrayIntrinsicMutatingMethods(baseArraySignal),
-  ...getArrayCustomMutatingMethods(baseArraySignal),
-});
 
 /**
  * Creates intrinsic non-mutating methods for array signals.

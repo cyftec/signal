@@ -92,19 +92,19 @@ describe("signal - array values", () => {
 
   it("should have 'splice' method", () => {
     const arr = signal([1, 2, 3, 4]);
-    arr.mutate.splice(1, 2);
+    arr.mutate.toSpliced(1, 2);
     expect(arr.value).toEqual([1, 4]);
   });
 
   it("should have 'reverse' method", () => {
     const arr = signal([1, 2, 3]);
-    arr.mutate.reverse();
+    arr.mutate.toReversed();
     expect(arr.value).toEqual([3, 2, 1]);
   });
 
   it("should have 'sort' method", () => {
     const arr = signal([3, 1, 2]);
-    arr.mutate.sort();
+    arr.mutate.toSorted();
     expect(arr.value).toEqual([1, 2, 3]);
   });
 
@@ -120,16 +120,10 @@ describe("signal - array values", () => {
     expect(arr.value).toEqual([3, 4, 3, 4]);
   });
 
-  it("should have 'keep' method to keep items matching a condition", () => {
+  it("should have 'filter' method to keep items matching a condition", () => {
     const arr = signal([1, 2, 3, 4, 5]);
-    arr.mutate.keep((item) => item % 2 === 0);
+    arr.mutate.filter((item) => item % 2 === 0);
     expect(arr.value).toEqual([2, 4]);
-  });
-
-  it("should have 'remove' method to remove items matching a condition", () => {
-    const arr = signal([1, 2, 3, 4, 5]);
-    arr.mutate.remove((item) => item % 2 === 0);
-    expect(arr.value).toEqual([1, 3, 5]);
   });
 
   it("should trigger effects on array mutations", () => {
