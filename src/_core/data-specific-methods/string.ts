@@ -8,8 +8,127 @@ import {
 import {
   StringCustomNonMutatingMethods,
   StringIntrinsicNonMutatingMethods,
+  StringMutatingAndNonMutatingMethods,
+  StringMutatingMethods,
   StringNonMutatingMethods,
 } from "./types";
+
+const _deepTrim = (value: string) => value.trim().replace(/\s+/g, " ");
+
+export const getStringSignalMutatingMethods = (
+  baseStringSignal: BaseSignal<string>,
+): StringMutatingMethods => {
+  return {
+    concat: function (
+      ...args: MaybeSignalValues<Parameters<String["concat"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.concat(...getPlainMethodParams(...args)),
+      );
+    },
+    deepTrim: function (): void {
+      baseStringSignal.mutateWith((oldValue) => _deepTrim(oldValue));
+    },
+    padEnd: function (
+      ...args: MaybeSignalValues<Parameters<String["padEnd"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.padEnd(...getPlainMethodParams(...args)),
+      );
+    },
+    padStart: function (
+      ...args: MaybeSignalValues<Parameters<String["padStart"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.padStart(...getPlainMethodParams(...args)),
+      );
+    },
+    repeat: function (
+      ...args: MaybeSignalValues<Parameters<String["repeat"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.repeat(...getPlainMethodParams(...args)),
+      );
+    },
+    replace: function (
+      ...args: MaybeSignalValues<Parameters<String["replace"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.replace(...getPlainMethodParams(...args)),
+      );
+    },
+    replaceAll: function (
+      ...args: MaybeSignalValues<Parameters<String["replaceAll"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.replaceAll(...getPlainMethodParams(...args)),
+      );
+    },
+    slice: function (
+      ...args: MaybeSignalValues<Parameters<String["slice"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.slice(...getPlainMethodParams(...args)),
+      );
+    },
+    substring: function (
+      ...args: MaybeSignalValues<Parameters<String["substring"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.substring(...getPlainMethodParams(...args)),
+      );
+    },
+    trim: function (
+      ...args: MaybeSignalValues<Parameters<String["trim"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.trim(...getPlainMethodParams(...args)),
+      );
+    },
+    trimEnd: function (
+      ...args: MaybeSignalValues<Parameters<String["trimEnd"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.trimEnd(...getPlainMethodParams(...args)),
+      );
+    },
+    trimStart: function (
+      ...args: MaybeSignalValues<Parameters<String["trimStart"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.trimStart(...getPlainMethodParams(...args)),
+      );
+    },
+    toLocaleLowerCase: function (
+      ...args: MaybeSignalValues<Parameters<String["toLocaleLowerCase"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.toLocaleLowerCase(...getPlainMethodParams(...args)),
+      );
+    },
+    toLocaleUpperCase: function (
+      ...args: MaybeSignalValues<Parameters<String["toLocaleUpperCase"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.toLocaleUpperCase(...getPlainMethodParams(...args)),
+      );
+    },
+    toLowerCase: function (
+      ...args: MaybeSignalValues<Parameters<String["toLowerCase"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.toLowerCase(...getPlainMethodParams(...args)),
+      );
+    },
+    toUpperCase: function (
+      ...args: MaybeSignalValues<Parameters<String["toUpperCase"]>>
+    ): void {
+      baseStringSignal.mutateWith((oldValue) =>
+        oldValue.toUpperCase(...getPlainMethodParams(...args)),
+      );
+    },
+  };
+};
 
 /**
  * Creates intrinsic non-mutating methods for string signals.
@@ -110,49 +229,65 @@ export const getStringIntrinsicNonMutatingMethods = (
       ),
     length: () => derive(() => baseStringSignal.value.length),
     localeCompare: (
-      that: MaybeSignal<string>,
-      locales?: MaybeSignal<string | string[] | undefined>,
-      options?: MaybeSignal<Intl.CollatorOptions | undefined>,
+      ...args: MaybeSignalValues<Parameters<String["localeCompare"]>>
     ) =>
       derive(() =>
-        baseStringSignal.value.localeCompare(
-          value(that),
-          value(locales),
-          value(options),
+        baseStringSignal.value.localeCompare(...getPlainMethodParams(...args)),
+      ),
+    normalize: (...args: MaybeSignalValues<Parameters<String["normalize"]>>) =>
+      derive(() =>
+        baseStringSignal.value.normalize(
+          value(...getPlainMethodParams(...args)),
         ),
       ),
-    normalize: (form: MaybeSignal<"NFC" | "NFD" | "NFKC" | "NFKD">) =>
-      derive(() => baseStringSignal.value.normalize(value(form))),
-    replace: (
-      searchValue: MaybeSignal<string | RegExp>,
-      replaceValue: MaybeSignal<string>,
-    ) =>
+    replace: (...args: MaybeSignalValues<Parameters<String["replace"]>>) =>
       derive(() =>
-        baseStringSignal.value.replace(value(searchValue), value(replaceValue)),
+        baseStringSignal.value.replace(...getPlainMethodParams(...args)),
       ),
     replaceAll: (
-      searchValue: MaybeSignal<string | RegExp>,
-      replaceValue: MaybeSignal<string>,
+      ...args: MaybeSignalValues<Parameters<String["replaceAll"]>>
     ) =>
       derive(() =>
-        baseStringSignal.value.replaceAll(
-          value(searchValue),
-          value(replaceValue),
+        baseStringSignal.value.replaceAll(...getPlainMethodParams(...args)),
+      ),
+    search: (...args: MaybeSignalValues<Parameters<String["search"]>>) =>
+      derive(() =>
+        baseStringSignal.value.search(...getPlainMethodParams(...args)),
+      ),
+    split: (...args: MaybeSignalValues<Parameters<String["split"]>>) =>
+      derive(() =>
+        baseStringSignal.value.split(...getPlainMethodParams(...args)),
+      ),
+    toLocaleLowerCase: (
+      ...args: MaybeSignalValues<Parameters<String["toLocaleLowerCase"]>>
+    ) =>
+      derive(() =>
+        baseStringSignal.value.toLocaleLowerCase(
+          ...getPlainMethodParams(...args),
         ),
       ),
-    search: (regexp: MaybeSignal<RegExp>) =>
-      derive(() => baseStringSignal.value.search(value(regexp))),
-    split: (
-      separator: MaybeSignal<string | RegExp>,
-      limit?: MaybeSignal<number | undefined>,
+    toLocaleUpperCase: (
+      ...args: MaybeSignalValues<Parameters<String["toLocaleUpperCase"]>>
     ) =>
       derive(() =>
-        baseStringSignal.value.split(value(separator), value(limit)),
+        baseStringSignal.value.toLocaleUpperCase(
+          ...getPlainMethodParams(...args),
+        ),
       ),
-    toLocaleLowerCase: (locales?: MaybeSignal<string | string[] | undefined>) =>
-      derive(() => baseStringSignal.value.toLocaleLowerCase(value(locales))),
-    toLocaleUpperCase: (locales?: MaybeSignal<string | string[] | undefined>) =>
-      derive(() => baseStringSignal.value.toLocaleUpperCase(value(locales))),
+    toLowerCase: (
+      ...args: MaybeSignalValues<Parameters<String["toLowerCase"]>>
+    ) => {
+      return derive(() =>
+        baseStringSignal.value.toLowerCase(...getPlainMethodParams(...args)),
+      );
+    },
+    toUpperCase: (
+      ...args: MaybeSignalValues<Parameters<String["toUpperCase"]>>
+    ) => {
+      return derive(() =>
+        baseStringSignal.value.toUpperCase(...getPlainMethodParams(...args)),
+      );
+    },
   };
 };
 
@@ -176,24 +311,8 @@ export const getStringCustomNonMutatingMethods = (
   baseStringSignal: BaseSignal<string>,
 ): StringCustomNonMutatingMethods => {
   return {
-    lowercase: () => {
-      return derive(() => baseStringSignal.value.toLowerCase());
-    },
-    Sentencecase: () => {
-      return derive(() => {
-        const str = baseStringSignal.value;
-        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-      });
-    },
-    TitleCase: () => {
-      return derive(() =>
-        baseStringSignal.value
-          .toLowerCase()
-          .replace(/\b\w/g, (c) => c.toUpperCase()),
-      );
-    },
-    UPPERCASE: () => {
-      return derive(() => baseStringSignal.value.toUpperCase());
+    deepTrim: () => {
+      return derive(() => _deepTrim(baseStringSignal.value));
     },
   };
 };
@@ -212,9 +331,15 @@ export const getStringCustomNonMutatingMethods = (
  * - Methods are reactive and update when the source string changes
  * - Methods are lazy - derived signals are only created when accessed
  */
-export const getStringSignalMethods = (
+export const getStringSignalNonMutatingMethods = (
   baseStringSignal: BaseSignal<string>,
 ): StringNonMutatingMethods => ({
   ...getStringIntrinsicNonMutatingMethods(baseStringSignal),
   ...getStringCustomNonMutatingMethods(baseStringSignal),
+});
+export const getStringSignalMethods = (
+  baseStringSignal: BaseSignal<string>,
+): StringMutatingAndNonMutatingMethods => ({
+  mutate: { ...getStringSignalMutatingMethods(baseStringSignal) },
+  ...getStringSignalNonMutatingMethods(baseStringSignal),
 });

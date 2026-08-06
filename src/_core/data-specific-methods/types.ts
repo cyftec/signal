@@ -315,6 +315,41 @@ export type ObjectNonMutatingMethods<T extends Record<string, any>> = {
 export type ObjectMutatingAndNonMutatingMethods<T extends Record<string, any>> =
   { mutate: ObjectMutatingMethods<T> } & ObjectNonMutatingMethods<T>;
 
+export type StringMutatingMethods = {
+  concat: (...args: MaybeSignalValues<Parameters<String["concat"]>>) => void;
+  deepTrim: () => void;
+  padEnd: (...args: MaybeSignalValues<Parameters<String["padEnd"]>>) => void;
+  padStart: (
+    ...args: MaybeSignalValues<Parameters<String["padStart"]>>
+  ) => void;
+  repeat: (...args: MaybeSignalValues<Parameters<String["repeat"]>>) => void;
+  replace: (...args: MaybeSignalValues<Parameters<String["replace"]>>) => void;
+  replaceAll: (
+    ...args: MaybeSignalValues<Parameters<String["replaceAll"]>>
+  ) => void;
+  slice: (...args: MaybeSignalValues<Parameters<String["slice"]>>) => void;
+  substring: (
+    ...args: MaybeSignalValues<Parameters<String["substring"]>>
+  ) => void;
+  trim: (...args: MaybeSignalValues<Parameters<String["trim"]>>) => void;
+  trimEnd: (...args: MaybeSignalValues<Parameters<String["trimEnd"]>>) => void;
+  trimStart: (
+    ...args: MaybeSignalValues<Parameters<String["trimStart"]>>
+  ) => void;
+  toLocaleLowerCase: (
+    ...args: MaybeSignalValues<Parameters<String["toLocaleLowerCase"]>>
+  ) => void;
+  toLocaleUpperCase: (
+    ...args: MaybeSignalValues<Parameters<String["toLocaleUpperCase"]>>
+  ) => void;
+  toLowerCase: (
+    ...args: MaybeSignalValues<Parameters<String["toLowerCase"]>>
+  ) => void;
+  toUpperCase: (
+    ...args: MaybeSignalValues<Parameters<String["toUpperCase"]>>
+  ) => void;
+};
+
 /**
  * Intrinsic non-mutating methods for string signals.
  *
@@ -383,34 +418,35 @@ export type StringIntrinsicNonMutatingMethods = {
   ) => DerivedSignal<ReturnType<String["trimStart"]>>;
   length: () => DerivedSignal<number>;
   localeCompare: (
-    that: MaybeSignal<string>,
-    locales?: MaybeSignal<string | string[] | undefined>,
-    options?: MaybeSignal<Intl.CollatorOptions | undefined>,
+    ...args: MaybeSignalValues<Parameters<String["localeCompare"]>>
   ) => DerivedSignal<ReturnType<String["localeCompare"]>>;
   normalize: (
-    form: MaybeSignal<"NFC" | "NFD" | "NFKC" | "NFKD">,
+    ...args: MaybeSignalValues<Parameters<String["normalize"]>>
   ) => DerivedSignal<ReturnType<String["normalize"]>>;
   replace: (
-    searchValue: MaybeSignal<string | RegExp>,
-    replaceValue: MaybeSignal<string>,
+    ...args: MaybeSignalValues<Parameters<String["replace"]>>
   ) => DerivedSignal<ReturnType<String["replace"]>>;
   replaceAll: (
-    searchValue: MaybeSignal<string | RegExp>,
-    replaceValue: MaybeSignal<string>,
+    ...args: MaybeSignalValues<Parameters<String["replaceAll"]>>
   ) => DerivedSignal<ReturnType<String["replaceAll"]>>;
   search: (
-    regexp: MaybeSignal<RegExp>,
+    ...args: MaybeSignalValues<Parameters<String["search"]>>
   ) => DerivedSignal<ReturnType<String["search"]>>;
   split: (
-    separator: MaybeSignal<string | RegExp>,
-    limit?: MaybeSignal<number | undefined>,
+    ...args: MaybeSignalValues<Parameters<String["split"]>>
   ) => DerivedSignal<ReturnType<String["split"]>>;
   toLocaleLowerCase: (
-    locales?: MaybeSignal<string | string[] | undefined>,
+    ...args: MaybeSignalValues<Parameters<String["toLocaleLowerCase"]>>
   ) => DerivedSignal<ReturnType<String["toLocaleLowerCase"]>>;
   toLocaleUpperCase: (
-    locales?: MaybeSignal<string | string[] | undefined>,
+    ...args: MaybeSignalValues<Parameters<String["toLocaleUpperCase"]>>
   ) => DerivedSignal<ReturnType<String["toLocaleUpperCase"]>>;
+  toLowerCase: (
+    ...args: MaybeSignalValues<Parameters<String["toLowerCase"]>>
+  ) => DerivedSignal<ReturnType<String["toLowerCase"]>>;
+  toUpperCase: (
+    ...args: MaybeSignalValues<Parameters<String["toUpperCase"]>>
+  ) => DerivedSignal<ReturnType<String["toUpperCase"]>>;
 };
 
 /**
@@ -426,14 +462,7 @@ export type StringIntrinsicNonMutatingMethods = {
  * - `UPPERCASE` returns a derived signal for the uppercase version
  */
 export type StringCustomNonMutatingMethods = {
-  /** Lowercase version of the string. */
-  lowercase: () => DerivedSignal<string>;
-  /** First letter capitalized, rest lowercase. */
-  Sentencecase: () => DerivedSignal<string>;
-  /** Each word capitalized. */
-  TitleCase: () => DerivedSignal<string>;
-  /** Uppercase version of the string. */
-  UPPERCASE: () => DerivedSignal<string>;
+  deepTrim: () => DerivedSignal<string>;
 };
 
 /**
@@ -443,6 +472,10 @@ export type StringCustomNonMutatingMethods = {
  */
 export type StringNonMutatingMethods = StringIntrinsicNonMutatingMethods &
   StringCustomNonMutatingMethods;
+
+export type StringMutatingAndNonMutatingMethods = {
+  mutate: StringMutatingMethods;
+} & StringNonMutatingMethods;
 
 /**
  * Intrinsic non-mutating methods for number signals.
@@ -526,7 +559,7 @@ export type MutatingAndNonMutatingMethods<T> = [true] extends [IsArray<T>]
   : [true] extends [IsObjectLiteral<T>]
     ? ObjectMutatingAndNonMutatingMethods<Extract<T, Record<string, any>>>
     : [true] extends [IsExactly<T, string>]
-      ? StringNonMutatingMethods
+      ? StringMutatingAndNonMutatingMethods
       : [true] extends [IsExactly<T, number>]
         ? NumberNonMutatingMethods
         : [true] extends [IsExactly<T, boolean>]

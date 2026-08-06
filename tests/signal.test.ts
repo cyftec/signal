@@ -683,19 +683,19 @@ describe("derive - string signals", () => {
     expect(len.value).toBe(11);
   });
 
-  it("should have 'lowercase' method on derived string signal", () => {
+  it("should have 'toLowerCase' method on derived string signal", () => {
     const text = signal("HELLO");
     const derived = derive(() => text.value);
-    const lowercase = derived.lowercase();
+    const lowercase = derived.toLowerCase();
     expect(lowercase.value).toBe("hello");
     text.value = "WORLD";
     expect(lowercase.value).toBe("world");
   });
 
-  it("should have 'UPPERCASE' method on derived string signal", () => {
+  it("should have 'toUpperCase' method on derived string signal", () => {
     const text = signal("hello");
     const derived = derive(() => text.value);
-    const uppercase = derived.UPPERCASE();
+    const uppercase = derived.toUpperCase();
     expect(uppercase.value).toBe("HELLO");
     text.value = "world";
     expect(uppercase.value).toBe("WORLD");
@@ -825,7 +825,7 @@ describe("signal - string values", () => {
 
   it("should have 'toLowerCase' method returning derived signal", () => {
     const text = signal("HELLO");
-    const lowercase = text.lowercase();
+    const lowercase = text.toLowerCase();
     expect(lowercase.value).toBe("hello");
     text.value = "WORLD";
     expect(lowercase.value).toBe("world");
@@ -833,7 +833,7 @@ describe("signal - string values", () => {
 
   it("should have 'toUpperCase' method returning derived signal", () => {
     const text = signal("hello");
-    const uppercase = text.UPPERCASE();
+    const uppercase = text.toUpperCase();
     expect(uppercase.value).toBe("HELLO");
     text.value = "world";
     expect(uppercase.value).toBe("WORLD");
@@ -1048,20 +1048,12 @@ describe("signal - string values", () => {
   });
 
   // Custom non-mutating methods
-  it("should have 'Sentencecase' getter returning derived signal", () => {
-    const text = signal("hello world");
-    const sentence = text.Sentencecase();
-    expect(sentence.value).toBe("Hello world");
-    text.value = "hi there";
-    expect(sentence.value).toBe("Hi there");
-  });
-
-  it("should have 'TitleCase' getter returning derived signal", () => {
-    const text = signal("hello world");
-    const title = text.TitleCase();
-    expect(title.value).toBe("Hello World");
-    text.value = "hi there";
-    expect(title.value).toBe("Hi There");
+  it("should have 'deepTrim' getter returning derived signal", () => {
+    const text = signal(" hello     world    ");
+    const sentence = text.deepTrim();
+    expect(sentence.value).toBe("hello world");
+    text.value = "         hi        there       ";
+    expect(sentence.value).toBe("hi there");
   });
 });
 
@@ -1150,8 +1142,8 @@ describe("signal - nullable types", () => {
     expect(text.value).toBeUndefined();
     // Check if methods are available even when value is undefined
     expect(typeof (text as SourceSignal<string>).length).toBe("function");
-    expect(typeof (text as SourceSignal<string>).lowercase).toBe("function");
-    expect(typeof (text as SourceSignal<string>).UPPERCASE).toBe("function");
+    expect(typeof (text as SourceSignal<string>).toLowerCase).toBe("function");
+    expect(typeof (text as SourceSignal<string>).toUpperCase).toBe("function");
   });
 
   it("should handle string | null with null initial value", () => {
@@ -1159,8 +1151,8 @@ describe("signal - nullable types", () => {
     expect(text.value).toBeNull();
     // Check if methods are available even when value is null
     expect(typeof (text as SourceSignal<string>).length).toBe("function");
-    expect(typeof (text as SourceSignal<string>).lowercase).toBe("function");
-    expect(typeof (text as SourceSignal<string>).UPPERCASE).toBe("function");
+    expect(typeof (text as SourceSignal<string>).toLowerCase).toBe("function");
+    expect(typeof (text as SourceSignal<string>).toUpperCase).toBe("function");
   });
 
   it("should handle number | undefined with undefined initial value", () => {
