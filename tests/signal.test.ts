@@ -311,7 +311,6 @@ describe("signal - object values", () => {
     const obj = signal({ name: "test", count: 0 });
     const name = obj.get("name");
     expect(name.value).toBe("test");
-    console.log(JSON.stringify(obj));
     obj.mutate.set({ name: "updated" });
     expect(name.value).toBe("updated");
   });
