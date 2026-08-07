@@ -241,6 +241,28 @@ export type MaybeDerivedSignal<T> = T | DerivedSignal<T>;
 export type MaybeDeadSignal<T> = T | DeadSignal<T>;
 
 /**
+ * Accepts either a plain value or a live-signal of that value.
+ *
+ * This union excludes dead snapshots.
+ *
+ * @template T - The plain or live-signal value type.
+ *
+ * @remarks
+ * - Plain values are non-live.
+ * - Source and derived signals are live.
+ *
+ * @example
+ * ```typescript
+ * const input1: MaybeLiveSignal<number> = 1;
+ * const input2: MaybeLiveSignal<number> = signal(1);
+ * const input3: MaybeLiveSignal<number> = derive(() => input2.value);
+ * ```
+ *
+ * @see {@link LiveSignal} - The reactive branches.
+ */
+export type MaybeLiveSignal<T> = T | LiveSignal<T>;
+
+/**
  * Represents any source, derived, or dead signal.
  *
  * This union is the common discriminated signal-object surface and excludes
@@ -329,15 +351,16 @@ export type MaybeSignal<T> = T | LiveSignal<T> | DeadSignal<T>;
  * @see {@link Signal} - Signal kinds preserved by this transformation.
  * @see {@link nullable} - Adds generic helpers to nullable primitive inputs.
  */
-export type NonNullSignalValue<S> = S extends null | undefined
-  ? never
-  : S extends SourceSignal<infer SS | null | undefined>
-    ? SourceSignal<SS>
-    : S extends DerivedSignal<infer DS | null | undefined>
-      ? DerivedSignal<DS>
-      : S extends DeadSignal<infer NS | null | undefined>
-        ? DeadSignal<NS>
-        : S;
+export type NonNullSignalValue<S> =
+  S extends SourceSignal<infer SS>
+    ? SourceSignal<NonNullable<SS>>
+    : S extends DerivedSignal<infer DS>
+      ? DerivedSignal<NonNullable<DS>>
+      : S extends DeadSignal<infer NS>
+        ? DeadSignal<NonNullable<NS>>
+        : S extends null | undefined
+          ? never
+          : NonNullable<S>;
 
 /**
  * Converts function parameters into a tuple accepting signal-wrapped values.
