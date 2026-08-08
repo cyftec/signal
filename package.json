@@ -1,6 +1,6 @@
 {
   "name": "@cyftec/signal",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Signal implementation in TypeScript",
   "keywords": [
     "cyftech",
