@@ -2,6 +2,11 @@
 
 Use this guide when writing or reviewing code against this repository. The library has custom semantics. Do not fill gaps from another reactive library: verify behavior in [semantics.md](./semantics.md), [behavior.md](./behavior.md), source, and behavioral tests.
 
+The signal type system also has an intentional widening contract: narrow signal
+types are accepted by matching wider signal types, including source signals.
+Read [type-variance.md](./type-variance.md) before changing generic signal or
+conditional data-method types.
+
 ## Fast mental model
 
 ```text

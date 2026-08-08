@@ -76,9 +76,9 @@ export const receive = <T>(
  * @see {@link effect} - Implements the broadcast.
  * @see {@link value} - Unwraps the transmitter.
  */
-export const transmit = <T>(
-  transmittor: MaybeSignal<T>,
-  ...receivers: SourceSignal<T>[]
+export const transmit = <Receiver, Transmittor extends Receiver>(
+  transmittor: MaybeSignal<Transmittor>,
+  ...receivers: SourceSignal<Receiver>[]
 ): Effect =>
   effect(() => {
     receivers.forEach((receiver) => (receiver.value = value(transmittor)));

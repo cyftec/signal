@@ -577,39 +577,39 @@ export type GenericMethods<InputSignal extends InputSignalType, T> = [
  * @see {@link getArrayMutatingMethods} - The runtime implementation
  */
 export type ArrayMutatingMethods<T extends any[]> = {
-  concat: (
+  concat(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["concat"]>>
-  ) => void;
-  copyWithin: (
+  ): void;
+  copyWithin(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["copyWithin"]>>
-  ) => void;
-  fill: (
+  ): void;
+  fill(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["fill"]>>
-  ) => void;
-  filter: (
+  ): void;
+  filter(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
-  ) => void;
-  pop: (
+  ): void;
+  pop(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["pop"]>>
-  ) => void;
-  push: (
+  ): void;
+  push(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["push"]>>
-  ) => void;
-  shift: (
+  ): void;
+  shift(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["shift"]>>
-  ) => void;
-  toReversed: (
+  ): void;
+  toReversed(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["reverse"]>>
-  ) => void;
-  toSorted: (
+  ): void;
+  toSorted(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["sort"]>>
-  ) => void;
-  toSpliced: (
+  ): void;
+  toSpliced(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["splice"]>>
-  ) => void;
-  unshift: (
+  ): void;
+  unshift(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["unshift"]>>
-  ) => void;
+  ): void;
 };
 
 /**
@@ -639,41 +639,41 @@ export type ArrayIntrinsicNonMutatingMethods<
   InputSignal extends InputSignalType,
   T extends any[],
 > = {
-  at: (
+  at(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["at"]>>
-  ) => DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["at"]>>;
-  concat: (
+  ): DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["at"]>>;
+  concat(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["concat"]>>
-  ) => DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["concat"]>>;
-  every: (
+  ): DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["concat"]>>;
+  every(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["every"]>>
-  ) => DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["every"]>>;
-  filter: (
+  ): DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["every"]>>;
+  filter(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
-  ) => DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["filter"]>>;
-  find: (
+  ): DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["filter"]>>;
+  find(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["find"]>>
-  ) => DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["find"]>>;
-  findIndex: (
+  ): DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["find"]>>;
+  findIndex(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["findIndex"]>>
-  ) => DeriverReturnType<
+  ): DeriverReturnType<
     InputSignal,
     ReturnType<Array<T[number]>["findIndex"]>
   >;
-  findLast: (
+  findLast(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["findLast"]>>
-  ) => DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["findLast"]>>;
-  findLastIndex: (
+  ): DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["findLast"]>>;
+  findLastIndex(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["findLastIndex"]>>
-  ) => DeriverReturnType<
+  ): DeriverReturnType<
     InputSignal,
     ReturnType<Array<T[number]>["findLastIndex"]>
   >;
-  length: () => DeriverReturnType<InputSignal, number>;
-  map: <U>(
+  length(): DeriverReturnType<InputSignal, number>;
+  map<U>(
     mapFn: (item: T[number], index: number, array: T) => U,
-  ) => DeriverReturnType<InputSignal, U[]>;
-  reduce: <U>(
+  ): DeriverReturnType<InputSignal, U[]>;
+  reduce<U>(
     reducerFn: (
       previousValue: U,
       currentValue: T[number],
@@ -681,8 +681,8 @@ export type ArrayIntrinsicNonMutatingMethods<
       array: T,
     ) => U,
     initialValue: MaybeSignal<U>,
-  ) => DeriverReturnType<InputSignal, U>;
-  reduceRight: <U>(
+  ): DeriverReturnType<InputSignal, U>;
+  reduceRight<U>(
     reducerFn: (
       previousValue: U,
       currentValue: T[number],
@@ -690,22 +690,22 @@ export type ArrayIntrinsicNonMutatingMethods<
       array: T,
     ) => U,
     initialValue: MaybeSignal<U>,
-  ) => DeriverReturnType<InputSignal, U>;
-  some: (
+  ): DeriverReturnType<InputSignal, U>;
+  some(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["some"]>>
-  ) => DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["some"]>>;
-  toReversed: (
+  ): DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["some"]>>;
+  toReversed(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["toReversed"]>>
-  ) => DeriverReturnType<
+  ): DeriverReturnType<
     InputSignal,
     ReturnType<Array<T[number]>["toReversed"]>
   >;
-  toSorted: (
+  toSorted(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSorted"]>>
-  ) => DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["toSorted"]>>;
-  toSpliced: (
+  ): DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["toSorted"]>>;
+  toSpliced(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSpliced"]>>
-  ) => DeriverReturnType<
+  ): DeriverReturnType<
     InputSignal,
     ReturnType<Array<T[number]>["toSpliced"]>
   >;
@@ -739,11 +739,11 @@ export type ArrayCustomNonMutatingMethods<
   T extends any[],
 > = {
   /** Last item of the array. */
-  lastItem: () => DeriverReturnType<InputSignal, T[number] | undefined>;
+  lastItem(): DeriverReturnType<InputSignal, T[number] | undefined>;
   /** Custom method that splits the array into `[passing, failing]` based on a predicate. */
-  partition: (
+  partition(
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
-  ) => readonly [
+  ): readonly [
     DeriverReturnType<InputSignal, T>,
     DeriverReturnType<InputSignal, T>,
   ];
@@ -804,7 +804,12 @@ export type ArrayMutatingAndNonMutatingMethods<
   InputSignal extends InputSignalType,
   T extends any[],
 > = {
-  mutate: ArrayMutatingMethods<T>;
+  /**
+   * Source-array mutation is available through every widened array view.
+   * The enclosing signal type supplies the view-specific value type; this
+   * shared mutator surface must not make the signal itself invariant.
+   */
+  mutate: ArrayMutatingMethods<any[]>;
 } & ArrayNonMutatingMethods<InputSignal, T>;
 
 /**
@@ -830,7 +835,7 @@ export type ArrayMutatingAndNonMutatingMethods<
  */
 export type ObjectMutatingMethods<T extends Record<string, any>> = {
   /** Performs a shallow merge with the current value */
-  set: (partiallyNewObjectValue: Partial<T>) => void;
+  set(partiallyNewObjectValue: Partial<T>): void;
 };
 
 /**
@@ -862,11 +867,11 @@ export type ObjectNonMutatingMethods<
   T extends Record<string, any>,
 > = {
   /** Returns the object's keys in a signal matching the base kind. */
-  keys: () => DeriverReturnType<InputSignal, string[]>;
+  keys(): DeriverReturnType<InputSignal, string[]>;
   /** Returns a signal matching the base kind for a specific property. */
-  get: <K extends keyof T>(key: K) => DeriverReturnType<InputSignal, T[K]>;
+  get<K extends keyof T>(key: K): DeriverReturnType<InputSignal, T[K]>;
   /** Returns an object whose property signals match the base kind. */
-  props: () => {
+  props(): {
     [key in keyof T]: DeriverReturnType<InputSignal, T[key]>;
   };
 };

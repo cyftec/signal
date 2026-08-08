@@ -83,7 +83,7 @@ const getExistenceComparisonMethods = <
   inputIsLiveSignal: boolean,
   valueGetter: () => T,
   forTernary: boolean,
-): ExistenceComparison<InputSignal, GenericMethodReturn, T, R> => {
+): ExistenceComparison<InputSignal, GenericMethodReturn, R> => {
   const truthyEvaluator = () => !!valueGetter();
   const falsyEvaluator = () => !valueGetter();
 
@@ -128,7 +128,7 @@ const getExistenceComparisonMethods = <
     falsy: falsyChecker(forTernary),
     equalTo: equalToChecker(forTernary),
     notEqualTo: notEqualToChecker(forTernary),
-  } as ExistenceComparison<InputSignal, GenericMethodReturn, T, R>;
+  } as ExistenceComparison<InputSignal, GenericMethodReturn, R>;
 };
 
 /**

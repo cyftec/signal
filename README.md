@@ -87,7 +87,7 @@ Live inputs return reactive `DerivedSignal` results. `deadSignal(...)` inputs re
 - `op` for the older chainable operation API
 - `value` and the `valueIs...` runtime type guards
 
-See the source-backed contracts in [`docs-architecture/semantics.md`](./docs-architecture/semantics.md), the API inventory in [`docs-architecture/behavior.md`](./docs-architecture/behavior.md), and the contributor model in [`docs-architecture/overview.md`](./docs-architecture/overview.md).
+See the source-backed contracts in [`docs-architecture/semantics.md`](./docs-architecture/semantics.md), the API inventory in [`docs-architecture/behavior.md`](./docs-architecture/behavior.md), the signal-widening contract in [`docs-architecture/type-variance.md`](./docs-architecture/type-variance.md), and the contributor model in [`docs-architecture/overview.md`](./docs-architecture/overview.md).
 
 ## Development
 
