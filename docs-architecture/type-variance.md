@@ -220,6 +220,31 @@ Required groups:
 10. Runtime companion tests for writes through a widened source view, especially
     array source mutators, object `set`, and direct `.value` assignment.
 
+## Runtime regression matrix
+
+`tests/variance.test.ts` is the runtime companion. It must exercise the
+declared widening assignment before invoking a helper; merely testing the same
+helper on an inferred wide signal does not cover this contract.
+
+The matrix covers:
+
+- every source-array mutator through `SourceSignal<Narrow[]>` viewed as
+  `SourceSignal<Wide[]>`, including insertion of a wide-only element;
+- every array projection through widened source, derived, and dead signals;
+- live recomputation after a wide source write and dead-snapshot result kinds;
+- `partition` passing and failing outputs, `thisArg`, and signal-valued method
+  operands;
+- required-to-optional object property widening, `set`, `get`, and fixed-key
+  `props` behavior;
+- literal-to-primitive, primitive-to-union, string, number, boolean, and
+  generic logical helper paths; and
+- `receive` and `transmit` for narrow source, derived, dead, and plain
+  transmitters, including disposal and widened writes made by a transmitter.
+
+The normal data-method suites remain responsible for the full behavior of each
+method independent of variance. The variance suite proves that the same
+runtime branches remain correct when reached through a widened signal view.
+
 The positive assertions are the primary contract. Negative tests protect only
 plain-value-incompatible directions; they must not reject a narrower signal
 where the corresponding plain narrow value is accepted.

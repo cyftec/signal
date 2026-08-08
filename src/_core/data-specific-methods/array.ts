@@ -283,7 +283,7 @@ export const getArrayIntrinsicNonMutatingMethods = <
           ) as T[number][],
       ),
     toSpliced: (
-      ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSpliced"]>>
+      ...args: MaybeSignalValues<Parameters<Array<T[number]>["splice"]>>
     ) =>
       deriveFromBase(
         () =>
@@ -341,15 +341,19 @@ export const getArrayCustomNonMutatingMethods = <
       ...args: MaybeSignalValues<Parameters<Array<T[number]>["filter"]>>
     ) => {
       const conditionPassArray = deriveFromBase(
-        () =>
-          baseArraySignal.value.filter(...getPlainMethodParams(...args)) as T,
+        () => {
+          const [predicate, thisArg] = getPlainMethodParams(...args);
+          return baseArraySignal.value.filter(predicate, thisArg) as T;
+        },
       );
       const conditionFailArray = deriveFromBase(
-        () =>
-          baseArraySignal.value.filter(
+        () => {
+          const [predicate, thisArg] = getPlainMethodParams(...args);
+          return baseArraySignal.value.filter(
             (item, index, array) =>
-              !args[0].call(value(args[1]), item, index, array),
-          ) as T,
+              !predicate.call(thisArg, item, index, array),
+          ) as T;
+        },
       );
       return [conditionPassArray, conditionFailArray];
     },

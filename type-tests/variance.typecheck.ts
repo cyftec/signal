@@ -91,8 +91,64 @@ sourceArray.mutate.toReversed();
 sourceArray.mutate.toSorted((left, right) =>
   left.title.localeCompare(right.title),
 );
-sourceArray.mutate.toSpliced(0, 0);
+sourceArray.mutate.toSpliced(0, 0, { title: "spliced" });
 sourceArray.mutate.unshift({ title: "unshift" });
+
+// A widened source view has the same widened projection surface as a derived view.
+expectTypeOf(sourceArray.at(0)).toEqualTypeOf<
+  DerivedSignal<WideObject | undefined>
+>();
+expectTypeOf(sourceArray.concat({ title: "concat" })).toEqualTypeOf<
+  DerivedSignal<WideArray>
+>();
+expectTypeOf(sourceArray.every((item) => !!item.href)).toEqualTypeOf<
+  DerivedSignal<boolean>
+>();
+expectTypeOf(sourceArray.filter((item) => !!item.href)).toEqualTypeOf<
+  DerivedSignal<WideArray>
+>();
+expectTypeOf(sourceArray.find((item) => !!item.href)).toEqualTypeOf<
+  DerivedSignal<WideObject | undefined>
+>();
+expectTypeOf(sourceArray.findIndex((item) => !!item.href)).toEqualTypeOf<
+  DerivedSignal<number>
+>();
+expectTypeOf(sourceArray.findLast((item) => !!item.href)).toEqualTypeOf<
+  DerivedSignal<WideObject | undefined>
+>();
+expectTypeOf(sourceArray.findLastIndex((item) => !!item.href)).toEqualTypeOf<
+  DerivedSignal<number>
+>();
+expectTypeOf(sourceArray.length()).toEqualTypeOf<DerivedSignal<number>>();
+expectTypeOf(sourceArray.map((item) => item.href)).toEqualTypeOf<
+  DerivedSignal<(string | undefined)[]>
+>();
+expectTypeOf(
+  sourceArray.reduce((all, item) => all + item.title, ""),
+).toEqualTypeOf<DerivedSignal<string>>();
+expectTypeOf(
+  sourceArray.reduceRight((all, item) => all + item.title, ""),
+).toEqualTypeOf<DerivedSignal<string>>();
+expectTypeOf(sourceArray.some((item) => !!item.href)).toEqualTypeOf<
+  DerivedSignal<boolean>
+>();
+expectTypeOf(sourceArray.toReversed()).toEqualTypeOf<
+  DerivedSignal<WideArray>
+>();
+expectTypeOf(
+  sourceArray.toSorted((left, right) =>
+    left.title.localeCompare(right.title),
+  ),
+).toEqualTypeOf<DerivedSignal<WideArray>>();
+expectTypeOf(
+  sourceArray.toSpliced(0, 0, { title: "spliced" }),
+).toEqualTypeOf<DerivedSignal<WideArray>>();
+expectTypeOf(sourceArray.lastItem()).toEqualTypeOf<
+  DerivedSignal<WideObject | undefined>
+>();
+expectTypeOf(sourceArray.partition((item) => !!item.href)).toEqualTypeOf<
+  readonly [DerivedSignal<WideArray>, DerivedSignal<WideArray>]
+>();
 
 // Every array projection uses the widened element type at the call site.
 expectTypeOf(derivedArray.at(0)).toEqualTypeOf<
@@ -138,7 +194,7 @@ expectTypeOf(derivedArray.toReversed()).toEqualTypeOf<
 expectTypeOf(
   derivedArray.toSorted((left, right) => left.title.localeCompare(right.title)),
 ).toEqualTypeOf<DerivedSignal<WideArray>>();
-expectTypeOf(derivedArray.toSpliced(0, 0)).toEqualTypeOf<
+expectTypeOf(derivedArray.toSpliced(0, 0, { title: "spliced" })).toEqualTypeOf<
   DerivedSignal<WideArray>
 >();
 expectTypeOf(derivedArray.lastItem()).toEqualTypeOf<
@@ -151,10 +207,48 @@ expectTypeOf(derivedArray.partition((item) => !!item.href)).toEqualTypeOf<
 expectTypeOf(deadArray.concat({ title: "concat" })).toEqualTypeOf<
   DeadSignal<WideArray>
 >();
+expectTypeOf(deadArray.at(0)).toEqualTypeOf<
+  DeadSignal<WideObject | undefined>
+>();
+expectTypeOf(deadArray.every((item) => !!item.href)).toEqualTypeOf<
+  DeadSignal<boolean>
+>();
+expectTypeOf(deadArray.filter((item) => !!item.href)).toEqualTypeOf<
+  DeadSignal<WideArray>
+>();
 expectTypeOf(deadArray.map((item) => item.href)).toEqualTypeOf<
   DeadSignal<(string | undefined)[]>
 >();
 expectTypeOf(deadArray.find((item) => !!item.href)).toEqualTypeOf<
+  DeadSignal<WideObject | undefined>
+>();
+expectTypeOf(deadArray.findIndex((item) => !!item.href)).toEqualTypeOf<
+  DeadSignal<number>
+>();
+expectTypeOf(deadArray.findLast((item) => !!item.href)).toEqualTypeOf<
+  DeadSignal<WideObject | undefined>
+>();
+expectTypeOf(deadArray.findLastIndex((item) => !!item.href)).toEqualTypeOf<
+  DeadSignal<number>
+>();
+expectTypeOf(deadArray.length()).toEqualTypeOf<DeadSignal<number>>();
+expectTypeOf(
+  deadArray.reduce((all, item) => all + item.title, ""),
+).toEqualTypeOf<DeadSignal<string>>();
+expectTypeOf(
+  deadArray.reduceRight((all, item) => all + item.title, ""),
+).toEqualTypeOf<DeadSignal<string>>();
+expectTypeOf(deadArray.some((item) => !!item.href)).toEqualTypeOf<
+  DeadSignal<boolean>
+>();
+expectTypeOf(deadArray.toReversed()).toEqualTypeOf<DeadSignal<WideArray>>();
+expectTypeOf(
+  deadArray.toSorted((left, right) => left.title.localeCompare(right.title)),
+).toEqualTypeOf<DeadSignal<WideArray>>();
+expectTypeOf(deadArray.toSpliced(0, 0, { title: "spliced" })).toEqualTypeOf<
+  DeadSignal<WideArray>
+>();
+expectTypeOf(deadArray.lastItem()).toEqualTypeOf<
   DeadSignal<WideObject | undefined>
 >();
 expectTypeOf(deadArray.partition((item) => !!item.href)).toEqualTypeOf<

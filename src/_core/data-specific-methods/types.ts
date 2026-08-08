@@ -704,7 +704,7 @@ export type ArrayIntrinsicNonMutatingMethods<
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSorted"]>>
   ): DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["toSorted"]>>;
   toSpliced(
-    ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSpliced"]>>
+    ...args: MaybeSignalValues<Parameters<Array<T[number]>["splice"]>>
   ): DeriverReturnType<
     InputSignal,
     ReturnType<Array<T[number]>["toSpliced"]>
