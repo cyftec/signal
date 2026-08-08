@@ -1,5 +1,6 @@
 import type {
   DeadSignal,
+  DerivedOrDeadSignal,
   DerivedSignal,
   MaybeSignal,
   MaybeSignalValues,
@@ -227,7 +228,8 @@ export type GenericMethodReturnType = "ternary" | "deriver";
  * Maps an input's liveness category to its projection signal type.
  *
  * Live inputs return `DerivedSignal<T>` while non-live inputs return
- * `DeadSignal<T>`.
+ * `DeadSignal<T>`. A statically mixed liveness input returns the public
+ * `DerivedOrDeadSignal<T>` union alias.
  *
  * @template InputSignal - The input liveness category
  * @template T - The projected value type
@@ -239,15 +241,19 @@ export type GenericMethodReturnType = "ternary" | "deriver";
  * ```typescript
  * type LiveNumber = DeriverReturnType<"live", number>; // DerivedSignal<number>
  * type DeadNumber = DeriverReturnType<"non-live", number>; // DeadSignal<number>
+ * type MixedNumber = DeriverReturnType<"live" | "non-live", number>;
+ * // DerivedOrDeadSignal<number>
  * ```
  *
  * @see {@link InputSignalType} - The mapping key
  * @see {@link ComparisonReturnType} - For comparison-specific mapping
  */
-export type DeriverReturnType<InputSignal extends InputSignalType, T> = {
-  live: DerivedSignal<T>;
-  "non-live": DeadSignal<T>;
-}[InputSignal];
+export type DeriverReturnType<InputSignal extends InputSignalType, T> =
+  [InputSignal] extends ["live"]
+    ? DerivedSignal<T>
+    : [InputSignal] extends ["non-live"]
+      ? DeadSignal<T>
+      : DerivedOrDeadSignal<T>;
 
 /**
  * Defines the fallback method available to supported primitive values.

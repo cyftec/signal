@@ -4,6 +4,7 @@ import {
   type DerivedOrDeadSignal,
   type DerivedSignal,
   type LiveSignal,
+  type Signal,
   deadSignal,
   derive,
   nullable,
@@ -16,6 +17,7 @@ const deadNullable = deadSignal<string | null>(null);
 declare const hybridNullable:
   | LiveSignal<string | null>
   | DeadSignal<string | null>;
+declare const maybeNullableNumber: Signal<number | undefined> | undefined;
 
 expectTypeOf(liveNullableSource.or("fallback")).toEqualTypeOf<
   DerivedSignal<string>
@@ -26,6 +28,9 @@ expectTypeOf(liveNullableDerived.or("fallback")).toEqualTypeOf<
 expectTypeOf(deadNullable.or("fallback")).toEqualTypeOf<DeadSignal<string>>();
 expectTypeOf(hybridNullable.or("fallback")).toEqualTypeOf<
   DerivedOrDeadSignal<string>
+>();
+expectTypeOf(nullable(maybeNullableNumber).or(16)).toEqualTypeOf<
+  DerivedOrDeadSignal<number>
 >();
 
 expectTypeOf(liveNullableSource.is.equalTo(null)).toEqualTypeOf<
