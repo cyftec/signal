@@ -360,9 +360,10 @@ Chaining builds evaluators; requesting a result creates a derived signal. Runtim
 
 ```ts
 value<T>(input: MaybeSignal<T> | BaseSignal<T>): T
+value<I>(input: I): PlainValue<I>
 ```
 
-Returns `.value` for source, derived, or dead signals and returns a plain input unchanged. A live unwrap performed during initial effect collection registers the dependency.
+Returns `.value` for source, derived, or dead signals and returns a plain input unchanged. The first overload preserves an explicit `T`; the fallback overload preserves the exact input union and conditionally unwraps its outer signal branches. Nested signals in a plain array or object remain part of that plain value. A live unwrap performed during initial effect collection registers the dependency.
 
 ### `getPlainMethodParams`
 

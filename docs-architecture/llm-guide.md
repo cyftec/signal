@@ -19,7 +19,7 @@ effect(callback)  → immediate synchronous observer
 Five rules prevent most mistakes:
 
 1. Effects and derives collect dependencies only during their initial execution.
-2. `value(liveSignal)` is a tracked read; it does not opt out of reactivity.
+2. `value(liveSignal)` is a tracked read; it does not opt out of reactivity. It unwraps only an outer signal, never signals nested inside a plain container.
 3. Updates are synchronous and unbatched.
 4. Source mutations use `.mutate`; read-only data methods return signals.
 5. Effect and derived disposal is immediate, and disposing one twice throws.

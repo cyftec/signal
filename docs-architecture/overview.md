@@ -208,7 +208,7 @@ This same factory powers methods attached to signals and the public `nullable(..
 
 ### Unwrapping
 
-`value(input)` calls `.value` for every source, derived, or dead signal. For a live signal, that means unwrapping is a tracked read during initial collection. `compute`, connectors, operation evaluators, and parameter unwrapping rely on this behavior.
+`value(input)` calls `.value` for every source, derived, or dead signal. It only inspects the outer input, so a plain container of signals is returned as that container without recursively reading its members. For a live outer signal, unwrapping is a tracked read during initial collection. `compute`, connectors, operation evaluators, and parameter unwrapping rely on this behavior.
 
 ### Connectors
 

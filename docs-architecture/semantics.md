@@ -259,7 +259,7 @@ Current limitation: the operation family is fixed at construction and is not red
 
 Guarantees:
 
-- `value(input)` unwraps source, derived, and dead signals; plain values are returned unchanged.
+- `value(input)` unwraps source, derived, and dead signals; plain values are returned unchanged. Unwrapping applies only to the outer input: a plain array or object that contains signals remains plain and retains those nested signals.
 - Unwrapping a live signal during initial dependency collection tracks it.
 - `getPlainMethodParams(...inputs)` applies `value(...)` to each input in order.
 - `valueIsSourceSignal`, `valueIsDerivedSignal`, `valueIsLiveSignal`, `valueIsDeadSignal`, and `valueIsSignal` discriminate using the `type` field.
