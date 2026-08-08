@@ -56,6 +56,18 @@ export type IsObjectLiteral<T> = T extends object
 export type IsArray<T> = T extends readonly unknown[] ? true : false;
 
 /**
+ * Determines whether a type is exactly `any`.
+ *
+ * This guard is needed before method selection because conditional types
+ * involving `any` can otherwise satisfy unrelated branches. For example,
+ * `IsArray<any>` resolves to `boolean`, which must not cause an arbitrary
+ * projected value to receive the array method surface.
+ *
+ * @template T - The type to inspect.
+ */
+type IsExactlyAny<T> = 0 extends 1 & T ? true : false;
+
+/**
  * Tests whether two types are exactly assignable in both directions.
  *
  * Returns `true` for an exact match and `never` when either directional check
@@ -213,10 +225,7 @@ export type GenericMethodReturnType = "ternary" | "deriver";
  * @see {@link InputSignalType} - The mapping key
  * @see {@link ComparisonReturnType} - For comparison-specific mapping
  */
-export type DeriverReturnType<
-  InputSignal extends InputSignalType,
-  T,
-> = {
+export type DeriverReturnType<InputSignal extends InputSignalType, T> = {
   live: DerivedSignal<T>;
   "non-live": DeadSignal<T>;
 }[InputSignal];
@@ -518,12 +527,14 @@ export type IsAndIfComparison<
  */
 export type GenericMethods<InputSignal extends InputSignalType, T> = [
   true,
-] extends [IsExactly<T, Record<string, any>>]
-  ? {}
-  : [true] extends [HasPrimitive<T>]
-    ? LogicalOrAlternative<InputSignal, Extract<T, Primitive>> &
-        IsAndIfComparison<InputSignal, Extract<T, Primitive>>
-    : IsAndIfComparison<InputSignal, any[]>;
+] extends [IsExactlyAny<T>]
+  ? IsAndIfComparison<InputSignal, any[]>
+  : [true] extends [IsExactly<T, Record<string, any>>]
+    ? {}
+    : [true] extends [HasPrimitive<T>]
+      ? LogicalOrAlternative<InputSignal, Extract<T, Primitive>> &
+          IsAndIfComparison<InputSignal, Extract<T, Primitive>>
+      : IsAndIfComparison<InputSignal, any[]>;
 
 /**
  * Intrinsic mutating methods for array signals.
@@ -674,10 +685,7 @@ export type ArrayIntrinsicNonMutatingMethods<
   >;
   toSorted: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSorted"]>>
-  ) => DeriverReturnType<
-    InputSignal,
-    ReturnType<Array<T[number]>["toSorted"]>
-  >;
+  ) => DeriverReturnType<InputSignal, ReturnType<Array<T[number]>["toSorted"]>>;
   toSpliced: (
     ...args: MaybeSignalValues<Parameters<Array<T[number]>["toSpliced"]>>
   ) => DeriverReturnType<
@@ -839,9 +847,7 @@ export type ObjectNonMutatingMethods<
   /** Returns the object's keys in a signal matching the base kind. */
   keys: () => DeriverReturnType<InputSignal, string[]>;
   /** Returns a signal matching the base kind for a specific property. */
-  get: <K extends keyof T>(
-    key: K,
-  ) => DeriverReturnType<InputSignal, T[K]>;
+  get: <K extends keyof T>(key: K) => DeriverReturnType<InputSignal, T[K]>;
   /** Returns an object whose property signals match the base kind. */
   props: () => {
     [key in keyof T]: DeriverReturnType<InputSignal, T[key]>;
@@ -875,8 +881,10 @@ export type ObjectNonMutatingMethods<
 export type ObjectMutatingAndNonMutatingMethods<
   InputSignal extends InputSignalType,
   T extends Record<string, any>,
-> = { mutate: ObjectMutatingMethods<T> } &
-  ObjectNonMutatingMethods<InputSignal, T>;
+> = { mutate: ObjectMutatingMethods<T> } & ObjectNonMutatingMethods<
+  InputSignal,
+  T
+>;
 
 /**
  * Represents values accepted as the search operand of string replacement.
@@ -1401,18 +1409,19 @@ export type BooleanMutatingAndNonMutatingMethods = {
  * @see {@link MutatingAndNonMutatingMethods} - For source-signal method selection
  * @see {@link getNonMutatingDataMethods} - The runtime dispatcher
  */
-export type NonMutatingMethods<
-  InputSignal extends InputSignalType,
-  T,
-> = [true] extends [IsArray<T>]
-  ? ArrayNonMutatingMethods<InputSignal, Extract<T, any[]>>
-  : [true] extends [IsObjectLiteral<T>]
-    ? ObjectNonMutatingMethods<InputSignal, Extract<T, Record<string, any>>>
-    : [true] extends [IsExactly<T, string>]
-      ? StringNonMutatingMethods<InputSignal>
-      : [true] extends [IsExactly<T, number>]
-        ? NumberNonMutatingMethods<InputSignal>
-        : {};
+export type NonMutatingMethods<InputSignal extends InputSignalType, T> = [
+  true,
+] extends [IsExactlyAny<T>]
+  ? {}
+  : [true] extends [IsArray<T>]
+    ? ArrayNonMutatingMethods<InputSignal, Extract<T, any[]>>
+    : [true] extends [IsObjectLiteral<T>]
+      ? ObjectNonMutatingMethods<InputSignal, Extract<T, Record<string, any>>>
+      : [true] extends [IsExactly<T, string>]
+        ? StringNonMutatingMethods<InputSignal>
+        : [true] extends [IsExactly<T, number>]
+          ? NumberNonMutatingMethods<InputSignal>
+          : {};
 
 /**
  * Selects the full data-specific method surface for a source value.
