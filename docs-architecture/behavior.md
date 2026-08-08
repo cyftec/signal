@@ -112,6 +112,8 @@ type DerivedOrDeadSignal<T> = DerivedSignal<T> | DeadSignal<T>;
 
 Related helpers include `MaybeSourceSignal`, `MaybeDerivedSignal`, `MaybeDeadSignal`, `MaybeSignalValues`, `PlainValue`, `PlainValues`, and `NonNullSignalValue`.
 
+A signal with a narrower value type is accepted where the same signal kind has a wider union value type. For example, `SourceSignal<string>` is valid as `SourceSignal<string | number>`; the same applies to derived, dead, and composed signal input types. A mixed value union exposes only data-specific helpers available on every branch, so string-only and number-only helpers are unavailable on `SourceSignal<string | number>`.
+
 ## Attached data methods
 
 Data-specific methods are attached from the dispatch value available at construction. Mutators exist only on source signals and are nested under `.mutate`. Read-only methods return a `DerivedSignal` for live inputs and a `DeadSignal` for dead inputs.

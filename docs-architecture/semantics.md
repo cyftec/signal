@@ -134,6 +134,8 @@ Guarantees:
 - The same methods on a dead signal return `DeadSignal` snapshots.
 - Signal-valued method parameters are unwrapped with `value(...)`; live parameters therefore become dependencies of live results.
 - Unsupported value kinds remain usable as base signals without data-specific methods.
+- A narrower signal is assignable to the corresponding signal type with a wider value union. For example, `SourceSignal<string>` is assignable to `SourceSignal<string | number>`.
+- A signal whose value type spans multiple method families exposes only the data-specific helpers shared by every possible branch. Thus `SourceSignal<string | number>` exposes neither string-only nor number-only helpers until it is narrowed.
 
 ### Arrays
 

@@ -1,4 +1,5 @@
 import {
+  DataMethodValue,
   GenericMethods,
   getGenericMethods,
   NonMutatingMethods,
@@ -35,9 +36,17 @@ import { BaseDerivedSignal } from "./types";
  * @see {@link SourceSignal} - Represents a mutable live signal.
  * @see {@link DeadSignal} - Represents a non-live snapshot.
  */
+type IsAny<T> = 0 extends 1 & T ? true : false;
+
+type DerivedSignalMethods<T> = IsAny<T> extends true
+  ? {}
+  : T extends unknown
+    ? GenericMethods<"live", DataMethodValue<T>> &
+        NonMutatingMethods<"live", DataMethodValue<T>>
+    : never;
+
 export type DerivedSignal<T> = BaseDerivedSignal<T> &
-  NonMutatingMethods<"live", T> &
-  GenericMethods<"live", T>;
+  DerivedSignalMethods<T>;
 
 /**
  * Describes the evaluator accepted by `derive`.

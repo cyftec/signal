@@ -180,6 +180,8 @@ Source method bundles combine:
 
 Derived bundles contain only live read-only methods. Dead bundles contain the same read-only method names, but their results are dead snapshots.
 
+At the type level, a value union distributes the eligible helper surface while preserving the signal's full value type. This allows `SourceSignal<string>` to satisfy `SourceSignal<string | number>`, but prevents string-only or number-only helpers from being called on the mixed signal without narrowing.
+
 All maybe-signal method parameters flow through `value(...)`. On a live result's initial derivation, this captures both the base signal and every live parameter that is read.
 
 ## Generic method architecture

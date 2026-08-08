@@ -102,7 +102,7 @@ const getExistenceComparisonMethods = <
         : deadSignal(falsyEvaluator());
 
   const equalToChecker =
-    (forTernaryThen: boolean) => (compareValue: MaybeSignal<T>) => {
+    (forTernaryThen: boolean) => (compareValue: MaybeSignal<unknown>) => {
       const equalityEvaluator = () =>
         valueGetter() === (value(compareValue) as T);
       return forTernaryThen
@@ -113,7 +113,7 @@ const getExistenceComparisonMethods = <
     };
 
   const notEqualToChecker =
-    (forTernaryThen: boolean) => (compareValue: MaybeSignal<T>) => {
+    (forTernaryThen: boolean) => (compareValue: MaybeSignal<unknown>) => {
       const notEqualityEvaluator = () =>
         valueGetter() !== (value(compareValue) as T);
       return forTernaryThen

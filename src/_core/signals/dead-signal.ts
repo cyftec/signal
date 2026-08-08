@@ -1,4 +1,5 @@
 import {
+  DataMethodValue,
   GenericMethods,
   getGenericMethods,
   NonMutatingMethods,
@@ -33,9 +34,17 @@ import { BaseDeadSignal } from "./types";
  * @see {@link LiveSignal} - Represents reactive signals.
  * @see {@link valueIsDeadSignal} - Checks the runtime discriminator.
  */
+type IsAny<T> = 0 extends 1 & T ? true : false;
+
+type DeadSignalMethods<T> = IsAny<T> extends true
+  ? {}
+  : T extends unknown
+    ? GenericMethods<"non-live", DataMethodValue<T>> &
+        NonMutatingMethods<"non-live", DataMethodValue<T>>
+    : never;
+
 export type DeadSignal<T> = BaseDeadSignal<T> &
-  NonMutatingMethods<"non-live", T> &
-  GenericMethods<"non-live", T>;
+  DeadSignalMethods<T>;
 
 /**
  * Wraps a value in a read-only, non-reactive signal snapshot.

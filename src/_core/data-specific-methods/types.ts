@@ -68,6 +68,25 @@ export type IsArray<T> = T extends readonly unknown[] ? true : false;
 type IsExactlyAny<T> = 0 extends 1 & T ? true : false;
 
 /**
+ * Normalizes a distributed value branch before selecting data-specific methods.
+ *
+ * @template T - One member of a signal value union.
+ */
+export type DataMethodValue<T> = [true] extends [IsExactlyAny<T>]
+  ? T
+  : T extends string
+    ? string
+    : T extends number
+      ? number
+      : T extends boolean
+        ? boolean
+        : T extends bigint
+          ? bigint
+          : T extends symbol
+            ? symbol
+            : T;
+
+/**
  * Tests whether two types are exactly assignable in both directions.
  *
  * Returns `true` for an exact match and `never` when either directional check
@@ -324,7 +343,7 @@ export type ComparisonReturnType<
  *
  * @template InputSignal - The input liveness category
  * @template GenericMethodReturn - Whether methods return signals or ternary continuations
- * @template P - The primitive value type being compared
+ * @template P - Retained primitive value type parameter
  * @template R - The resolved comparison result type
  *
  * @remarks
@@ -347,13 +366,12 @@ export type ComparisonReturnType<
 export type ExistenceComparison<
   InputSignal extends InputSignalType,
   GenericMethodReturn extends GenericMethodReturnType,
-  P extends Primitive,
   R extends ComparisonReturnType<InputSignal, GenericMethodReturn>,
 > = {
   truthy: () => R;
   falsy: () => R;
-  equalTo: (compareValue: MaybeSignal<P>) => R;
-  notEqualTo: (compareValue: MaybeSignal<P>) => R;
+  equalTo: (compareValue: MaybeSignal<unknown>) => R;
+  notEqualTo: (compareValue: MaybeSignal<unknown>) => R;
 };
 
 /**
@@ -423,7 +441,6 @@ export type Comparison<
 > = ExistenceComparison<
   InputSignal,
   GenericMethodReturn,
-  P,
   ComparisonReturnType<InputSignal, GenericMethodReturn>
 > &
   (P extends number

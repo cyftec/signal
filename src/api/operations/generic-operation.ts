@@ -40,7 +40,7 @@ export const genericOp = <T>(
 
   const opResultGetters: OperationResult = {
     get result() {
-      return derive(() => evaluator() as any);
+      return derive<unknown>(() => evaluator());
     },
     get truthy() {
       return derive(() => !!evaluator());

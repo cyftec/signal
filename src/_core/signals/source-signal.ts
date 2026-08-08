@@ -1,4 +1,5 @@
 import {
+  DataMethodValue,
   GenericMethods,
   getGenericMethods,
   MutatingAndNonMutatingMethods,
@@ -33,9 +34,17 @@ import { BaseSourceSignal } from "./types";
  * @see {@link DerivedSignal} - Represents a read-only live signal.
  * @see {@link DeadSignal} - Represents a non-live signal snapshot.
  */
+type IsAny<T> = 0 extends 1 & T ? true : false;
+
+type SourceSignalMethods<T> = IsAny<T> extends true
+  ? {}
+  : T extends unknown
+    ? GenericMethods<"live", DataMethodValue<T>> &
+        MutatingAndNonMutatingMethods<"live", DataMethodValue<T>>
+    : never;
+
 export type SourceSignal<T> = BaseSourceSignal<T> &
-  MutatingAndNonMutatingMethods<"live", T> &
-  GenericMethods<"live", T>;
+  SourceSignalMethods<T>;
 
 /**
  * Creates a mutable live signal from a JavaScript value.
@@ -75,7 +84,7 @@ export const signal = <T>(
 ): SourceSignal<T> => {
   const sourceSignal = getBaseSignal(initialValue) as BaseSourceSignal<T>;
   Object.assign(sourceSignal, { type: "source-signal" });
-  Object.assign(sourceSignal, getGenericMethods<"live", T>(sourceSignal));
+  Object.assign(sourceSignal, getGenericMethods<"live", T>(sourceSignal as any));
   Object.assign(
     sourceSignal,
     getMutatingAndNonMutatingDataMethods<"live", T>(
